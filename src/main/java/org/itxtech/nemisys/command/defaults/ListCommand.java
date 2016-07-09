@@ -11,8 +11,8 @@ import org.itxtech.nemisys.event.TranslationContainer;
 public class ListCommand extends VanillaCommand {
 
     public ListCommand(String name) {
-        super(name, "%nukkit.command.list.description", "%commands.players.usage");
-        this.setPermission("nukkit.command.list");
+        super(name, "%nemisys.command.list.description", "%commands.players.usage");
+        this.setPermission("nemisys.command.list");
     }
 
     @Override

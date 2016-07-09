@@ -7,7 +7,7 @@ import org.itxtech.nemisys.item.food.Food;
 
 /**
  * Created by Snake1999 on 2016/1/14.
- * Package org.itxtech.nemisys.event.player in project nukkit.
+ * Package org.itxtech.nemisys.event.player in project nemisys.
  */
 public class PlayerEatFoodEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();

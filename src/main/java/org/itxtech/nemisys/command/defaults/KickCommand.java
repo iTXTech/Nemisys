@@ -13,8 +13,8 @@ import org.itxtech.nemisys.utils.TextFormat;
 public class KickCommand extends VanillaCommand {
 
     public KickCommand(String name) {
-        super(name, "%nukkit.command.kick.description", "%commands.kick.usage");
-        this.setPermission("nukkit.command.kick");
+        super(name, "%nemisys.command.kick.description", "%commands.kick.usage");
+        this.setPermission("nemisys.command.kick");
     }
 
     @Override

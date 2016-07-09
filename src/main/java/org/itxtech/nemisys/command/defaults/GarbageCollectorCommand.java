@@ -2,7 +2,7 @@ package org.itxtech.nemisys.command.defaults;
 
 import org.itxtech.nemisys.command.CommandSender;
 import org.itxtech.nemisys.level.Level;
-import org.itxtech.nemisys.math.NukkitMath;
+import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.utils.TextFormat;
 
 /**
@@ -12,8 +12,8 @@ import org.itxtech.nemisys.utils.TextFormat;
 public class GarbageCollectorCommand extends VanillaCommand {
 
     public GarbageCollectorCommand(String name) {
-        super(name, "%nukkit.command.gc.description", "%nukkit.command.gc.usage");
-        this.setPermission("nukkit.command.gc");
+        super(name, "%nemisys.command.gc.description", "%nemisys.command.gc.usage");
+        this.setPermission("nemisys.command.gc");
     }
 
     @Override
@@ -47,7 +47,7 @@ public class GarbageCollectorCommand extends VanillaCommand {
         sender.sendMessage(TextFormat.GOLD + "Chunks: " + TextFormat.RED + chunksCollected);
         sender.sendMessage(TextFormat.GOLD + "Entities: " + TextFormat.RED + entitiesCollected);
         sender.sendMessage(TextFormat.GOLD + "Block Entities: " + TextFormat.RED + tilesCollected);
-        sender.sendMessage(TextFormat.GOLD + "Memory freed: " + TextFormat.RED + NukkitMath.round((freedMemory / 1024d / 1024d), 2) + " MB");
+        sender.sendMessage(TextFormat.GOLD + "Memory freed: " + TextFormat.RED + NemisysMath.round((freedMemory / 1024d / 1024d), 2) + " MB");
         return true;
     }
 }

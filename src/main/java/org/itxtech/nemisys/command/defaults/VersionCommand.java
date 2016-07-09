@@ -17,11 +17,11 @@ public class VersionCommand extends VanillaCommand {
 
     public VersionCommand(String name) {
         super(name,
-                "%nukkit.command.version.description",
-                "%nukkit.command.version.usage",
+                "%nemisys.command.version.description",
+                "%nemisys.command.version.usage",
                 new String[]{"ver", "about"}
         );
-        this.setPermission("nukkit.command.version");
+        this.setPermission("nemisys.command.version");
     }
 
     @Override
@@ -30,7 +30,7 @@ public class VersionCommand extends VanillaCommand {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(new TranslationContainer("nukkit.server.info.extended", new String[]{
+            sender.sendMessage(new TranslationContainer("nemisys.server.info.extended", new String[]{
                     sender.getServer().getName(),
                     sender.getServer().getNukkitVersion(),
                     sender.getServer().getCodename(),
@@ -76,7 +76,7 @@ public class VersionCommand extends VanillaCommand {
                     sender.sendMessage("Authors: " + authorsString[0]);
                 }
             } else {
-                sender.sendMessage(new TranslationContainer("nukkit.command.version.noSuchPlugin"));
+                sender.sendMessage(new TranslationContainer("nemisys.command.version.noSuchPlugin"));
             }
         }
         return true;

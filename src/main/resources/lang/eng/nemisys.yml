@@ -1,0 +1,24 @@
+# Advanced configuration file for Nukkit
+# Some of these settings are safe, others can break your server if modified incorrectly
+# New settings/defaults won't appear automatically on this file when upgrading.
+
+settings:
+ #Multi-language setting
+ #Available: eng, chs, cht, jpn, rus, spa, pol, bra, kor
+ language: "eng"
+ #Whether to send all strings translated to server locale or let the device handle them
+ force-language: false
+ shutdown-message: "Server closed"
+ #Allow listing plugins via Query
+ query-plugins: true
+ #Show a console message when a plugin uses deprecated API methods
+ deprecated-verbose: true
+ #Number of AsyncTask workers
+ #If set to auto, it'll try to detect the number of cores (and at least 4)
+ async-workers: auto
+
+debug:
+ #If > 1, it will show debug messages in the console
+ level: 1
+ #Enables commands: /status /gc
+ commands: false

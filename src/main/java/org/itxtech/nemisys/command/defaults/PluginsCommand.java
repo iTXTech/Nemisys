@@ -15,11 +15,11 @@ public class PluginsCommand extends VanillaCommand {
 
     public PluginsCommand(String name) {
         super(name,
-                "%nukkit.command.plugins.description",
-                "%nukkit.command.plugins.usage",
+                "%nemisys.command.plugins.description",
+                "%nemisys.command.plugins.usage",
                 new String[]{"pl"}
         );
-        this.setPermission("nukkit.command.plugins");
+        this.setPermission("nemisys.command.plugins");
     }
 
     @Override
@@ -43,6 +43,6 @@ public class PluginsCommand extends VanillaCommand {
             list += plugin.getDescription().getFullName();
         }
 
-        sender.sendMessage(new TranslationContainer("nukkit.command.plugins.success", new String[]{String.valueOf(plugins.size()), list}));
+        sender.sendMessage(new TranslationContainer("nemisys.command.plugins.success", new String[]{String.valueOf(plugins.size()), list}));
     }
 }

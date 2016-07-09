@@ -24,8 +24,8 @@ public class TimingsCommand extends VanillaCommand {
     public static long timingStart = 0;
 
     public TimingsCommand(String name) {
-        super(name, "%nukkit.command.timings.description", "%nukkit.command.timings.usage");
-        this.setPermission("nukkit.command.timings");
+        super(name, "%nemisys.command.timings.description", "%nemisys.command.timings.usage");
+        this.setPermission("nemisys.command.timings");
     }
 
     @Override
@@ -41,21 +41,21 @@ public class TimingsCommand extends VanillaCommand {
         if (mode.equals("on")) {
             sender.getServer().getPluginManager().setUseTimings(true);
             TimingsHandler.reload();
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.enable"));
+            sender.sendMessage(new TranslationContainer("nemisys.command.timings.enable"));
             return true;
         } else if (mode.equals("off")) {
             sender.getServer().getPluginManager().setUseTimings(false);
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.disable"));
+            sender.sendMessage(new TranslationContainer("nemisys.command.timings.disable"));
             return true;
         }
         if (!sender.getServer().getPluginManager().useTimings()) {
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsDisabled"));
+            sender.sendMessage(new TranslationContainer("nemisys.command.timings.timingsDisabled"));
             return true;
         }
         boolean paste = mode.equals("paste");
         if (mode.equals("reset")) {
             TimingsHandler.reload();
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.reset"));
+            sender.sendMessage(new TranslationContainer("nemisys.command.timings.reset"));
         } else if (mode.equals("merged") || mode.equals("report") || paste) {
             long sampleTime = System.nanoTime() - timingStart;
             List<String> timeStr = TimingsHandler.getTimings();
@@ -107,13 +107,13 @@ public class TimingsCommand extends VanillaCommand {
                     out.close();
                     ex.getInputStream().close();
                     String location = ex.getHeaderField("Location");
-                    this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsUpload", location));
+                    this.sender.sendMessage(new TranslationContainer("nemisys.command.timings.timingsUpload", location));
                     String pasteID = location.substring("http://paste.ubuntu.com/".length(), location.length() - 1);
                     reportUrl = "http://timings.aikar.co/?url=" + pasteID;
-                    this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsRead", reportUrl));
+                    this.sender.sendMessage(new TranslationContainer("nemisys.command.timings.timingsRead", reportUrl));
                     sb.append("\nLink: ").append(reportUrl);
                 } catch (IOException e) {
-                    this.sender.sendMessage(TextFormat.RED + new TranslationContainer("nukkit.command.timings.pasteError"));
+                    this.sender.sendMessage(TextFormat.RED + new TranslationContainer("nemisys.command.timings.pasteError"));
                     Server.getInstance().getLogger().info("Could not paste timings", e);
                 }
             }
@@ -129,7 +129,7 @@ public class TimingsCommand extends VanillaCommand {
 
             try {
                 Utils.writeFile(timingsFile, sb.toString());
-                sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsWrite", timingsFile.getName()));
+                sender.sendMessage(new TranslationContainer("nemisys.command.timings.timingsWrite", timingsFile.getName()));
             } catch (IOException e) {
                 e.printStackTrace();
             }

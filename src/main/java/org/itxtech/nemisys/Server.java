@@ -3,6 +3,8 @@ package org.itxtech.nemisys;
 import org.itxtech.nemisys.command.*;
 import org.itxtech.nemisys.event.*;
 import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
+import org.itxtech.nemisys.lang.BaseLang;
+import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.network.Network;
 import org.itxtech.nemisys.network.RakNetInterface;
 import org.itxtech.nemisys.network.SourceInterface;
@@ -112,7 +114,7 @@ public class Server {
 
         this.console = new CommandReader();
 
-        if (!new File(this.dataPath + "nukkit.yml").exists()) {
+        if (!new File(this.dataPath + "nemisys.yml").exists()) {
             this.getLogger().info(TextFormat.GREEN + "Welcome! Please choose a language first!");
             try {
                 String[] lines = Utils.readFile(this.getClass().getClassLoader().getResourceAsStream("lang/language.list")).split("\n");
@@ -133,13 +135,13 @@ public class Server {
                 }
             }
 
-            InputStream advacedConf = this.getClass().getClassLoader().getResourceAsStream("lang/" + language + "/nukkit.yml");
+            InputStream advacedConf = this.getClass().getClassLoader().getResourceAsStream("lang/" + language + "/nemisys.yml");
             if (advacedConf == null) {
-                advacedConf = this.getClass().getClassLoader().getResourceAsStream("lang/" + fallback + "/nukkit.yml");
+                advacedConf = this.getClass().getClassLoader().getResourceAsStream("lang/" + fallback + "/nemisys.yml");
             }
 
             try {
-                Utils.writeFile(this.dataPath + "nukkit.yml", advacedConf);
+                Utils.writeFile(this.dataPath + "nemisys.yml", advacedConf);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -148,8 +150,8 @@ public class Server {
 
         this.console.start();
 
-        this.logger.info("Loading " + TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE + "...");
-        this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
+        this.logger.info("Loading " + TextFormat.GREEN + "nemisys.yml" + TextFormat.WHITE + "...");
+        this.config = new Config(this.dataPath + "nemisys.yml", Config.YAML);
 
         this.logger.info("Loading " + TextFormat.GREEN + "server properties" + TextFormat.WHITE + "...");
         this.properties = new Config(this.dataPath + "server.properties", Config.PROPERTIES, new ConfigSection() {
@@ -167,7 +169,7 @@ public class Server {
         this.forceLanguage = (Boolean) this.getConfig("settings.force-language", false);
         this.baseLang = new BaseLang((String) this.getConfig("settings.language", BaseLang.FALLBACK_LANGUAGE));
         this.logger.info(this.getLanguage().translateString("language.selected", new String[]{getLanguage().getName(), getLanguage().getLang()}));
-        this.logger.info(getLanguage().translateString("nukkit.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.WHITE));
+        this.logger.info(getLanguage().translateString("nemisys.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.WHITE));
 
         Object poolSize = this.getConfig("settings.async-workers", "auto");
         if (!(poolSize instanceof Integer)) {
@@ -201,23 +203,19 @@ public class Server {
 
         this.maxPlayers = this.getPropertyInt("max-players", 20);
 
-        if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() < 3) {
-            this.setPropertyInt("difficulty", 3);
-        }
-
-        Nukkit.DEBUG = (int) this.getConfig("debug.level", 1);
+        Nemisys.DEBUG = (int) this.getConfig("debug.level", 1);
         if (this.logger instanceof MainLogger) {
-            this.logger.setLogDebug(Nukkit.DEBUG > 1);
+            this.logger.setLogDebug(Nemisys.DEBUG > 1);
         }
 
-        this.logger.info(this.getLanguage().translateString("nukkit.server.networkStart", new String[]{this.getIp().equals("") ? "*" : this.getIp(), String.valueOf(this.getPort())}));
+        this.logger.info(this.getLanguage().translateString("nemisys.server.networkStart", new String[]{this.getIp().equals("") ? "*" : this.getIp(), String.valueOf(this.getPort())}));
         this.serverID = UUID.randomUUID();
 
         this.network = new Network(this);
         this.network.setName(this.getMotd());
 
-        this.logger.info(this.getLanguage().translateString("nukkit.server.info", new String[]{this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()}));
-        this.logger.info(this.getLanguage().translateString("nukkit.server.license", this.getName()));
+        this.logger.info(this.getLanguage().translateString("nemisys.server.info", new String[]{this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()}));
+        this.logger.info(this.getLanguage().translateString("nemisys.server.license", this.getName()));
 
 
         this.consoleSender = new ConsoleCommandSender();
@@ -226,7 +224,6 @@ public class Server {
         Timings.init();
 
         this.pluginManager = new PluginManager(this, this.commandMap);
-        this.pluginManager.subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
         this.pluginManager.setUseTimings((Boolean) this.getConfig("settings.enable-profiling", false));
 
         this.pluginManager.registerInterface(JavaPluginLoader.class);
@@ -250,11 +247,6 @@ public class Server {
             if (!plugin.isEnabled() && type == plugin.getDescription().getOrder()) {
                 this.enablePlugin(plugin);
             }
-        }
-
-        if (type == PluginLoadOrder.POSTWORLD) {
-            this.commandMap.registerServerAliases();
-            DefaultPermissions.registerCorePermissions();
         }
     }
 
@@ -318,7 +310,7 @@ public class Server {
             this.pluginManager.disablePlugins();
 
             for (Player player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), (String) this.getConfig("settings.shutdown-message", "Server closed"));
+                player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
             }
 
             this.getLogger().debug("Removing event handlers");
@@ -396,40 +388,6 @@ public class Server {
         this.identifier.put(player.rawHashCode(), identifier);
     }
 
-    public void addOnlinePlayer(Player player) {
-        this.addOnlinePlayer(player, true);
-    }
-
-    public void addOnlinePlayer(Player player, boolean update) {
-        this.playerList.put(player.getUniqueId(), player);
-
-        if (update) {
-            this.updatePlayerListData(player.getUniqueId(), player.getId(), player.getDisplayName(), player.getSkin());
-        }
-    }
-
-    public void removeOnlinePlayer(Player player) {
-        if (this.playerList.containsKey(player.getUniqueId())) {
-            this.playerList.remove(player.getUniqueId());
-
-            PlayerListPacket pk = new PlayerListPacket();
-            pk.type = PlayerListPacket.TYPE_REMOVE;
-            pk.entries = new PlayerListPacket.Entry[]{new PlayerListPacket.Entry(player.getUniqueId())};
-
-            Server.broadcastPacket(this.playerList.values(), pk);
-        }
-    }
-
-    private void checkTickUpdates(int currentTick, long tickTime) {
-        for (Player p : new ArrayList<>(this.players.values())) {
-            if (!p.loggedIn && (tickTime - p.creationTime) >= 10000) {
-                p.close("", "Login timeout");
-            } else if (this.alwaysTickPlayers) {
-                p.onUpdate(currentTick);
-            }
-        }
-    }
-
     private boolean tick() {
         long tickTime = System.currentTimeMillis();
         long tickTimeNano = System.nanoTime();
@@ -454,7 +412,6 @@ public class Server {
         Timings.schedulerTimer.startTiming();
         this.scheduler.mainThreadHeartbeat(this.tickCounter);
         Timings.schedulerTimer.stopTiming();
-        this.checkTickUpdates(this.tickCounter, tickTime);
 
         for (Player player : new ArrayList<>(this.players.values())) {
             player.checkNetwork();
@@ -513,21 +470,21 @@ public class Server {
     }
 
     public void titleTick() {
-        if (!Nukkit.ANSI) {
+        if (!Nemisys.ANSI) {
             return;
         }
 
         Runtime runtime = Runtime.getRuntime();
-        double used = NukkitMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
-        double max = NukkitMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
+        double used = NemisysMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
+        double max = NemisysMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         String usage = Math.round(used / max * 100) + "%";
         String title = (char) 0x1b + "]0;" + this.getName() + " " +
-                this.getNukkitVersion() +
+                this.getNemisysVersion() +
                 " | Online " + this.players.size() + "/" + this.getMaxPlayers() +
                 " | Memory " + usage;
-        if (!Nukkit.shortTitle) {
-            title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
-                    + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
+        if (!Nemisys.shortTitle) {
+            title += " | U " + NemisysMath.round((this.network.getUpload() / 1024 * 1000), 2)
+                    + " D " + NemisysMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
         title += " | TPS " + this.getTicksPerSecond() +
                 " | Load " + this.getTickUsage() + "%" + (char) 0x07;
@@ -542,27 +499,27 @@ public class Server {
     }
 
     public String getName() {
-        return "Nukkit";
+        return "Nemisys";
     }
 
     public boolean isRunning() {
         return isRunning;
     }
 
-    public String getNukkitVersion() {
-        return Nukkit.VERSION;
+    public String getNemisysVersion() {
+        return Nemisys.VERSION;
     }
 
     public String getCodename() {
-        return Nukkit.CODENAME;
+        return Nemisys.CODENAME;
     }
 
     public String getVersion() {
-        return Nukkit.MINECRAFT_VERSION;
+        return Nemisys.MINECRAFT_VERSION;
     }
 
     public String getApiVersion() {
-        return Nukkit.API_VERSION;
+        return Nemisys.API_VERSION;
     }
 
     public String getFilePath() {
@@ -594,7 +551,7 @@ public class Server {
     }
 
     public String getMotd() {
-        return this.getPropertyString("motd", "Nukkit Server For Minecraft: PE");
+        return this.getPropertyString("motd", "Nemisys Server");
     }
 
     public MainLogger getLogger() {
@@ -623,11 +580,11 @@ public class Server {
         for (float aTickAverage : this.tickAverage) {
             sum += aTickAverage;
         }
-        return (float) NukkitMath.round(sum / count, 2);
+        return (float) NemisysMath.round(sum / count, 2);
     }
 
     public float getTickUsage() {
-        return (float) NukkitMath.round(this.maxUse * 100, 2);
+        return (float) NemisysMath.round(this.maxUse * 100, 2);
     }
 
     public float getTickUsageAverage() {

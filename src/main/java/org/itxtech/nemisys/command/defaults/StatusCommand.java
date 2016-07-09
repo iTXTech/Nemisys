@@ -4,7 +4,7 @@ import org.itxtech.nemisys.Nukkit;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.command.CommandSender;
 import org.itxtech.nemisys.level.Level;
-import org.itxtech.nemisys.math.NukkitMath;
+import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.Objects;
@@ -16,8 +16,8 @@ import java.util.Objects;
 public class StatusCommand extends VanillaCommand {
 
     public StatusCommand(String name) {
-        super(name, "%nukkit.command.status.description", "%nukkit.command.status.usage");
-        this.setPermission("nukkit.command.status");
+        super(name, "%nemisys.command.status.description", "%nemisys.command.status.usage");
+        this.setPermission("nemisys.command.status");
     }
 
     @Override
@@ -30,10 +30,10 @@ public class StatusCommand extends VanillaCommand {
         sender.sendMessage(TextFormat.GREEN + "---- " + TextFormat.WHITE + "Server status" + TextFormat.GREEN + " ----");
 
         long time = (System.currentTimeMillis() - Nukkit.START_TIME) / 1000;
-        int seconds = NukkitMath.floorDouble(time % 60);
-        int minutes = NukkitMath.floorDouble((time % 3600) / 60);
-        int hours = NukkitMath.floorDouble(time % (3600 * 24) / 3600);
-        int days = NukkitMath.floorDouble(time / (3600 * 24));
+        int seconds = NemisysMath.floorDouble(time % 60);
+        int minutes = NemisysMath.floorDouble((time % 3600) / 60);
+        int hours = NemisysMath.floorDouble(time % (3600 * 24) / 3600);
+        int days = NemisysMath.floorDouble(time / (3600 * 24));
         String upTimeString = TextFormat.RED + days + TextFormat.GOLD + " days " +
                 TextFormat.RED + hours + TextFormat.GOLD + " hours " +
                 TextFormat.RED + minutes + TextFormat.GOLD + " minutes " +
@@ -48,21 +48,21 @@ public class StatusCommand extends VanillaCommand {
             tpsColor = TextFormat.RED;
         }
 
-        sender.sendMessage(TextFormat.GOLD + "Current TPS: " + tpsColor + NukkitMath.round(tps, 2));
+        sender.sendMessage(TextFormat.GOLD + "Current TPS: " + tpsColor + NemisysMath.round(tps, 2));
 
         sender.sendMessage(TextFormat.GOLD + "Load: " + tpsColor + server.getTickUsage() + "%");
 
-        sender.sendMessage(TextFormat.GOLD + "Network upload: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getUpload() / 1024 * 1000), 2) + " kB/s");
+        sender.sendMessage(TextFormat.GOLD + "Network upload: " + TextFormat.GREEN + NemisysMath.round((server.getNetwork().getUpload() / 1024 * 1000), 2) + " kB/s");
 
-        sender.sendMessage(TextFormat.GOLD + "Network download: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getDownload() / 1024 * 1000), 2) + " kB/s");
+        sender.sendMessage(TextFormat.GOLD + "Network download: " + TextFormat.GREEN + NemisysMath.round((server.getNetwork().getDownload() / 1024 * 1000), 2) + " kB/s");
 
         sender.sendMessage(TextFormat.GOLD + "Thread count: " + TextFormat.GREEN + Thread.getAllStackTraces().size());
 
 
         Runtime runtime = Runtime.getRuntime();
-        double totalMB = NukkitMath.round(((double) runtime.totalMemory()) / 1024 / 1024, 2);
-        double usedMB = NukkitMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
-        double maxMB = NukkitMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
+        double totalMB = NemisysMath.round(((double) runtime.totalMemory()) / 1024 / 1024, 2);
+        double usedMB = NemisysMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
+        double maxMB = NemisysMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         double usage = usedMB / maxMB * 100;
         String usageColor = TextFormat.GREEN;
 
@@ -70,7 +70,7 @@ public class StatusCommand extends VanillaCommand {
             usageColor = TextFormat.GOLD;
         }
 
-        sender.sendMessage(TextFormat.GOLD + "Used memory: " + usageColor + usedMB + " MB. (" + NukkitMath.round(usage, 2) + "%)");
+        sender.sendMessage(TextFormat.GOLD + "Used memory: " + usageColor + usedMB + " MB. (" + NemisysMath.round(usage, 2) + "%)");
 
         sender.sendMessage(TextFormat.GOLD + "Total memory: " + TextFormat.RED + totalMB + " MB.");
 
@@ -93,7 +93,7 @@ public class StatusCommand extends VanillaCommand {
                             TextFormat.RED + level.getChunks().size() + TextFormat.GREEN + " chunks, " +
                             TextFormat.RED + level.getEntities().length + TextFormat.GREEN + " entities, " +
                             TextFormat.RED + level.getBlockEntities().size() + TextFormat.GREEN + " blockEntities." +
-                            " Time " + ((level.getTickRate() > 1 || level.getTickRateTime() > 40) ? TextFormat.RED : TextFormat.YELLOW) + NukkitMath.round(level.getTickRateTime(), 2) + "ms" +
+                            " Time " + ((level.getTickRate() > 1 || level.getTickRateTime() > 40) ? TextFormat.RED : TextFormat.YELLOW) + NemisysMath.round(level.getTickRateTime(), 2) + "ms" +
                             (level.getTickRate() > 1 ? " (tick rate " + level.getTickRate() + ")" : "")
             );
         }

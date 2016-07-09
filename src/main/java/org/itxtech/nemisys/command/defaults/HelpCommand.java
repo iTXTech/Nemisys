@@ -16,8 +16,8 @@ import java.util.TreeMap;
 public class HelpCommand extends VanillaCommand {
 
     public HelpCommand(String name) {
-        super(name, "%nukkit.command.help.description", "%commands.help.usage", new String[]{"?"});
-        this.setPermission("nukkit.command.help");
+        super(name, "%nemisys.command.help.description", "%commands.help.usage", new String[]{"?"});
+        this.setPermission("nemisys.command.help");
     }
 
     @Override

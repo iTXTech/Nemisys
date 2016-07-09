@@ -11,8 +11,8 @@ import org.itxtech.nemisys.event.TranslationContainer;
 public class StopCommand extends VanillaCommand {
 
     public StopCommand(String name) {
-        super(name, "%nukkit.command.stop.description", "%commands.stop.usage");
-        this.setPermission("nukkit.command.stop");
+        super(name, "%nemisys.command.stop.description", "%commands.stop.usage");
+        this.setPermission("nemisys.command.stop");
     }
 
     @Override
