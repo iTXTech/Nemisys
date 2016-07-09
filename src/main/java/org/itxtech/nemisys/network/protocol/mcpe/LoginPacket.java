@@ -1,4 +1,4 @@
-package org.itxtech.nemisys.network.protocol;
+package org.itxtech.nemisys.network.protocol.mcpe;
 
 import org.itxtech.nemisys.Nukkit;
 import org.itxtech.nemisys.Server;

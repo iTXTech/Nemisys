@@ -3,7 +3,7 @@ package org.itxtech.nemisys.event;
 import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.blockentity.BlockEntity;
 import org.itxtech.nemisys.entity.Entity;
-import org.itxtech.nemisys.network.protocol.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.plugin.PluginManager;
 import org.itxtech.nemisys.scheduler.PluginTask;
 import org.itxtech.nemisys.scheduler.TaskHandler;

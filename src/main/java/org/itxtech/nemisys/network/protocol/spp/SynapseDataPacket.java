@@ -1,6 +1,7 @@
 package org.itxtech.nemisys.network.protocol.spp;
 
-import cn.nukkit.network.protocol.DataPacket;
+
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 
 /**
  * Created by boybook on 16/6/25.

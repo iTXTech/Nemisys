@@ -1,4 +1,4 @@
-package org.itxtech.nemisys.network.protocol;
+package org.itxtech.nemisys.network.protocol.mcpe;
 
 /**
  * Created on 2016/1/5 by xtypr.

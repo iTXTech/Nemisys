@@ -1,12 +1,12 @@
 package org.itxtech.nemisys.network;
 
-import org.itxtech.nemisys.Nukkit;
+import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.event.player.PlayerCreationEvent;
 import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
-import org.itxtech.nemisys.network.protocol.DataPacket;
-import org.itxtech.nemisys.network.protocol.ProtocolInfo;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
 import org.itxtech.nemisys.raknet.RakNet;
 import org.itxtech.nemisys.raknet.protocol.EncapsulatedPacket;
 import org.itxtech.nemisys.raknet.server.RakNetServer;
@@ -39,8 +39,6 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
     private Map<String, Integer> identifiersACK = new ConcurrentHashMap<>();
 
     private ServerHandler handler;
-
-    private int[] channelCounts = new int[256];
 
     public RakNetInterface(Server server) {
         this.server = server;
@@ -75,7 +73,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
             this.identifiers.remove(player.rawHashCode());
             this.players.remove(identifier);
             this.identifiersACK.remove(identifier);
-            player.close(player.getLeaveMessage(), reason);
+            player.close(reason);
         }
     }
 
@@ -137,7 +135,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                 }
             } catch (Exception e) {
                 this.server.getLogger().logException(e);
-                if (Nukkit.DEBUG > 1 && pk != null) {
+                if (Nemisys.DEBUG > 1 && pk != null) {
                     MainLogger logger = this.server.getLogger();
 //                    if (logger != null) {
                     logger.debug("Packet " + pk.getClass().getName() + " 0x" + Binary.bytesToHexString(packet.buffer));
@@ -146,7 +144,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                 }
 
                 if (this.players.containsKey(identifier)) {
-                    this.handler.blockAddress(this.players.get(identifier).getAddress(), 5);
+                    this.handler.blockAddress(this.players.get(identifier).getIp(), 5);
                 }
             }
         }
@@ -184,7 +182,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
         this.handler.sendOption("name",
                 "MCPE;" + name.replace(";", "\\;") + ";" +
                         ProtocolInfo.CURRENT_PROTOCOL + ";" +
-                        Nukkit.MINECRAFT_VERSION_NETWORK + ";" +
+                        Nemisys.MINECRAFT_VERSION_NETWORK + ";" +
                         info.getPlayerCount() + ";" +
                         info.getMaxPlayerCount());
     }
@@ -234,12 +232,6 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     }
                 }
                 pk = packet.encapsulatedPacket;
-            }
-
-
-            if (!immediate && !needACK && packet.pid() != ProtocolInfo.BATCH_PACKET && Network.BATCH_THRESHOLD >= 0 && buffer != null && buffer.length >= Network.BATCH_THRESHOLD) {
-                this.server.batchPackets(new Player[]{player}, new DataPacket[]{packet}, true);
-                return null;
             }
 
             if (pk == null) {

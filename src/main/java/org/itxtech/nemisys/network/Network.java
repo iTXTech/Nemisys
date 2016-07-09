@@ -1,9 +1,9 @@
 package org.itxtech.nemisys.network;
 
-import org.itxtech.nemisys.Nukkit;
+import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.network.protocol.*;
+import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Zlib;
 
@@ -17,17 +17,6 @@ import java.util.Set;
  * Nukkit Project
  */
 public class Network {
-    public static int BATCH_THRESHOLD = 512;
-
-    public static final byte CHANNEL_NONE = 0;
-    public static final byte CHANNEL_PRIORITY = 1; //Priority channel, only to be used when it matters
-    public static final byte CHANNEL_WORLD_CHUNKS = 2; //Chunk sending
-    public static final byte CHANNEL_MOVEMENT = 3; //Movement sending
-    public static final byte CHANNEL_BLOCKS = 4; //Block updates or explosions
-    public static final byte CHANNEL_WORLD_EVENTS = 5; //Entity, level or blockentity entity events
-    public static final byte CHANNEL_ENTITY_SPAWNING = 6; //Entity spawn/despawn channel
-    public static final byte CHANNEL_TEXT = 7; //Chat and other text stuff
-    public static final byte CHANNEL_END = 31;
 
     private Class<? extends DataPacket>[] packetPool = new Class[256];
 
@@ -74,7 +63,7 @@ public class Network {
             try {
                 interfaz.process();
             } catch (Exception e) {
-                if (Nukkit.DEBUG > 1) {
+                if (Nemisys.DEBUG > 1) {
                     this.server.getLogger().logException(e);
                 }
 
@@ -164,7 +153,7 @@ public class Network {
             processPackets(player, packets);
 
         } catch (Exception e) {
-            if (Nukkit.DEBUG > 0) {
+            if (Nemisys.DEBUG > 0) {
                 this.server.getLogger().debug("BatchPacket 0x" + Binary.bytesToHexString(packet.payload));
                 this.server.getLogger().logException(e);
             }
@@ -181,17 +170,7 @@ public class Network {
         if (packets.isEmpty()) return;
         List<Byte> filter = new ArrayList<>();
         for (DataPacket packet : packets){
-            switch (packet.pid()){
-                case ProtocolInfo.USE_ITEM_PACKET:
-                    // Prevent double fire of PlayerInteractEvent
-                    if (!filter.contains(ProtocolInfo.USE_ITEM_PACKET)) {
-                        player.handleDataPacket(packet);
-                        filter.add(ProtocolInfo.USE_ITEM_PACKET);
-                    }
-                    break;
-                default:
-                    player.handleDataPacket(packet);
-            }
+            player.handleDataPacket(packet);
         }
     }
 
@@ -205,7 +184,7 @@ public class Network {
                 Server.getInstance().getLogger().logException(e);
             }
         }
-        return null;
+        return new GenericPacket();
     }
 
     public void sendPacket(String address, int port, byte[] payload) {
@@ -228,59 +207,9 @@ public class Network {
         this.packetPool = new Class[256];
 
         this.registerPacket(ProtocolInfo.LOGIN_PACKET, LoginPacket.class);
-        this.registerPacket(ProtocolInfo.PLAY_STATUS_PACKET, PlayStatusPacket.class);
         this.registerPacket(ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket.class);
         this.registerPacket(ProtocolInfo.BATCH_PACKET, BatchPacket.class);
-        this.registerPacket(ProtocolInfo.TEXT_PACKET, TextPacket.class);
-        this.registerPacket(ProtocolInfo.SET_TIME_PACKET, SetTimePacket.class);
-        this.registerPacket(ProtocolInfo.START_GAME_PACKET, StartGamePacket.class);
-        this.registerPacket(ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket.class);
-        this.registerPacket(ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket.class);
-        this.registerPacket(ProtocolInfo.REMOVE_ENTITY_PACKET, RemoveEntityPacket.class);
-        this.registerPacket(ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket.class);
-        this.registerPacket(ProtocolInfo.TAKE_ITEM_ENTITY_PACKET, TakeItemEntityPacket.class);
-        this.registerPacket(ProtocolInfo.MOVE_ENTITY_PACKET, MoveEntityPacket.class);
-        this.registerPacket(ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket.class);
-        this.registerPacket(ProtocolInfo.REMOVE_BLOCK_PACKET, RemoveBlockPacket.class);
-        this.registerPacket(ProtocolInfo.UPDATE_BLOCK_PACKET, UpdateBlockPacket.class);
-        this.registerPacket(ProtocolInfo.ADD_PAINTING_PACKET, AddPaintingPacket.class);
-        this.registerPacket(ProtocolInfo.EXPLODE_PACKET, ExplodePacket.class);
-        this.registerPacket(ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket.class);
-        this.registerPacket(ProtocolInfo.BLOCK_EVENT_PACKET, BlockEventPacket.class);
-        this.registerPacket(ProtocolInfo.ENTITY_EVENT_PACKET, EntityEventPacket.class);
-        this.registerPacket(ProtocolInfo.MOB_EQUIPMENT_PACKET, MobEquipmentPacket.class);
-        this.registerPacket(ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket.class);
-        this.registerPacket(ProtocolInfo.INTERACT_PACKET, InteractPacket.class);
-        this.registerPacket(ProtocolInfo.USE_ITEM_PACKET, UseItemPacket.class);
-        this.registerPacket(ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket.class);
-        this.registerPacket(ProtocolInfo.HURT_ARMOR_PACKET, HurtArmorPacket.class);
-        this.registerPacket(ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket.class);
-        this.registerPacket(ProtocolInfo.SET_ENTITY_MOTION_PACKET, SetEntityMotionPacket.class);
-        this.registerPacket(ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket.class);
-        //this.registerPacket(ProtocolInfo.SET_HEALTH_PACKET, SetHealthPacket.class);
-        this.registerPacket(ProtocolInfo.SET_SPAWN_POSITION_PACKET, SetSpawnPositionPacket.class);
-        this.registerPacket(ProtocolInfo.ANIMATE_PACKET, AnimatePacket.class);
-        this.registerPacket(ProtocolInfo.RESPAWN_PACKET, RespawnPacket.class);
-        this.registerPacket(ProtocolInfo.DROP_ITEM_PACKET, DropItemPacket.class);
-        this.registerPacket(ProtocolInfo.CONTAINER_OPEN_PACKET, ContainerOpenPacket.class);
-        this.registerPacket(ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket.class);
-        this.registerPacket(ProtocolInfo.CONTAINER_SET_SLOT_PACKET, ContainerSetSlotPacket.class);
-        this.registerPacket(ProtocolInfo.CONTAINER_SET_DATA_PACKET, ContainerSetDataPacket.class);
-        this.registerPacket(ProtocolInfo.CONTAINER_SET_CONTENT_PACKET, ContainerSetContentPacket.class);
-        this.registerPacket(ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket.class);
-        this.registerPacket(ProtocolInfo.CRAFTING_EVENT_PACKET, CraftingEventPacket.class);
-        this.registerPacket(ProtocolInfo.ADVENTURE_SETTINGS_PACKET, AdventureSettingsPacket.class);
-        this.registerPacket(ProtocolInfo.BLOCK_ENTITY_DATA_PACKET, BlockEntityDataPacket.class);
-        this.registerPacket(ProtocolInfo.PLAYER_INPUT_PACKET, PlayerInputPacket.class);
-        this.registerPacket(ProtocolInfo.FULL_CHUNK_DATA_PACKET, FullChunkDataPacket.class);
-        this.registerPacket(ProtocolInfo.SET_DIFFICULTY_PACKET, SetDifficultyPacket.class);
         this.registerPacket(ProtocolInfo.CHANGE_DIMENSION_PACKET, ChangeDimensionPacket.class);
-        this.registerPacket(ProtocolInfo.SET_PLAYER_GAMETYPE_PACKET, SetPlayerGameTypePacket.class);
         this.registerPacket(ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket.class);
-        this.registerPacket(ProtocolInfo.TELEMETRY_EVENT_PACKET, TelemetryEventPacket.class);
-        this.registerPacket(ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET, RequestChunkRadiusPacket.class);
-        this.registerPacket(ProtocolInfo.CHUNK_RADIUS_UPDATED_PACKET, ChunkRadiusUpdatedPacket.class);
-        this.registerPacket(ProtocolInfo.REPLACE_SELECTED_ITEM_PACKET, ReplaceSelectedItemPacket.class);
-        this.registerPacket(ProtocolInfo.ITEM_FRAME_DROP_ITEM_PACKET, ItemFrameDropItemPacket.class);
     }
 }

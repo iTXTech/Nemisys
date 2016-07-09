@@ -8,7 +8,6 @@ import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.network.Network;
 import org.itxtech.nemisys.network.RakNetInterface;
 import org.itxtech.nemisys.network.SourceInterface;
-import org.itxtech.nemisys.network.protocol.PlayerListPacket;
 import org.itxtech.nemisys.network.query.QueryHandler;
 import org.itxtech.nemisys.network.rcon.RCON;
 import org.itxtech.nemisys.plugin.JavaPluginLoader;

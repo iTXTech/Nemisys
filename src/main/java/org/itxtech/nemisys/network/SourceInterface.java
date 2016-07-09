@@ -1,7 +1,7 @@
 package org.itxtech.nemisys.network;
 
 import org.itxtech.nemisys.Player;
-import org.itxtech.nemisys.network.protocol.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 
 
 /**

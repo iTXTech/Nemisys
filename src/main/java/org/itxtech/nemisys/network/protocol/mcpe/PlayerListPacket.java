@@ -1,6 +1,4 @@
-package org.itxtech.nemisys.network.protocol;
-
-import org.itxtech.nemisys.entity.data.Skin;
+package org.itxtech.nemisys.network.protocol.mcpe;
 
 import java.util.UUID;
 
@@ -11,7 +9,6 @@ public class PlayerListPacket extends DataPacket {
 
     public static final byte NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
 
-    public static final byte TYPE_ADD = 0;
     public static final byte TYPE_REMOVE = 1;
 
     public byte type;
@@ -28,14 +25,7 @@ public class PlayerListPacket extends DataPacket {
         this.putByte(this.type);
         this.putInt(this.entries.length);
         for (Entry entry : this.entries) {
-            if (type == TYPE_ADD) {
-                this.putUUID(entry.uuid);
-                this.putLong(entry.entityId);
-                this.putString(entry.name);
-                this.putSkin(entry.skin);
-            } else {
-                this.putUUID(entry.uuid);
-            }
+            this.putUUID(entry.uuid);
         }
 
     }
@@ -50,17 +40,9 @@ public class PlayerListPacket extends DataPacket {
         public UUID uuid;
         public long entityId = 0;
         public String name = "";
-        public Skin skin;
 
         public Entry(UUID uuid) {
             this.uuid = uuid;
-        }
-
-        public Entry(UUID uuid, long entityId, String name, Skin skin) {
-            this.uuid = uuid;
-            this.entityId = entityId;
-            this.name = name;
-            this.skin = skin;
         }
     }
 
