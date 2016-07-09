@@ -102,7 +102,7 @@ public class Player {
         PlayerListPacket pk = new PlayerListPacket();
         pk.type = PlayerListPacket.TYPE_REMOVE;
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
-        for (Player p : this.client.getPlayers) {
+        for (Player p : this.client.getPlayers()) {
             if (p == player) {
                 continue;
             }

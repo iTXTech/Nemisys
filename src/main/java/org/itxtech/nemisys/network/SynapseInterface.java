@@ -1,8 +1,9 @@
 package org.itxtech.nemisys.network;
 
+import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.SynapseAPI;
 import org.itxtech.nemisys.network.protocol.spp.*;
-import org.itxtech.nemisys.network.synlib.SynapseClient;
+import org.itxtech.nemisys.network.synlib.SynapseServer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,39 +15,39 @@ import java.util.Map;
  */
 public class SynapseInterface {
 
-    private SynapseAPI synapse;
+    private Server server;
     private String ip;
     private int port;
-    private SynapseClient client;
+    private List<SynapseServer> clients;
     private Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
-    private boolean connected = true;
-    private boolean needReconnect = false;
+    private SynapseServer interfaz;
 
-    public SynapseInterface(SynapseAPI server, String ip, int port){
-        this.synapse = server;
+    public SynapseInterface(Server server, String ip, int port){
+        this.server = server;
         this.ip = ip;
         this.port = port;
         this.registerPackets();
-        this.client = new SynapseClient(server.getServer().getLogger(), port, ip);
+        this.clients = new ArrayList<>();
+        this.interfaz = new SynapseServer(server.getLogger(), this, port, ip);
     }
 
-    public SynapseAPI getSynapse() {
-        return synapse;
+    public Server getServer() {
+        return server;
     }
 
     public void reconnect(){
-        this.client.reconnect();
+        this.clients.reconnect();
     }
 
     public void shutdown(){
-        this.client.shutdown();
+        this.clients.shutdown();
     }
 
     public void putPacket(SynapseDataPacket pk){
         if(!pk.isEncoded){
             pk.encode();
         }
-        this.client.pushMainToThreadPacket(pk.getBuffer());
+        this.clients.pushMainToThreadPacket(pk.getBuffer());
     }
 
     public boolean isConnected() {
@@ -54,17 +55,17 @@ public class SynapseInterface {
     }
 
     public void process(){
-        byte[] buffer = this.client.readThreadToMainPacket();
+        byte[] buffer = this.clients.readThreadToMainPacket();
 
         while (buffer != null && buffer.length > 0) {
             this.handlePacket(buffer);
-            buffer = this.client.readThreadToMainPacket();
+            buffer = this.clients.readThreadToMainPacket();
         }
 
-        this.connected = this.client.isConnected();
-        if (this.client.isNeedAuth()) {
+        this.connected = this.clients.isConnected();
+        if (this.clients.isNeedAuth()) {
             this.synapse.connect();
-            this.client.setNeedAuth(false);
+            this.clients.setNeedAuth(false);
         }
     }
 

@@ -10,7 +10,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
-import java.util.StringTokenizer;
 
 /**
  * Created by boybook on 16/6/24.
@@ -29,14 +28,14 @@ public class ServerConnection {
     private String ip;
     private int port;
     /**
-     * @var SynapseClient
+     * @var SynapseServer
      */
-    private SynapseClient server;
+    private SynapseServer server;
     private long lastCheck;
     private boolean connected;
     private String magicBytes;
 
-    public ServerConnection(SynapseClient server, SynapseSocket socket) {
+    public ServerConnection(SynapseServer server, SynapseSocket socket) {
         this.server = server;
         this.socket = socket;
         this.connected = socket.isConnected();

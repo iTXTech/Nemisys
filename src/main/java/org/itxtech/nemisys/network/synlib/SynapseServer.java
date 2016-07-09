@@ -1,14 +1,15 @@
 package org.itxtech.nemisys.network.synlib;
 
-import cn.nukkit.Nukkit;
-import cn.nukkit.utils.ThreadedLogger;
+import org.itxtech.nemisys.Nemisys;
+import org.itxtech.nemisys.network.SynapseInterface;
+import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by boybook on 16/6/24.
  */
-public class SynapseClient extends Thread {
+public class SynapseServer extends Thread {
 
     public static final String VERSION = "0.1.2";
 
@@ -18,17 +19,19 @@ public class SynapseClient extends Thread {
     private boolean shutdown = false;
     protected ConcurrentLinkedQueue<byte[]> externalQueue;
     protected ConcurrentLinkedQueue<byte[]> internalQueue;
+    protected ConcurrentLinkedQueue<byte[]> clinetOpenQueue;
+    protected ConcurrentLinkedQueue<byte[]> internalClientCloseQueue;
+    protected ConcurrentLinkedQueue<byte[]> externalClientCloseQueue;
     private String mainPath;
-    private boolean needAuth = false;
-    private boolean connected = true;
-    public boolean needReconnect = false;
+    private SynapseInterface server;
 
-    public SynapseClient(ThreadedLogger logger, int port) {
-        this(logger, port, "127.0.0.1");
+    public SynapseServer(ThreadedLogger logger, SynapseInterface server, int port) {
+        this(logger, server, port, "0.0.0.0");
     }
 
-    public SynapseClient(ThreadedLogger logger, int port, String interfaz) {
+    public SynapseServer(ThreadedLogger logger, SynapseInterface server, int port, String interfaz) {
         this.logger = logger;
+        this.server = server;
         this.interfaz = interfaz;
         this.port = port;
         if (port < 1 || port > 65536) {
@@ -37,29 +40,12 @@ public class SynapseClient extends Thread {
         this.shutdown = false;
         this.externalQueue = new ConcurrentLinkedQueue<>();
         this.internalQueue = new ConcurrentLinkedQueue<>();
-        this.mainPath = Nukkit.PATH;
+        this.clinetOpenQueue = new ConcurrentLinkedQueue<>();
+        this.internalClientCloseQueue = new ConcurrentLinkedQueue<>();
+        this.externalClientCloseQueue = new ConcurrentLinkedQueue<>();
+        this.mainPath = Nemisys.PATH;
 
         this.start();
-    }
-
-    public void reconnect() {
-        this.needReconnect = true;
-    }
-
-    public boolean isNeedAuth() {
-        return needAuth;
-    }
-
-    public void setNeedAuth(boolean needAuth) {
-        this.needAuth = needAuth;
-    }
-
-    public boolean isConnected() {
-        return connected;
-    }
-
-    public void setConnected(boolean connected) {
-        this.connected = connected;
     }
 
     public ConcurrentLinkedQueue<byte[]> getExternalQueue() {
