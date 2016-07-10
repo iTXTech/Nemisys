@@ -1,5 +1,7 @@
 package org.itxtech.nemisys;
 
+import org.itxtech.nemisys.event.client.ClientAuthEvent;
+import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
@@ -123,7 +125,7 @@ public class Client {
                     this.sendDataPacket(pk);
                     this.close("Auth failed!");
                 }
-                this.server.getPluginManager().callEvent(new ClientAuthEvent(this, packet.encodedPassword));
+                this.server.getPluginManager().callEvent(new ClientAuthEvent(this, connectPacket.encodedPassword));
                 break;
             case SynapseInfo.DISCONNECT_PACKET:
                 /** @var DisconnectPacket packet */
@@ -209,6 +211,7 @@ public class Client {
 
     public void close(String reason, boolean needPk, byte type) {
 
+        ClientDisconnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();
         this.server.getLogger().info("Client this.ip:this.port has disconnected due to reason");

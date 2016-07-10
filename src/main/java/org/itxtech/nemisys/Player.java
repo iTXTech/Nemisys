@@ -1,25 +1,24 @@
 package org.itxtech.nemisys;
 
-import org.itxtech.nemisys.event.Event;
+import org.itxtech.nemisys.event.player.PlayerLoginEvent;
+import org.itxtech.nemisys.event.player.PlayerLogoutEvent;
+import org.itxtech.nemisys.event.player.PlayerTransferEvent;
 import org.itxtech.nemisys.network.SourceInterface;
-import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.PlayerListPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
+import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.TextFormat;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Author: PeratX
  * Nemisys Project
  */
 public class Player {
-    private PlayerLoginPacket cachedLoginPacket = null;
+    private LoginPacket cachedLoginPacket = null;
     private String name;
     private String ip;
     private int port;
@@ -64,7 +63,55 @@ public class Player {
         this.lastUpdate = System.currentTimeMillis();
 
         switch (packet.pid()){
-            case
+            case ProtocolInfo.BATCH_PACKET:
+                if(this.cachedLoginPacket == null){
+                    /** @var BatchPacket pk */
+                    this.getServer().getNetwork().processBatch((BatchPacket)packet, this);
+                }else{
+                    this.redirectPacket(packet.getBuffer());
+                }
+                break;
+            case ProtocolInfo.LOGIN_PACKET:
+                LoginPacket loginPacket = (LoginPacket)packet; 
+                this.cachedLoginPacket = loginPacket;
+                this.name = loginPacket.username;
+                this.uuid = loginPacket.clientUUID;
+                this.rawUUID = Binary.writeUUID(this.uuid);
+                this.randomClientId = loginPacket.clientId;
+                this.protocol = loginPacket.protocol;
+
+                this.server.getLogger().info(this.getServer().getLanguage().translateString("synapse.player.logIn", new String[]{
+                        TextFormat.AQUA + this.name + TextFormat.WHITE,
+                        this.ip,
+                        String.valueOf(this.port),
+                        TextFormat.GREEN + this.randomClientId + TextFormat.WHITE,
+                }));
+
+                Map<String, Client> c = this.server.getMainClients();
+
+                String clientHash;
+                if(c.size() > 0){
+                    clientHash = new ArrayList<>(c.keySet()).get(new Random().nextInt(c.size()));
+                }else{
+                    clientHash = "";
+                }
+
+                PlayerLoginEvent ev;
+                this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin Reason", clientHash));
+                if(ev.isCancelled()){
+                    this.close(ev.getKickMessage());
+                    break;
+                }
+
+                if(!this.server.getClients().containsKey(ev.getClientHash())){
+                    this.close("Synapse Server: " + TextFormat.RED + "No server online!");
+                    break;
+                }
+
+                this.transfer(this.server.getClients().get(ev.getClientHash()));
+                break;
+            default:
+                this.redirectPacket(packet.getBuffer());
         }
     }
 
@@ -118,7 +165,7 @@ public class Player {
     }
 
     public void transfer(Client client, boolean needDisconnect){
-        Event ev;
+        PlayerTransferEvent ev;
         this.server.getPluginManager().callEvent(ev = new PlayerTransferEvent(this, client, needDisconnect));
         if(!ev.isCancelled()){
             if(this.client != null && needDisconnect){
@@ -198,5 +245,13 @@ public class Player {
 
     public int rawHashCode() {
         return super.hashCode();
+    }
+
+    public int getProtocol() {
+        return protocol;
+    }
+
+    public long getRandomClientId() {
+        return randomClientId;
     }
 }

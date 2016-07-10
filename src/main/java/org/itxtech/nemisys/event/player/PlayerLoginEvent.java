@@ -12,11 +12,13 @@ public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
     }
 
     protected String kickMessage;
+    private String clientHash;
 
 
-    public PlayerLoginEvent(Player player, String kickMessage) {
-        this.player = player;
+    public PlayerLoginEvent(Player player, String kickMessage, String clientHash) {
+        super(player);
         this.kickMessage = kickMessage;
+        this.clientHash = clientHash;
     }
 
     public String getKickMessage() {
@@ -26,4 +28,13 @@ public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
     public void setKickMessage(String kickMessage) {
         this.kickMessage = kickMessage;
     }
+
+    public void setClientHash(String clientHash) {
+        this.clientHash = clientHash;
+    }
+
+    public String getClientHash() {
+        return clientHash;
+    }
+
 }
