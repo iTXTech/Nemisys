@@ -1,12 +1,14 @@
 package org.itxtech.nemisys;
 
-import org.itxtech.nemisys.event.Timings;
-import org.itxtech.nemisys.event.TimingsHandler;
+import org.itxtech.nemisys.event.Event;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.PlayerListPacket;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.nemisys.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
+import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +61,6 @@ public class Player {
         if(this.closed){
             return;
         }
-        TimingsHandler timings = Timings.getReceiveDataPacketTimings(packet);
-        timings.startTiming();
         this.lastUpdate = System.currentTimeMillis();
 
         switch (packet.pid()){
@@ -84,7 +84,7 @@ public class Player {
         return this.port;
     }
 
-    public UUID getUuid(){
+    public UUID getUUID(){
         return this.uuid;
     }
 
@@ -102,16 +102,47 @@ public class Player {
         PlayerListPacket pk = new PlayerListPacket();
         pk.type = PlayerListPacket.TYPE_REMOVE;
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
-        for (Player p : this.client.getPlayers()) {
-            if (p == player) {
+        for (Player p : this.client.getPlayers().values()) {
+            if (p == this) {
                 continue;
             }
-
-            entries.add(new PlayerListPacket.Entry(p.getUuid()));
+            entries.add(new PlayerListPacket.Entry(p.getUUID()));
         }
 
         pk.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
         this.sendDataPacket(pk);
+    }
+
+    public void transfer(Client client) {
+        this.transfer(client, false);
+    }
+
+    public void transfer(Client client, boolean needDisconnect){
+        Event ev;
+        this.server.getPluginManager().callEvent(ev = new PlayerTransferEvent(this, client, needDisconnect));
+        if(!ev.isCancelled()){
+            if(this.client != null && needDisconnect){
+                PlayerLogoutPacket pk = new PlayerLogoutPacket();
+                pk.uuid = this.uuid;
+                pk.reason = "Player has been transferred";
+                this.client.sendDataPacket(pk);
+                this.client.removePlayer(this);
+                this.removeAllPlayers();
+            }
+            this.client = ev.getTargetClient();
+            this.client.addPlayer(this);
+            PlayerLoginPacket pk = new PlayerLoginPacket();
+            pk.uuid = this.uuid;
+            pk.address = this.ip;
+            pk.port = this.port;
+            pk.isFirstTime = this.isFirstTimeLogin;
+            pk.cachedLoginPacket = this.cachedLoginPacket.getBuffer();
+            this.client.sendDataPacket(pk);
+
+            this.isFirstTimeLogin = false;
+
+            this.server.getLogger().info(this.name + " has been transferred to " + this.client.getIp() + ": + " + this.client.getPort());
+        }
     }
 
     public void sendDataPacket(DataPacket pk){
@@ -135,7 +166,34 @@ public class Player {
     }
 
     public void close(String reason, boolean notify){
+        if(!this.closed){
+            if(notify && reason.length() > 0){
+                DisconnectPacket pk = new DisconnectPacket();
+                pk.message = reason;
+                this.sendDataPacket(pk, true);
+            }
 
+            this.server.getPluginManager().callEvent(new PlayerLogoutEvent(this));
+            this.closed = true;
+
+            if(this.client != null){
+                PlayerLogoutPacket pk = new PlayerLogoutPacket();
+                pk.uuid = this.uuid;
+                pk.reason = reason;
+                this.client.sendDataPacket(pk);
+                this.client.removePlayer(this);
+            }
+
+            this.server.getLogger().info(this.getServer().getLanguage().translateString("synapse.player.logOut", new String[]{
+                            TextFormat.AQUA + this.getName() + TextFormat.WHITE,
+                            this.ip,
+                            String.valueOf(this.port),
+                            this.getServer().getLanguage().translateString(reason)
+            }));
+
+            this.interfaz.close(this, notify ? reason : "");
+            this.getServer().removePlayer(this);
+        }
     }
 
     public int rawHashCode() {

@@ -1,8 +1,12 @@
 package org.itxtech.nemisys;
 
 import org.itxtech.nemisys.network.SynapseInterface;
-import org.itxtech.nemisys.network.protocol.mcpe.*;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.utils.Binary;
+import org.itxtech.nemisys.utils.Util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,13 +18,19 @@ import java.util.Map;
  */
 public class Client {
 
-    /** @var Server */
+    /**
+     * @var Server
+     */
     private Server server;
-    /** @var SynapseInterface */
+    /**
+     * @var SynapseInterface
+     */
     private SynapseInterface interfaz;
     private String ip;
     private int port;
-    /** @var Player[] */
+    /**
+     * @var Player[]
+     */
     private Map<byte[], Player> players = new HashMap<>();
     private boolean verified = false;
     private boolean isMainServer = false;
@@ -28,7 +38,7 @@ public class Client {
     private long lastUpdate;
     private String description;
 
-    public Client(SynapseInterface interfaz, String ip, int port){
+    public Client(SynapseInterface interfaz, String ip, int port) {
         this.server = interfaz.getServer();
         this.interfaz = interfaz;
         this.ip = ip;
@@ -50,29 +60,29 @@ public class Client {
         return this.ip + ':' + this.port;
     }
 
-    public String getDescription()  {
+    public String getDescription() {
         return this.description;
     }
 
-    public void setDescription(String description){
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    public void onUpdate(int currentTick){
-        if((System.currentTimeMillis() - this.lastUpdate) >= 30 * 1000){//30 seconds timeout
+    public void onUpdate(int currentTick) {
+        if ((System.currentTimeMillis() - this.lastUpdate) >= 30 * 1000) {//30 seconds timeout
             this.close("timeout");
         }
     }
 
-    public void handleDataPacket(DataPacket packet){
-		/*this.server.getPluginManager().callEvent(ev = new ClientRecvPacketEvent(this, packet));
+    public void handleDataPacket(DataPacket packet) {
+        /*this.server.getPluginManager().callEvent(ev = new ClientRecvPacketEvent(this, packet));
 		if(ev.isCancelled()){
 			return;
 		}*/
 
-        switch(packet.pid()){
+        switch (packet.pid()) {
             case SynapseInfo.HEARTBEAT_PACKET:
-                if(!this.isVerified()){
+                if (!this.isVerified()) {
                     this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " is not verified");
                     return;
                 }
@@ -81,35 +91,35 @@ public class Client {
 
                 InformationPacket pk = new InformationPacket();
                 pk.type = InformationPacket.TYPE_CLIENT_DATA;
-                pk.message = this.server.getClientData();
+                pk.message = this.server.getClientDataJson();
                 this.sendDataPacket(pk);
 
                 break;
             case SynapseInfo.CONNECT_PACKET:
                 /** @var ConnectPacket packet */
-
-                if(((ConnectPacket)packet).protocol != SynapseInfo.CURRENT_PROTOCOL){
-                    this.close("Incompatible SPP version! Require SPP version: " + SynapseInfo.CURRENT_PROTOCOL, true, DisconnectPacket.TYPE_WRONG_PROTOCOL);
+                ConnectPacket connectPacket = (ConnectPacket)packet;
+                if (connectPacket.protocol != SynapseInfo.CURRENT_PROTOCOL) {
+                    this.close("Incompatible SPP version! Require SPP version: " + SynapseInfo.CURRENT_PROTOCOL, true, org.itxtech.nemisys.network.protocol.spp.DisconnectPacket.TYPE_WRONG_PROTOCOL);
                     return;
                 }
                 pk = new InformationPacket();
                 pk.type = InformationPacket.TYPE_LOGIN;
-                if(this.server.comparePassword(base64_decode(packet.encodedPassword))){
+                if (this.server.comparePassword(Util.base64Decode(connectPacket.encodedPassword))) {
                     this.setVerified();
                     pk.message = InformationPacket.INFO_LOGIN_SUCCESS;
-                    this.isMainServer = packet.isMainServer;
-                    this.description = packet.description;
-                    this.maxPlayers = packet.maxPlayers;
+                    this.isMainServer = connectPacket.isMainServer;
+                    this.description = connectPacket.description;
+                    this.maxPlayers = connectPacket.maxPlayers;
                     this.server.addClient(this);
-                    this.server.getLogger().notice("Client {this.getIp()}:{this.getPort()} has connected successfully");
+                    this.server.getLogger().notice("Client " + this.getIp() + ":" + this.getPort() + " has connected successfully");
                     this.server.getLogger().notice("mainServer: " + (this.isMainServer ? "true" : "false"));
-                    this.server.getLogger().notice("description: this.description");
-                    this.server.getLogger().notice("maxPlayers: this.maxPlayers");
+                    this.server.getLogger().notice("description: " + this.description);
+                    this.server.getLogger().notice("maxPlayers: " + this.maxPlayers);
                     this.server.updateClientData();
                     this.sendDataPacket(pk);
-                }else{
+                } else {
                     pk.message = InformationPacket.INFO_LOGIN_FAILED;
-                    this.server.getLogger().emergency("Client {this.getIp()}:{this.getPort()} tried to connect with wrong password!");
+                    this.server.getLogger().emergency("Client " + this.getIp() + ":" + this.getPort() + " tried to connect with wrong password!");
                     this.sendDataPacket(pk);
                     this.close("Auth failed!");
                 }
@@ -117,69 +127,70 @@ public class Client {
                 break;
             case SynapseInfo.DISCONNECT_PACKET:
                 /** @var DisconnectPacket packet */
-                this.close(packet.message, false);
+                this.close(((org.itxtech.nemisys.network.protocol.spp.DisconnectPacket)packet).message, false);
                 break;
             case SynapseInfo.REDIRECT_PACKET:
                 /** @var RedirectPacket packet */
-                byte[] uuid = ((RedirectPacket)packet).uuid;
-                if(this.players[uuid = packet.uuid.toBinary()])){
+                byte[] uuid = Binary.writeUUID(((RedirectPacket) packet).uuid);
+                if (this.players.containsKey(uuid)) {
                     GenericPacket pk0 = new GenericPacket();
-                    pk0.buffer = packet.mcpeBuffer;
-                    this.players[uuid].sendDataPacket(pk, packet.direct);
+                    pk0.setBuffer(((RedirectPacket) packet).mcpeBuffer);
+                    this.players.get(uuid).sendDataPacket(pk0, ((RedirectPacket) packet).direct);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
 				}*/
                 break;
-            case Info.TRANSFER_PACKET:
+            case SynapseInfo.TRANSFER_PACKET:
                 /** @var TransferPacket pk */
-                clients = this.server.getClients();
-                if(isset(this.players[uuid = packet.uuid.toBinary()]) and isset(clients[packet.clientHash])){
-                this.players[uuid].transfer(clients[packet.clientHash], true);
+                Map<String, Client> clients = this.server.getClients();
+                byte[] rawUUID = Binary.writeUUID(((TransferPacket)packet).uuid);
+                if (this.players.containsKey(rawUUID) && clients.containsKey(((TransferPacket)packet).clientHash)){
+                this.players.get(rawUUID).transfer(clients.get(((TransferPacket)packet).clientHash), true);
             }
             break;
             default:
-                this.server.getLogger().error("Client {this.getIp()}:{this.getPort()} send an unknown packet " + packet.NETWORK_ID);
+                this.server.getLogger().error("Client {this.getIp()}:{this.getPort()} send an unknown packet " + packet.pid());
         }
     }
 
-    public void sendDataPacket(DataPacket pk){
-        this.interfaz.putPacket(this, pk);
+    public void sendDataPacket(SynapseDataPacket pk) {
+        this.interfaz.putPacket(pk);
 		/*this.server.getPluginManager().callEvent(ev = new ClientSendPacketEvent(this, pk));
 		if(!ev.isCancelled()){
 			this.interfaz.putPacket(this, pk);
 		}*/
     }
 
-    public String getIp(){
+    public String getIp() {
         return this.ip;
     }
 
-    public int getPort(){
+    public int getPort() {
         return this.port;
     }
 
-    public boolean isVerified(){
+    public boolean isVerified() {
         return this.verified;
     }
 
-    public void setVerified(){
+    public void setVerified() {
         this.verified = true;
     }
 
-    public Map<byte[], Player> getPlayers(){
+    public Map<byte[], Player> getPlayers() {
         return this.players;
     }
 
-    public void addPlayer(Player player){
+    public void addPlayer(Player player) {
         this.players.put(player.getRawUUID(), player);
     }
 
-    public void removePlayer(Player player){
+    public void removePlayer(Player player) {
         this.players.remove(player.getRawUUID());
     }
 
-    public void closeAllPlayers(){
-        for (Player player: new ArrayList<>(this.players.values())){
+    public void closeAllPlayers() {
+        for (Player player : new ArrayList<>(this.players.values())) {
             player.close("Server Closed");
         }
     }
@@ -196,12 +207,13 @@ public class Client {
         this.close(reason, needPk, DisconnectPacket.NETWORK_ID);
     }
 
-    public void close(String reason, boolean needPk, byte type){
-        //TODO this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
+    public void close(String reason, boolean needPk, byte type) {
+
+        this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();
         this.server.getLogger().info("Client this.ip:this.port has disconnected due to reason");
-        if(needPk){
-            DisconnectPacket pk = new DisconnectPacket();
+        if (needPk) {
+            org.itxtech.nemisys.network.protocol.spp.DisconnectPacket pk = new org.itxtech.nemisys.network.protocol.spp.DisconnectPacket();
             pk.type = type;
             pk.message = reason;
             this.sendDataPacket(pk);
@@ -210,5 +222,5 @@ public class Client {
         this.interfaz.removeClient(this);
         this.server.removeClient(this);
     }
-    
+
 }
