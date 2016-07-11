@@ -4,11 +4,9 @@ import org.itxtech.nemisys.Client;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.network.synlib.SynapseServer;
+import org.itxtech.nemisys.utils.Binary;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by boybook on 16/6/24.
@@ -22,7 +20,7 @@ public class SynapseInterface {
     private Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private SynapseServer interfaz;
 
-    public SynapseInterface(Server server, String ip, int port){
+    public SynapseInterface(Server server, String ip, int port) {
         this.server = server;
         this.ip = ip;
         this.port = port;
@@ -34,33 +32,40 @@ public class SynapseInterface {
         return server;
     }
 
-    public void addClient(String ip, int port){
-        this.clients.put([ip + ":" + port], new Client(this, ip, port));
+    public void addClient(String ip, int port) {
+        this.clients.put(ip + ":" + port, new Client(this, ip, port));
     }
 
-    public void shutdown(){
-        this.clients.shutdown();
+    public void removeClient(Client client) {
+        this.interfaz.addExternalClientCloseRequest(client.getHash());
+        this.clients.remove(client.getHash());
     }
 
-    public void putPacket(SynapseDataPacket pk){
-        if(!pk.isEncoded){
+    public void putPacket(Client client, SynapseDataPacket pk) {
+        if (!pk.isEncoded) {
             pk.encode();
         }
-        this.clients.pushMainToThreadPacket(pk.getBuffer());
+        this.interfaz.pushMainToThreadPacket(pk.getBuffer());  //TODO this.interface.pushMainToThreadPacket(client.getHash() . "|" . pk.buffer);
     }
 
-    public void process(){
-        byte[] buffer = this.clients.readThreadToMainPacket();
-
-        while (buffer != null && buffer.length > 0) {
-            this.handlePacket(buffer);
-            buffer = this.clients.readThreadToMainPacket();
+    //TODO
+    public void process() {
+        byte[] open = this.interfaz.getClientOpenRequest();
+        while (open != null && open.length > 0) {
+            //TODO ???表示这不懂
+            open = this.interfaz.getClientOpenRequest();
         }
 
-        this.connected = this.clients.isConnected();
-        if (this.clients.isNeedAuth()) {
-            this.synapse.connect();
-            this.clients.setNeedAuth(false);
+        byte[] buffer = this.interfaz.readThreadToMainPacket();
+        while (buffer != null && buffer.length > 0) {
+            this.handlePacket(buffer);
+            buffer = this.interfaz.readThreadToMainPacket();
+        }
+
+        byte[] close = this.interfaz.getInternalClientCloseRequest();
+        while (close != null && close.length > 0) {
+            //TODO
+            close = this.interfaz.getInternalClientCloseRequest();
         }
     }
 
@@ -76,14 +81,18 @@ public class SynapseInterface {
         return null;
     }
 
-    public void handlePacket(byte[] buffer){
+    public void handlePacket(String hash, byte[] buffer) {
+        if (!this.clients.containsKey(hash)) return;
+        Client client = this.clients.get(hash);
         SynapseDataPacket pk;
-        if((pk = this.getPacket(buffer)) != null){
+        if ((pk = this.getPacket(buffer)) != null) {
             pk.decode();
-            this.synapse.handleDataPacket(pk);
+            client.handleDataPacket(pk);
+        } else {
+            this.server.getLogger().critical("Error packet: " + Binary.bytesToHexString(buffer));
         }
     }
-    
+
     public void registerPacket(byte id, SynapseDataPacket packet) {
         this.packetPool.put(id, packet);
     }
