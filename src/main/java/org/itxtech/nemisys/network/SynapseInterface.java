@@ -1,7 +1,7 @@
 package org.itxtech.nemisys.network;
 
+import org.itxtech.nemisys.Client;
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.SynapseAPI;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.network.synlib.SynapseServer;
 
@@ -18,7 +18,7 @@ public class SynapseInterface {
     private Server server;
     private String ip;
     private int port;
-    private List<SynapseServer> clients;
+    private Map<String, Client> clients = new HashMap<>();
     private Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private SynapseServer interfaz;
 
@@ -27,7 +27,6 @@ public class SynapseInterface {
         this.ip = ip;
         this.port = port;
         this.registerPackets();
-        this.clients = new ArrayList<>();
         this.interfaz = new SynapseServer(server.getLogger(), this, port, ip);
     }
 
@@ -35,8 +34,8 @@ public class SynapseInterface {
         return server;
     }
 
-    public void reconnect(){
-        this.clients.reconnect();
+    public void addClient(String ip, int port){
+        this.clients.put([ip + ":" + port], new Client(this, ip, port));
     }
 
     public void shutdown(){
@@ -48,10 +47,6 @@ public class SynapseInterface {
             pk.encode();
         }
         this.clients.pushMainToThreadPacket(pk.getBuffer());
-    }
-
-    public boolean isConnected() {
-        return connected;
     }
 
     public void process(){

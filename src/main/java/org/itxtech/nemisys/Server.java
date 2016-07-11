@@ -161,6 +161,8 @@ public class Server {
         this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5);
         this.network.registerInterface(new RakNetInterface(this));
 
+        this.synapseInterface = new SynapseInterface(this, this.getIp(), this.getSynapsePort());
+
         this.pluginManager.loadPlugins(this.pluginPath);
         this.enablePlugins(PluginLoadOrder.STARTUP);
 
@@ -203,7 +205,8 @@ public class Server {
         if(this.clients.size() > 0){
             this.clientData = new ClientData();
             for (Client client: this.clients.values()){
-                ClientData.Entry entry = this.clientData.new Entry(client.getIp(), client.getPort(), client.getPlayers().size(), client.getMaxPlayers(), client.getDescription());
+                ClientData.Entry entry = this.clientData.new Entry(client.getIp(), client.getPort(), client.getPlayers().size(),
+                        client.getMaxPlayers(), client.getDescription(), client.getTicksPerSecond(), client.getTickUsage(), client.getUpTime());
                 this.clientData.clientList.put(client.getHash(), entry);
             }
             this.clientDataJson = new Gson().toJson(this.clientData);

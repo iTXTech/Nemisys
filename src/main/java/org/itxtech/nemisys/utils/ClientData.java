@@ -1,7 +1,5 @@
 package org.itxtech.nemisys.utils;
 
-import org.itxtech.nemisys.Server;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,12 +11,15 @@ public class ClientData {
     public Map<String, Entry> clientList = new HashMap<>();
 
     public class Entry {
-        public Entry(String ip, int port, int playerCount, int maxPlayers, String description) {
+        public Entry(String ip, int port, int playerCount, int maxPlayers, String description, float tps, float load, long upTime) {
             this.ip = ip;
             this.port = port;
             this.playerCount = playerCount;
             this.maxPlayers = maxPlayers;
             this.description = description;
+            this.tps = tps;
+            this.load = load;
+            this.upTime = upTime;
         }
 
         private String ip;
@@ -26,6 +27,9 @@ public class ClientData {
         private int playerCount;
         private int maxPlayers;
         private String description;
+        private float tps;
+        private float load;
+        private long upTime;
 
         public String getIp() {
             return ip;
@@ -45,6 +49,18 @@ public class ClientData {
 
         public String getDescription() {
             return description;
+        }
+
+        public float getTicksPerSecond(){
+            return this.tps;
+        }
+
+        public float getTickUsage(){
+            return this.load;
+        }
+
+        public long getUpTime(){
+            return this.upTime;
         }
     }
 

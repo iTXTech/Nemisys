@@ -1,9 +1,8 @@
 package org.itxtech.nemisys.network;
 
-import cn.nukkit.Player;
-import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.DataPacket;
-import org.itxtech.nemisys.SynapseAPI;
+import org.itxtech.nemisys.Nemisys;
+import org.itxtech.nemisys.Player;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
 
 /**
@@ -12,10 +11,10 @@ import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
 public class SynLibInterface implements SourceInterface {
 
     private SynapseInterface synapseInterface;
-    private SynapseAPI synapse;
+    private Nemisys nemisys;
 
-    public SynLibInterface(SynapseAPI synapse, SynapseInterface synapseInterface) {
-        this.synapse = synapse;
+    public SynLibInterface(Nemisys nemisys, SynapseInterface synapseInterface) {
+        this.nemisys = nemisys;
         this.synapseInterface = synapseInterface;
     }
 

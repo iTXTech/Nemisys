@@ -19,26 +19,19 @@ import java.util.Map;
  * Nemisys Project
  */
 public class Client {
-
-    /**
-     * @var Server
-     */
     private Server server;
-    /**
-     * @var SynapseInterface
-     */
     private SynapseInterface interfaz;
     private String ip;
     private int port;
-    /**
-     * @var Player[]
-     */
     private Map<byte[], Player> players = new HashMap<>();
     private boolean verified = false;
     private boolean isMainServer = false;
     private int maxPlayers;
     private long lastUpdate;
     private String description;
+    private float tps;
+    private float load;
+    private long upTime;
 
     public Client(SynapseInterface interfaz, String ip, int port) {
         this.server = interfaz.getServer();
@@ -66,6 +59,18 @@ public class Client {
         return this.description;
     }
 
+    public float getTicksPerSecond(){
+        return this.tps;
+    }
+
+    public float getTickUsage(){
+        return this.load;
+    }
+
+    public long getUpTime(){
+        return this.upTime;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -88,8 +93,12 @@ public class Client {
                     this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " is not verified");
                     return;
                 }
+                HeartbeatPacket heartbeatPacket = (HeartbeatPacket) packet;
                 this.lastUpdate = System.currentTimeMillis();
                 this.server.getLogger().notice("Received Heartbeat Packet from " + this.getIp() + ":" + this.getPort());
+                this.tps = heartbeatPacket.tps;
+                this.load = heartbeatPacket.load;
+                this.upTime = heartbeatPacket.upTime;
 
                 InformationPacket pk = new InformationPacket();
                 pk.type = InformationPacket.TYPE_CLIENT_DATA;
