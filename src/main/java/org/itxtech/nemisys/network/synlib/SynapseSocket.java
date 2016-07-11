@@ -2,6 +2,7 @@ package org.itxtech.nemisys.network.synlib;
 
 import cn.nukkit.utils.ThreadedLogger;
 import org.itxtech.nemisys.SynapseAPI;
+import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.net.*;
 import java.nio.channels.*;
@@ -21,7 +22,7 @@ public class SynapseSocket {
     private int port;
 
     public SynapseSocket(ThreadedLogger logger, int port) {
-        this(logger, port, "127.0.0.1");
+        this(logger, port, "0.0.0.0");
     }
 
     public SynapseSocket(ThreadedLogger logger, String interfaz) {
@@ -29,7 +30,7 @@ public class SynapseSocket {
     }
 
     public SynapseSocket(ThreadedLogger logger) {
-        this(logger, 10305, "127.0.0.1");
+        this(logger, 10305, "0.0.0.0");
     }
 
     public SynapseSocket(ThreadedLogger logger, int port, String interfaz) {
@@ -52,7 +53,6 @@ public class SynapseSocket {
             this.logger.critical("Synapse Client can't connect " + this.interfaz + ":" + this.port);
             this.logger.error("Socket error: " + e.getMessage());
             this.connected = false;
-            SynapseAPI.enable = false;
             return false;
         }
         return true;

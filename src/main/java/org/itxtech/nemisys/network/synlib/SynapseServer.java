@@ -19,7 +19,7 @@ public class SynapseServer extends Thread {
     private boolean shutdown = false;
     protected ConcurrentLinkedQueue<byte[]> externalQueue;
     protected ConcurrentLinkedQueue<byte[]> internalQueue;
-    protected ConcurrentLinkedQueue<byte[]> clinetOpenQueue;
+    protected ConcurrentLinkedQueue<byte[]> clientOpenQueue;
     protected ConcurrentLinkedQueue<byte[]> internalClientCloseQueue;
     protected ConcurrentLinkedQueue<byte[]> externalClientCloseQueue;
     private String mainPath;
@@ -40,7 +40,7 @@ public class SynapseServer extends Thread {
         this.shutdown = false;
         this.externalQueue = new ConcurrentLinkedQueue<>();
         this.internalQueue = new ConcurrentLinkedQueue<>();
-        this.clinetOpenQueue = new ConcurrentLinkedQueue<>();
+        this.clientOpenQueue = new ConcurrentLinkedQueue<>();
         this.internalClientCloseQueue = new ConcurrentLinkedQueue<>();
         this.externalClientCloseQueue = new ConcurrentLinkedQueue<>();
         this.mainPath = Nemisys.PATH;
@@ -54,6 +54,30 @@ public class SynapseServer extends Thread {
 
     public ConcurrentLinkedQueue<byte[]> getInternalQueue() {
         return internalQueue;
+    }
+
+    public byte[] getInternalClientCloseRequest(){
+        return this.internalClientCloseQueue.poll();
+    }
+
+    public void addInternalClientCloseRequest(byte[] hash){
+        this.internalClientCloseQueue.offer(hash);
+    }
+
+    public byte[] getExternalClientCloseRequest(){
+        return this.externalClientCloseQueue.poll();
+    }
+
+    public void addExternalClientCloseRequest(byte[] hash){
+        this.externalClientCloseQueue.offer(hash);
+    }
+
+    public byte[] getClientOpenRequest(){
+        return this.clientOpenQueue.poll();
+    }
+
+    public void addClientOpenRequest(byte[] hash){
+        this.clientOpenQueue.offer(hash);
     }
 
     public boolean isShutdown() {
