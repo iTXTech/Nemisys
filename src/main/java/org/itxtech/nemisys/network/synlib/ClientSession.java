@@ -3,77 +3,35 @@ package org.itxtech.nemisys.network.synlib;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Util;
 
+import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
 /**
  * Created by boybook on 16/6/24.
  */
-public class ClientConnection {
+public class ClientSession {
     public static final byte[] MAGIC_BYTES = new byte[]{
             (byte) 0x35, (byte) 0xac, (byte) 0x66, (byte) 0xbf
     };
 
     private byte[] receiveBuffer = new byte[0];
     private byte[] sendBuffer = new byte[0];
-    private SynapseSocket socket;
+    private ClientManager clientManager;
+    private SocketChannel socket;
     private String ip;
     private int port;
-    private SynapseServer server;
-    private long lastCheck;
-    private boolean connected;
     private String magicBytes;
 
-    public ClientConnection(SynapseServer server, SynapseSocket socket) {
-        this.server = server;
+    public ClientSession(ClientManager clientManager, SocketChannel socket) {
+        this.clientManager = clientManager;
         this.socket = socket;
-        this.connected = socket.isConnected();
-        if(this.connected) {
-            this.ip = socket.getSocket().socket().getInetAddress().getHostAddress();
-            this.port = socket.getSocket().socket().getPort();
-        }else{ //default
-            this.ip = "127.0.0.1";
-            this.port = 20000;
-        }
-        this.lastCheck = System.currentTimeMillis();
+        this.ip = socket.socket().getInetAddress().getHostAddress();
+        this.port = socket.socket().getPort();
 
         this.magicBytes = Util.bytesToHexString(MAGIC_BYTES);
-
-        this.run();
     }
 
-    public void run() {
-        this.tickProcessor();
-    }
-
-    private void tickProcessor() {
-        while (!this.server.isShutdown()) {
-            long start = System.currentTimeMillis();
-            try {
-                this.tick();
-            } catch (Exception e) {
-                Server.getInstance().getLogger().logException(e);
-            }
-
-            long time = System.currentTimeMillis();
-            if (time - start < 1) {  //todo TPS ???
-                try {
-                    Thread.sleep(1 - time + start);
-                } catch (InterruptedException e) {
-                    //ignore
-                }
-            }
-        }
-        try {
-            this.tick();
-        } catch (Exception e) {
-            Server.getInstance().getLogger().logException(e);
-        }
-        if(this.connected){
-            this.socket.close();
-        }
-    }
-
-    private void tick() throws Exception {
+    private void process() throws Exception {
         if (this.update()) {
             while (this.receivePacket()) ;
             while (this.sendPacket()) ;
@@ -110,7 +68,7 @@ public class ClientConnection {
         return port;
     }
 
-    public SynapseSocket getSocket() {
+    public SocketChannel getSocket() {
         return socket;
     }
 
@@ -155,7 +113,7 @@ public class ClientConnection {
     }
 
     public void writePacket(byte[] data) {
-        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, ClientConnection.MAGIC_BYTES);
+        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, ClientSession.MAGIC_BYTES);
         this.sendBuffer = Binary.appendBytes(buffer, this.sendBuffer);
     }
 

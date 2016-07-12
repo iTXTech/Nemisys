@@ -2,8 +2,12 @@ package org.itxtech.nemisys.network.synlib;
 
 import org.itxtech.nemisys.utils.MainLogger;
 
+import java.io.IOException;
+import java.nio.channels.SelectionKey;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Author: PeratX
@@ -12,7 +16,7 @@ import java.util.Map;
 public class ClientManager {
     private SynapseServer server;
     private SynapseSocket socket;
-    private Map<String, ClientConnection>clients = new HashMap<>();
+    private Map<String, ClientSession>clients = new HashMap<>();
 
     public ClientManager(SynapseServer server, SynapseSocket socket){
         this.server = server;
@@ -38,13 +42,13 @@ public class ClientManager {
             }
         }
         this.tick();
-        for(ClientConnection connection : this.clients.values()) {
+        for(ClientSession connection : this.clients.values()) {
             connection.close();
         }
         this.socket.close();;
     }
 
-    public Map<String, ClientConnection> getClients(){
+    public Map<String, ClientSession> getClients(){
         return this.clients;
     }
 
@@ -54,8 +58,18 @@ public class ClientManager {
 
     public void tick(){
         try{
+            while(this.socket.getSelector().selectNow() > 0){
+                Set readyKeys = this.socket.getSelector().selectedKeys();
+                Iterator it = readyKeys.iterator();
 
-        }catch (Exception e){
+                while(it.hasNext()){
+                    SelectionKey key = (SelectionKey) it.next();
+                    if(key.isAcceptable()){//Connect!
+
+                    }
+                }
+            }
+        }catch (IOException e){
             MainLogger.getLogger().logException(e);
         }
     }
