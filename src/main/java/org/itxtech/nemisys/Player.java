@@ -32,7 +32,7 @@ public class Player {
     private byte[] rawUUID;
     private boolean isFirstTimeLogin = true;
     private long lastUpdate;
-    private boolean closed;
+    public boolean closed;
 
     public Player(SourceInterface interfaz, long clientId, String ip, int port){
         this.interfaz = interfaz;
@@ -46,6 +46,10 @@ public class Player {
 
     public long getClientId(){
         return this.clientId;
+    }
+
+    public UUID getUniqueId(){
+        return this.uuid;
     }
 
     public byte[] getRawUUID(){

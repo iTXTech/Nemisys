@@ -1,13 +1,6 @@
 package org.itxtech.nemisys.command;
 
-import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.event.TextContainer;
 import org.itxtech.nemisys.event.TimingsHandler;
-import org.itxtech.nemisys.event.TranslationContainer;
-import org.itxtech.nemisys.permission.Permissible;
-import org.itxtech.nemisys.utils.TextFormat;
-
-import java.util.Set;
 
 /**
  * author: MagicDroidX
@@ -30,10 +23,6 @@ public abstract class Command {
     protected String description = "";
 
     protected String usageMessage = "";
-
-    private String permission = null;
-
-    private String permissionMessage = null;
 
     public TimingsHandler timings;
 
@@ -64,43 +53,6 @@ public abstract class Command {
 
     public String getName() {
         return name;
-    }
-
-    public String getPermission() {
-        return permission;
-    }
-
-    public void setPermission(String permission) {
-        this.permission = permission;
-    }
-
-    public boolean testPermission(CommandSender target) {
-        if (this.testPermissionSilent(target)) {
-            return true;
-        }
-
-        if (this.permissionMessage == null) {
-            target.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-        } else if (!this.permissionMessage.equals("")) {
-            target.sendMessage(this.permissionMessage.replace("<permission>", this.permission));
-        }
-
-        return false;
-    }
-
-    public boolean testPermissionSilent(CommandSender target) {
-        if (this.permission == null || this.permission.equals("")) {
-            return true;
-        }
-
-        String[] permissions = this.permission.split(";");
-        for (String permission : permissions) {
-            if (target.hasPermission(permission)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public String getLabel() {
@@ -147,10 +99,6 @@ public abstract class Command {
         return this.activeAliases;
     }
 
-    public String getPermissionMessage() {
-        return permissionMessage;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -170,70 +118,8 @@ public abstract class Command {
         this.description = description;
     }
 
-    public void setPermissionMessage(String permissionMessage) {
-        this.permissionMessage = permissionMessage;
-    }
-
     public void setUsage(String usageMessage) {
         this.usageMessage = usageMessage;
-    }
-
-    public static void broadcastCommandMessage(CommandSender source, String message) {
-        broadcastCommandMessage(source, message, true);
-    }
-
-    public static void broadcastCommandMessage(CommandSender source, String message, boolean sendToSource) {
-        Set<Permissible> users = source.getServer().getPluginManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-        TranslationContainer result = new TranslationContainer("chat.type.admin", new String[]{source.getName(), message});
-
-        TranslationContainer colored = new TranslationContainer(TextFormat.GRAY + TextFormat.ITALIC + "%chat.type.admin", new String[]{source.getName(), message});
-
-        if (sendToSource && !(source instanceof ConsoleCommandSender)) {
-            source.sendMessage(message);
-        }
-
-        for (Permissible user : users) {
-            if (user instanceof CommandSender) {
-                if (user instanceof ConsoleCommandSender) {
-                    ((ConsoleCommandSender) user).sendMessage(result);
-                } else if (!user.equals(source)) {
-                    ((CommandSender) user).sendMessage(colored);
-                }
-            }
-        }
-    }
-
-    public static void broadcastCommandMessage(CommandSender source, TextContainer message) {
-        broadcastCommandMessage(source, message, true);
-    }
-
-    public static void broadcastCommandMessage(CommandSender source, TextContainer message, boolean sendToSource) {
-        TextContainer m = message.clone();
-        String resultStr = "[" + source.getName() + ": " + (!m.getText().equals(source.getServer().getLanguage().get(m.getText())) ? "%" : "") + m.getText() + "]";
-
-        Set<Permissible> users = source.getServer().getPluginManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-        String coloredStr = TextFormat.GRAY + TextFormat.ITALIC + resultStr;
-
-        m.setText(resultStr);
-        TextContainer result = m.clone();
-        m.setText(coloredStr);
-        TextContainer colored = m.clone();
-
-        if (sendToSource && !(source instanceof ConsoleCommandSender)) {
-            source.sendMessage(message);
-        }
-
-        for (Permissible user : users) {
-            if (user instanceof CommandSender) {
-                if (user instanceof ConsoleCommandSender) {
-                    ((ConsoleCommandSender) user).sendMessage(result);
-                } else if (!user.equals(source)) {
-                    ((CommandSender) user).sendMessage(colored);
-                }
-            }
-        }
     }
 
     @Override

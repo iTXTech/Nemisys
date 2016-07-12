@@ -14,14 +14,10 @@ public class KickCommand extends VanillaCommand {
 
     public KickCommand(String name) {
         super(name, "%nemisys.command.kick.description", "%commands.kick.usage");
-        this.setPermission("nemisys.command.kick");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
         if (args.length == 0) {
             sender.sendMessage(new TranslationContainer("commands.generic.usage", this.usageMessage));
             return false;
@@ -40,14 +36,11 @@ public class KickCommand extends VanillaCommand {
 
         Player player = sender.getServer().getPlayer(name);
         if (player != null) {
-            player.kick(reason);
+            player.close(reason);
             if (reason.length() >= 1) {
-                Command.broadcastCommandMessage(sender,
-                        new TranslationContainer("commands.kick.success.reason", new String[]{player.getName(), reason})
-                );
+                sender.sendMessage(new TranslationContainer("commands.kick.success.reason", new String[]{player.getName(), reason}));
             } else {
-                Command.broadcastCommandMessage(sender,
-                        new TranslationContainer("commands.kick.success", player.getName()));
+                sender.sendMessage(new TranslationContainer("commands.kick.success", player.getName()));
             }
         } else {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));

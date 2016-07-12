@@ -1,13 +1,10 @@
 package org.itxtech.nemisys.command.defaults;
 
-import org.itxtech.nemisys.Nukkit;
+import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.command.CommandSender;
-import org.itxtech.nemisys.level.Level;
 import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.utils.TextFormat;
-
-import java.util.Objects;
 
 /**
  * Created on 2015/11/11 by xtypr.
@@ -17,19 +14,15 @@ public class StatusCommand extends VanillaCommand {
 
     public StatusCommand(String name) {
         super(name, "%nemisys.command.status.description", "%nemisys.command.status.usage");
-        this.setPermission("nemisys.command.status");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
 
         Server server = sender.getServer();
         sender.sendMessage(TextFormat.GREEN + "---- " + TextFormat.WHITE + "Server status" + TextFormat.GREEN + " ----");
 
-        long time = (System.currentTimeMillis() - Nukkit.START_TIME) / 1000;
+        long time = (System.currentTimeMillis() - Nemisys.START_TIME) / 1000;
         int seconds = NemisysMath.floorDouble(time % 60);
         int minutes = NemisysMath.floorDouble((time % 3600) / 60);
         int hours = NemisysMath.floorDouble(time % (3600 * 24) / 3600);
@@ -86,17 +79,6 @@ public class StatusCommand extends VanillaCommand {
 
         sender.sendMessage(TextFormat.GOLD + "Players: " + playerColor + server.getOnlinePlayers().size() + TextFormat.GREEN + " online, " +
                 TextFormat.RED + server.getMaxPlayers() + TextFormat.GREEN + " max. ");
-
-        for (Level level : server.getLevels().values()) {
-            sender.sendMessage(
-                    TextFormat.GOLD + "World \"" + level.getFolderName() + "\"" + (!Objects.equals(level.getFolderName(), level.getName()) ? " (" + level.getName() + ")" : "") + ": " +
-                            TextFormat.RED + level.getChunks().size() + TextFormat.GREEN + " chunks, " +
-                            TextFormat.RED + level.getEntities().length + TextFormat.GREEN + " entities, " +
-                            TextFormat.RED + level.getBlockEntities().size() + TextFormat.GREEN + " blockEntities." +
-                            " Time " + ((level.getTickRate() > 1 || level.getTickRateTime() > 40) ? TextFormat.RED : TextFormat.YELLOW) + NemisysMath.round(level.getTickRateTime(), 2) + "ms" +
-                            (level.getTickRate() > 1 ? " (tick rate " + level.getTickRate() + ")" : "")
-            );
-        }
 
         return true;
     }

@@ -25,14 +25,10 @@ public class TimingsCommand extends VanillaCommand {
 
     public TimingsCommand(String name) {
         super(name, "%nemisys.command.timings.description", "%nemisys.command.timings.usage");
-        this.setPermission("nemisys.command.timings");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
         if (args.length != 1) {
             sender.sendMessage(new TranslationContainer("commands.generic.usage", usageMessage));
             return true;

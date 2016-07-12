@@ -19,15 +19,10 @@ public class PluginsCommand extends VanillaCommand {
                 "%nemisys.command.plugins.usage",
                 new String[]{"pl"}
         );
-        this.setPermission("nemisys.command.plugins");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
         this.sendPluginList(sender);
         return true;
     }

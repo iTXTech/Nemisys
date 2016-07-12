@@ -17,14 +17,10 @@ public class HelpCommand extends VanillaCommand {
 
     public HelpCommand(String name) {
         super(name, "%nemisys.command.help.description", "%commands.help.usage", new String[]{"?"});
-        this.setPermission("nemisys.command.help");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
         String command = "";
         int pageNumber = 1;
         int pageHeight = 5;
@@ -67,9 +63,7 @@ public class HelpCommand extends VanillaCommand {
         if (command.equals("")) {
             Map<String, Command> commands = new TreeMap<>();
             for (Command cmd : sender.getServer().getCommandMap().getCommands().values()) {
-                if (cmd.testPermissionSilent(sender)) {
-                    commands.put(cmd.getName(), cmd);
-                }
+                commands.put(cmd.getName(), cmd);
             }
             int totalPage = commands.size() % pageHeight == 0 ? commands.size() / pageHeight : commands.size() / pageHeight + 1;
             pageNumber = Math.min(pageNumber, totalPage);
@@ -90,21 +84,19 @@ public class HelpCommand extends VanillaCommand {
         } else {
             Command cmd = sender.getServer().getCommandMap().getCommand(command.toLowerCase());
             if (cmd != null) {
-                if (cmd.testPermissionSilent(sender)) {
-                    String message = TextFormat.YELLOW + "--------- " + TextFormat.WHITE + " Help: /" + cmd.getName() + TextFormat.YELLOW + " ---------\n";
-                    message += TextFormat.GOLD + "Description: " + TextFormat.WHITE + cmd.getDescription() + "\n";
-                    String usage = "";
-                    String[] usages = cmd.getUsage().split("\n");
-                    for (String u : usages) {
-                        if (!usage.equals("")) {
-                            usage += "\n" + TextFormat.WHITE;
-                        }
-                        usage += u;
+                String message = TextFormat.YELLOW + "--------- " + TextFormat.WHITE + " Help: /" + cmd.getName() + TextFormat.YELLOW + " ---------\n";
+                message += TextFormat.GOLD + "Description: " + TextFormat.WHITE + cmd.getDescription() + "\n";
+                String usage = "";
+                String[] usages = cmd.getUsage().split("\n");
+                for (String u : usages) {
+                    if (!usage.equals("")) {
+                        usage += "\n" + TextFormat.WHITE;
                     }
-                    message += TextFormat.GOLD + "Usage: " + TextFormat.WHITE + usage + "\n";
-                    sender.sendMessage(message);
-                    return true;
+                    usage += u;
                 }
+                message += TextFormat.GOLD + "Usage: " + TextFormat.WHITE + usage + "\n";
+                sender.sendMessage(message);
+                return true;
             }
 
             sender.sendMessage(TextFormat.RED + "No help for " + command.toLowerCase());

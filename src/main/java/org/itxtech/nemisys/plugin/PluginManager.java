@@ -5,8 +5,6 @@ import org.itxtech.nemisys.command.PluginCommand;
 import org.itxtech.nemisys.command.SimpleCommandMap;
 import org.itxtech.nemisys.command.defaults.TimingsCommand;
 import org.itxtech.nemisys.event.*;
-import org.itxtech.nemisys.permission.Permissible;
-import org.itxtech.nemisys.permission.Permission;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.PluginException;
 import org.itxtech.nemisys.utils.Utils;
@@ -29,18 +27,6 @@ public class PluginManager {
     private SimpleCommandMap commandMap;
 
     protected Map<String, Plugin> plugins = new LinkedHashMap<>();
-
-    protected Map<String, Permission> permissions = new HashMap<>();
-
-    protected Map<String, Permission> defaultPerms = new HashMap<>();
-
-    protected Map<String, Permission> defaultPermsOp = new HashMap<>();
-
-    protected Map<String, WeakHashMap<Permissible, Permissible>> permSubs = new HashMap<>();
-
-    protected Map<Permissible, Permissible> defSubs = new WeakHashMap<>();
-
-    protected Map<Permissible, Permissible> defSubsOp = new WeakHashMap<>();
 
     protected Map<String, PluginLoader> fileAssociations = new HashMap<>();
 
@@ -322,130 +308,6 @@ public class PluginManager {
         }
     }
 
-    public Permission getPermission(String name) {
-        if (this.permissions.containsKey(name)) {
-            return this.permissions.get(name);
-        }
-        return null;
-    }
-
-    public boolean addPermission(Permission permission) {
-        if (!this.permissions.containsKey(permission.getName())) {
-            this.permissions.put(permission.getName(), permission);
-            this.calculatePermissionDefault(permission);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public void removePermission(String name) {
-        this.permissions.remove(name);
-    }
-
-    public void removePermission(Permission permission) {
-        this.removePermission(permission.getName());
-    }
-
-    public Map<String, Permission> getDefaultPermissions(boolean op) {
-        if (op) {
-            return this.defaultPermsOp;
-        } else {
-            return this.defaultPerms;
-        }
-    }
-
-    public void recalculatePermissionDefaults(Permission permission) {
-        if (this.permissions.containsKey(permission.getName())) {
-            this.defaultPermsOp.remove(permission.getName());
-            this.defaultPerms.remove(permission.getName());
-            this.calculatePermissionDefault(permission);
-        }
-    }
-
-    private void calculatePermissionDefault(Permission permission) {
-        Timings.permissionDefaultTimer.startTiming();
-        if (permission.getDefault().equals(Permission.DEFAULT_OP) || permission.getDefault().equals(Permission.DEFAULT_TRUE)) {
-            this.defaultPermsOp.put(permission.getName(), permission);
-            this.dirtyPermissibles(true);
-        }
-
-        if (permission.getDefault().equals(Permission.DEFAULT_NOT_OP) || permission.getDefault().equals(Permission.DEFAULT_TRUE)) {
-            this.defaultPerms.put(permission.getName(), permission);
-            this.dirtyPermissibles(false);
-        }
-        Timings.permissionDefaultTimer.startTiming();
-    }
-
-    private void dirtyPermissibles(boolean op) {
-        for (Permissible p : this.getDefaultPermSubscriptions(op)) {
-            p.recalculatePermissions();
-        }
-    }
-
-    public void subscribeToPermission(String permission, Permissible permissible) {
-        if (!this.permSubs.containsKey(permission)) {
-            this.permSubs.put(permission, new WeakHashMap<>());
-        }
-        this.permSubs.get(permission).put(permissible, permissible);
-    }
-
-    public void unsubscribeFromPermission(String permission, Permissible permissible) {
-        if (this.permSubs.containsKey(permission)) {
-            this.permSubs.get(permission).remove(permissible);
-            if (this.permSubs.get(permission).size() == 0) {
-                this.permSubs.remove(permission);
-            }
-        }
-    }
-
-    public Set<Permissible> getPermissionSubscriptions(String permission) {
-        if (this.permSubs.containsKey(permission)) {
-            Set<Permissible> subs = new HashSet<>();
-            for (Permissible p : this.permSubs.get(permission).values()) {
-                subs.add(p);
-            }
-            return subs;
-        }
-
-        return new HashSet<>();
-    }
-
-    public void subscribeToDefaultPerms(boolean op, Permissible permissible) {
-        if (op) {
-            this.defSubsOp.put(permissible, permissible);
-        } else {
-            this.defSubs.put(permissible, permissible);
-        }
-    }
-
-    public void unsubscribeFromDefaultPerms(boolean op, Permissible permissible) {
-        if (op) {
-            this.defSubsOp.remove(permissible);
-        } else {
-            this.defSubs.remove(permissible);
-        }
-    }
-
-    public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
-        Set<Permissible> subs = new HashSet<>();
-        if (op) {
-            for (Permissible p : this.defSubsOp.values()) {
-                subs.add(p);
-            }
-        } else {
-            for (Permissible p : this.defSubs.values()) {
-                subs.add(p);
-            }
-        }
-        return subs;
-    }
-
-    public Map<String, Permission> getPermissions() {
-        return permissions;
-    }
-
     public boolean isPluginEnabled(Plugin plugin) {
         if (plugin != null && this.plugins.containsKey(plugin.getDescription().getName())) {
             return plugin.isEnabled();
@@ -457,9 +319,6 @@ public class PluginManager {
     public void enablePlugin(Plugin plugin) {
         if (!plugin.isEnabled()) {
             try {
-                for (Permission permission : plugin.getDescription().getPermissions()) {
-                    this.addPermission(permission);
-                }
                 plugin.getPluginLoader().enablePlugin(plugin);
             } catch (Exception e) {
                 MainLogger logger = this.server.getLogger();
@@ -508,14 +367,6 @@ public class PluginManager {
                     }
                 }
 
-                if (((Map) data).containsKey("permission")) {
-                    newCmd.setPermission((String) ((Map) data).get("permission"));
-                }
-
-                if (((Map) data).containsKey("permission-message")) {
-                    newCmd.setPermissionMessage((String) ((Map) data).get("permission-message"));
-                }
-
                 pluginCmds.add(newCmd);
             }
         }
@@ -542,9 +393,6 @@ public class PluginManager {
 
             this.server.getScheduler().cancelTask(plugin);
             HandlerList.unregisterAll(plugin);
-            for (Permission permission : plugin.getDescription().getPermissions()) {
-                this.removePermission(permission);
-            }
         }
     }
 
@@ -552,9 +400,6 @@ public class PluginManager {
         this.disablePlugins();
         this.plugins.clear();
         this.fileAssociations.clear();
-        this.permissions.clear();
-        this.defaultPerms.clear();
-        this.defaultPermsOp.clear();
     }
 
     public void callEvent(Event event) {

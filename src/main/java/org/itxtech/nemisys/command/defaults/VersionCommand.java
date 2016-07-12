@@ -21,18 +21,14 @@ public class VersionCommand extends VanillaCommand {
                 "%nemisys.command.version.usage",
                 new String[]{"ver", "about"}
         );
-        this.setPermission("nemisys.command.version");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
         if (args.length == 0) {
             sender.sendMessage(new TranslationContainer("nemisys.server.info.extended", new String[]{
                     sender.getServer().getName(),
-                    sender.getServer().getNukkitVersion(),
+                    sender.getServer().getNemisysVersion(),
                     sender.getServer().getCodename(),
                     sender.getServer().getApiVersion(),
                     sender.getServer().getVersion(),

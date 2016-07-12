@@ -107,7 +107,6 @@ public class Client {
 
                 break;
             case SynapseInfo.CONNECT_PACKET:
-                /** @var ConnectPacket packet */
                 ConnectPacket connectPacket = (ConnectPacket)packet;
                 if (connectPacket.protocol != SynapseInfo.CURRENT_PROTOCOL) {
                     this.close("Incompatible SPP version! Require SPP version: " + SynapseInfo.CURRENT_PROTOCOL, true, org.itxtech.nemisys.network.protocol.spp.DisconnectPacket.TYPE_WRONG_PROTOCOL);
@@ -165,7 +164,7 @@ public class Client {
     }
 
     public void sendDataPacket(SynapseDataPacket pk) {
-        this.interfaz.putPacket(pk);
+        this.interfaz.putPacket(this, pk);
 		/*this.server.getPluginManager().callEvent(ev = new ClientSendPacketEvent(this, pk));
 		if(!ev.isCancelled()){
 			this.interfaz.putPacket(this, pk);

@@ -2,7 +2,6 @@ package org.itxtech.nemisys.command;
 
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.event.TextContainer;
-import org.itxtech.nemisys.permission.Permissible;
 
 /**
  * 能发送命令的人。<br>
@@ -16,7 +15,7 @@ import org.itxtech.nemisys.permission.Permissible;
  * @see org.itxtech.nemisys.command.CommandExecutor#onCommand
  * @since Nukkit 1.0 | Nukkit API 1.0.0
  */
-public interface CommandSender extends Permissible {
+public interface CommandSender {
 
     /**
      * 给命令发送者返回信息。<br>

@@ -19,9 +19,9 @@ public class SynapseServer extends Thread {
     private boolean shutdown = false;
     protected ConcurrentLinkedQueue<byte[]> externalQueue;
     protected ConcurrentLinkedQueue<byte[]> internalQueue;
-    protected ConcurrentLinkedQueue<byte[]> clientOpenQueue;
-    protected ConcurrentLinkedQueue<byte[]> internalClientCloseQueue;
-    protected ConcurrentLinkedQueue<byte[]> externalClientCloseQueue;
+    protected ConcurrentLinkedQueue<String> clientOpenQueue;
+    protected ConcurrentLinkedQueue<String> internalClientCloseQueue;
+    protected ConcurrentLinkedQueue<String> externalClientCloseQueue;
     private String mainPath;
     private SynapseInterface server;
 

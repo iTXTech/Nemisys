@@ -12,21 +12,15 @@ public class ListCommand extends VanillaCommand {
 
     public ListCommand(String name) {
         super(name, "%nemisys.command.list.description", "%commands.players.usage");
-        this.setPermission("nemisys.command.list");
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
         String online = "";
         int onlineCount = 0;
         for (Player player : sender.getServer().getOnlinePlayers().values()) {
-            if (player.isOnline() && (!(sender instanceof Player) || ((Player) sender).canSee(player))) {
-                online += player.getDisplayName() + ", ";
-                ++onlineCount;
-            }
+            online += player.getName() + ", ";
+            ++onlineCount;
         }
 
         if (online.length() > 0) {

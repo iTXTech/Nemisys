@@ -1,6 +1,5 @@
 package org.itxtech.nemisys.plugin;
 
-import org.itxtech.nemisys.permission.Permission;
 import org.itxtech.nemisys.utils.PluginException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -124,8 +123,6 @@ public class PluginDescription {
     private String prefix;
     private PluginLoadOrder order = PluginLoadOrder.POSTWORLD;
 
-    private List<Permission> permissions = new ArrayList<>();
-
     public PluginDescription(Map<String, Object> yamlMap) {
         this.loadMap(yamlMap);
     }
@@ -204,10 +201,6 @@ public class PluginDescription {
 
         if (plugin.containsKey("authors")) {
             this.authors.addAll((Collection<? extends String>) plugin.get("authors"));
-        }
-
-        if (plugin.containsKey("permissions")) {
-            this.permissions = Permission.loadPermissions((Map<String, Object>) plugin.get("permissions"));
         }
     }
 
@@ -369,18 +362,6 @@ public class PluginDescription {
      */
     public PluginLoadOrder getOrder() {
         return order;
-    }
-
-    /**
-     * 返回这个插件定义的权限列表。<br>
-     * Returns all the defined permissions of this plugin.
-     *
-     * @return 这个插件定义的权限列表。<br>A map of all defined permissions of this plugin.
-     * @see PluginDescription
-     * @since Nukkit 1.0 | Nukkit API 1.0.0
-     */
-    public List<Permission> getPermissions() {
-        return permissions;
     }
 
     /**

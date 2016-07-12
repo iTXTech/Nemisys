@@ -2,6 +2,7 @@ package org.itxtech.nemisys.network.synlib;
 
 import cn.nukkit.Server;
 import cn.nukkit.utils.Binary;
+import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Util;
 
 import java.io.IOException;
@@ -21,15 +22,9 @@ public class ServerConnection {
 
     private byte[] receiveBuffer = new byte[0];
     private byte[] sendBuffer = new byte[0];
-    /**
-     * @var resource
-     */
     private SynapseSocket socket;
     private String ip;
     private int port;
-    /**
-     * @var SynapseServer
-     */
     private SynapseServer server;
     private long lastCheck;
     private boolean connected;
@@ -127,54 +122,7 @@ public class ServerConnection {
     }
 
     public boolean update() throws Exception {
-        if (this.server.needReconnect && this.connected) {
-            this.connected = false;
-            this.server.needReconnect = false;
-        }
-        if (this.connected) {
-            try {
-                Selector selector = this.socket.getSelector();
-                if (selector.selectNow() > 0) {
-                    for (SelectionKey sk : selector.selectedKeys()) {
-                        selector.selectedKeys().remove(sk);
-                        if (sk.isReadable()) {
-                            SocketChannel sc = (SocketChannel) sk.channel();
-                            ByteBuffer buff = ByteBuffer.allocate(65535);
-                            int n = sc.read(buff);
-                            buff.flip();
-                            sk.interestOps(SelectionKey.OP_READ);
-                            if(n > 0) {
-                                byte[] buffer = Arrays.copyOfRange(buff.array(), 0, n);
-                                this.receiveBuffer = Binary.appendBytes(buffer, this.receiveBuffer);
-                            }
-                        }
-                    }
-                }
-                if (this.sendBuffer.length > 0) {
-                    this.socket.getSocket().write(ByteBuffer.wrap(this.sendBuffer));
-                    this.sendBuffer = new byte[0];
-                }
-                return true;
-            } catch (IOException e) {
-                this.server.getLogger().error("Synapse connection has disconnected unexpectedly");
-                this.connected = false;
-                this.server.setConnected(false);
-                return false;
-            }
-        } else {
-            long time;
-            if (((time = System.currentTimeMillis()) - this.lastCheck) >= 3000) {//re-connect
-                this.server.getLogger().notice("Trying to re-connect to Synapse Server");
-                if (this.socket.connect()) {
-                    this.connected = true;
-                    this.port = this.socket.getPort();
-                    this.server.setConnected(true);
-                    this.server.setNeedAuth(true);
-                }
-                this.lastCheck = time;
-            }
-            return false;
-        }
+
     }
 
     public byte[] readPacket() throws Exception {
