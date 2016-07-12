@@ -1,12 +1,7 @@
 package org.itxtech.nemisys.utils;
 
-import org.itxtech.nemisys.entity.Entity;
-import org.itxtech.nemisys.entity.data.*;
-
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -66,119 +61,6 @@ public class Binary {
 
     public static byte[] writeUUID(UUID uuid) {
         return appendBytes(writeLong(uuid.getMostSignificantBits()), writeLong(uuid.getLeastSignificantBits()));
-    }
-
-    public static byte[] writeMetadata(EntityMetadata metadata) {
-        BinaryStream stream = new BinaryStream();
-        Map<Integer, EntityData> map = metadata.getMap();
-        for (int id : map.keySet()) {
-            EntityData d = map.get(id);
-            stream.putByte((byte) (((d.getType() << 5) | (id & 0x1F)) & 0xff));
-            switch (d.getType()) {
-                case Entity.DATA_TYPE_BYTE:
-                    stream.putByte(((ByteEntityData) d).getData().byteValue());
-                    break;
-                case Entity.DATA_TYPE_SHORT:
-                    stream.putLShort(((ShortEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_INT:
-                    stream.putLInt(((IntEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_FLOAT:
-                    stream.putLFloat(((FloatEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_STRING:
-                    String s = ((StringEntityData) d).getData();
-                    stream.putLShort(s.getBytes(StandardCharsets.UTF_8).length);
-                    stream.put(s.getBytes(StandardCharsets.UTF_8));
-                    break;
-                case Entity.DATA_TYPE_SLOT:
-                    SlotEntityData slot = (SlotEntityData) d;
-                    stream.putLShort(slot.blockId);
-                    stream.putByte((byte) slot.meta);
-                    stream.putLShort(slot.count);
-                    break;
-                case Entity.DATA_TYPE_POS:
-                    PositionEntityData pos = (PositionEntityData) d;
-                    stream.putLInt(pos.x);
-                    stream.putLInt(pos.y);
-                    stream.putLInt(pos.z);
-                    break;
-                case Entity.DATA_TYPE_LONG:
-                    stream.putLLong(((LongEntityData) d).getData());
-                    break;
-            }
-        }
-
-        stream.putByte((byte) 0x7f);
-        return stream.getBuffer();
-    }
-
-    public static EntityMetadata readMetadata(byte[] payload) {
-        int offset = 0;
-        EntityMetadata m = new EntityMetadata();
-        int b = payload[offset] & 0xff;
-        ++offset;
-        while (b != 0x7f && offset < payload.length) {
-            int id = b & 0x1f;
-            int type = b >> 5;
-
-            EntityData data;
-            switch (type) {
-                case Entity.DATA_TYPE_BYTE:
-                    data = new ByteEntityData(id, payload[offset] & 0xff);
-                    ++offset;
-                    break;
-                case Entity.DATA_TYPE_SHORT:
-                    data = new ShortEntityData(id, readLShort(subBytes(payload, offset, 2)));
-                    offset += 2;
-                    break;
-                case Entity.DATA_TYPE_INT:
-                    data = new IntEntityData(id, readLInt(subBytes(payload, offset, 4)));
-                    offset += 4;
-                    break;
-                case Entity.DATA_TYPE_FLOAT:
-                    data = new FloatEntityData(id, readLFloat(subBytes(payload, offset, 4)));
-                    offset += 4;
-                    break;
-                case Entity.DATA_TYPE_STRING:
-                    int len = readLShort(subBytes(payload, offset, 2));
-                    offset += 2;
-                    String str = new String(subBytes(payload, offset, len));
-                    offset += len;
-                    data = new StringEntityData(id, str);
-                    break;
-                case Entity.DATA_TYPE_SLOT:
-                    int blockId = readLShort(subBytes(payload, offset, 2));
-                    offset += 2;
-                    byte meta = payload[offset];
-                    ++offset;
-                    int count = readLShort(subBytes(payload, offset, 2));
-                    offset += 2;
-                    data = new SlotEntityData(id, blockId, meta, count);
-                    break;
-                case Entity.DATA_TYPE_POS:
-                    int[] intArray = new int[3];
-                    for (int i = 0; i < 3; ++i) {
-                        intArray[i] = readLInt(subBytes(payload, offset, 4));
-                        offset += 4;
-                    }
-                    data = new PositionEntityData(id, intArray[0], intArray[1], intArray[2]);
-                    break;
-                case Entity.DATA_TYPE_LONG:
-                    data = new LongEntityData(id, readLLong(subBytes(payload, offset, 4)));
-                    offset += 8;
-                    break;
-                default:
-                    return new EntityMetadata();
-            }
-
-            m.put(data);
-            b = payload[offset] & 0xff;
-            ++offset;
-        }
-
-        return m;
     }
 
     public static boolean readBool(byte b) {

@@ -1,21 +1,14 @@
 package org.itxtech.nemisys.network.synlib;
 
-import cn.nukkit.Server;
-import cn.nukkit.utils.Binary;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Util;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
 /**
  * Created by boybook on 16/6/24.
  */
-public class ServerConnection {
+public class ClientConnection {
     public static final byte[] MAGIC_BYTES = new byte[]{
             (byte) 0x35, (byte) 0xac, (byte) 0x66, (byte) 0xbf
     };
@@ -30,7 +23,7 @@ public class ServerConnection {
     private boolean connected;
     private String magicBytes;
 
-    public ServerConnection(SynapseServer server, SynapseSocket socket) {
+    public ClientConnection(SynapseServer server, SynapseSocket socket) {
         this.server = server;
         this.socket = socket;
         this.connected = socket.isConnected();
@@ -162,7 +155,7 @@ public class ServerConnection {
     }
 
     public void writePacket(byte[] data) {
-        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, ServerConnection.MAGIC_BYTES);
+        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, ClientConnection.MAGIC_BYTES);
         this.sendBuffer = Binary.appendBytes(buffer, this.sendBuffer);
     }
 

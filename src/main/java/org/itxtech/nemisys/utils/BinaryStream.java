@@ -1,8 +1,5 @@
 package org.itxtech.nemisys.utils;
 
-import org.itxtech.nemisys.entity.data.Skin;
-import org.itxtech.nemisys.item.Item;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
@@ -232,55 +229,6 @@ public class BinaryStream {
 
     public UUID getUUID() {
         return Binary.readUUID(this.get(16));
-    }
-
-    public void putSkin(Skin skin) {
-        this.putString(skin.getModel());
-        this.putShort(skin.getData().length);
-        this.put(skin.getData());
-    }
-
-    public Skin getSkin() {
-        String modelId = this.getString();
-        byte[] skinData = this.get(this.getShort());
-        return new Skin(skinData, modelId);
-    }
-
-    public Item getSlot() {
-        short id = this.getSignedShort();
-
-        if (id <= 0) {
-            return Item.get(0, 0, 0);
-        }
-        int cnt = this.getByte();
-
-        int data = this.getShort();
-
-        int nbtLen = this.getLShort();
-
-        byte[] nbt = new byte[0];
-        if (nbtLen > 0) {
-            nbt = this.get(nbtLen);
-        }
-
-        return Item.get(
-                id, data, cnt, nbt
-        );
-    }
-
-    public void putSlot(Item item) {
-        if (item == null || item.getId() == 0) {
-            this.putShort(0);
-            return;
-        }
-
-        this.putShort(item.getId());
-        this.putByte((byte) (item.getCount() & 0xff));
-        this.putShort(!item.hasMeta() ? -1 : item.getDamage());
-
-        byte[] nbt = item.getCompoundTag();
-        this.putLShort(nbt.length);
-        this.put(nbt);
     }
 
     public String getString() {

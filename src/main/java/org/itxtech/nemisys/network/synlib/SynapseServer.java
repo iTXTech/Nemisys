@@ -19,9 +19,9 @@ public class SynapseServer extends Thread {
     private boolean shutdown = false;
     protected ConcurrentLinkedQueue<byte[]> externalQueue;
     protected ConcurrentLinkedQueue<byte[]> internalQueue;
-    protected ConcurrentLinkedQueue<String> clientOpenQueue;
-    protected ConcurrentLinkedQueue<String> internalClientCloseQueue;
-    protected ConcurrentLinkedQueue<String> externalClientCloseQueue;
+    protected ConcurrentLinkedQueue<byte[]> clientOpenQueue;
+    protected ConcurrentLinkedQueue<byte[]> internalClientCloseQueue;
+    protected ConcurrentLinkedQueue<byte[]> externalClientCloseQueue;
     private String mainPath;
     private SynapseInterface server;
 
@@ -124,7 +124,7 @@ public class SynapseServer extends Thread {
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         try {
             SynapseSocket socket = new SynapseSocket(this.getLogger(), this.port, this.interfaz);
-            new ServerConnection(this, socket);
+            new ClientManager(this, socket);
         } catch (Exception e) {
             e.printStackTrace();
         }

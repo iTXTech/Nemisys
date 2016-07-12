@@ -1,12 +1,9 @@
 package org.itxtech.nemisys.network.synlib;
 
-import cn.nukkit.utils.ThreadedLogger;
-import org.itxtech.nemisys.SynapseAPI;
 import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.net.*;
 import java.nio.channels.*;
-import java.nio.*;
 import java.io.*;
 
 /**
@@ -14,7 +11,7 @@ import java.io.*;
  */
 public class SynapseSocket {
 
-    private SocketChannel socket;
+    private ServerSocketChannel socket;
     private Selector selector = null;
     private ThreadedLogger logger;
     private String interfaz;
@@ -44,29 +41,26 @@ public class SynapseSocket {
         try {
             this.selector = Selector.open();
             InetSocketAddress isa = new InetSocketAddress(this.interfaz, this.port);
-            this.socket = SocketChannel.open(isa);
+            this.socket = ServerSocketChannel.open();
+            this.socket.socket().setReuseAddress(true);
             this.socket.configureBlocking(false);
-            this.socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE | SelectionKey.OP_CONNECT);
+            this.socket.socket().bind(isa);
+            this.socket.register(selector, SelectionKey.OP_ACCEPT);
             this.logger.notice("SynapseAPI has connected to " + this.interfaz + ":" + this.port);
             this.connected = true;
         } catch (IOException e) {
-            this.logger.critical("Synapse Client can't connect " + this.interfaz + ":" + this.port);
+            this.logger.critical("Synapse Server can't bind to " + this.interfaz + ":" + this.port);
             this.logger.error("Socket error: " + e.getMessage());
-            this.connected = false;
             return false;
         }
         return true;
-    }
-
-    public boolean isConnected(){
-        return this.connected;
     }
 
     public Selector getSelector(){
         return this.selector;
     }
 
-    public SocketChannel getSocket() {
+    public ServerSocketChannel getSocket() {
         return this.socket;
     }
 

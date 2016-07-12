@@ -1,8 +1,7 @@
 package org.itxtech.nemisys.network.protocol.mcpe;
 
-import org.itxtech.nemisys.Nukkit;
+import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.entity.data.Skin;
 import org.itxtech.nemisys.utils.Zlib;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -13,7 +12,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 
 /**
  * Created by on 15-10-13.
@@ -29,8 +27,6 @@ public class LoginPacket extends DataPacket {
     public String identityPublicKey;
     public String serverAddress;
 
-    public Skin skin;
-
     @Override
     public byte pid() {
         return NETWORK_ID;
@@ -43,7 +39,7 @@ public class LoginPacket extends DataPacket {
         try {
             str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
         } catch (Exception e) {
-            if (Nukkit.DEBUG > 1) Server.getInstance().getLogger().logException(e);
+            if (Nemisys.DEBUG > 1) Server.getInstance().getLogger().logException(e);
             return;
         }
         this.setBuffer(str, 0);
@@ -84,18 +80,11 @@ public class LoginPacket extends DataPacket {
         String skinId = null;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
         if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").getAsString();
-        if (skinToken.has("SkinId")) skinId = skinToken.get("SkinId").getAsString();
-        if (skinToken.has("SkinData")) this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
     }
 
     private JsonObject decodeToken(String token) {
         String[] base = token.split("\\.");
         if (base.length < 2) return null;
         return new Gson().fromJson(new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8), JsonObject.class);
-    }
-
-    @Override
-    public Skin getSkin() {
-        return this.skin;
     }
 }
