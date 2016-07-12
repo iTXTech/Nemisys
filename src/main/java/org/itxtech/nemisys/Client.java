@@ -1,6 +1,7 @@
 package org.itxtech.nemisys;
 
 import org.itxtech.nemisys.event.client.ClientAuthEvent;
+import org.itxtech.nemisys.event.client.ClientConnectEvent;
 import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
@@ -40,7 +41,7 @@ public class Client {
         this.port = port;
         this.lastUpdate = System.currentTimeMillis();
 
-        //TODO this.server.getPluginManager().callEvent(new ClientConnectEvent(this));
+        this.server.getPluginManager().callEvent(new ClientConnectEvent(this));
     }
 
     public boolean isMainServer() {
@@ -159,7 +160,7 @@ public class Client {
             }
             break;
             default:
-                this.server.getLogger().error("Client {this.getIp()}:{this.getPort()} send an unknown packet " + packet.pid());
+                this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " send an unknown packet " + packet.pid());
         }
     }
 
@@ -222,7 +223,7 @@ public class Client {
         ClientDisconnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();
-        this.server.getLogger().info("Client this.ip:this.port has disconnected due to reason");
+        this.server.getLogger().info("Client " + this.ip + ":" + this.port + " has disconnected due to reason");
         if (needPk) {
             org.itxtech.nemisys.network.protocol.spp.DisconnectPacket pk = new org.itxtech.nemisys.network.protocol.spp.DisconnectPacket();
             pk.type = type;
