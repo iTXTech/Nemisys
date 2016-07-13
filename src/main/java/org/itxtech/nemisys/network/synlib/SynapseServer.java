@@ -124,7 +124,7 @@ public class SynapseServer extends Thread {
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         try {
             SynapseSocket socket = new SynapseSocket(this.getLogger(), this.port, this.interfaz);
-            new ClientManager(this, socket);
+            new SessionManager(this, socket);
         } catch (Exception e) {
             e.printStackTrace();
         }

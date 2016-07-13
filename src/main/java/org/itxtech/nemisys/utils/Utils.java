@@ -9,6 +9,17 @@ import java.util.UUID;
  * Nukkit Project
  */
 public class Utils {
+    public static byte[] writeClientHash(String hash){
+        return Binary.appendBytes(
+                new byte[]{(byte) (hash.length() & 0xff)},
+                hash.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    public static String readClientHash(byte[] hash){
+        int len = hash[1];
+        return new String(Binary.subBytes(hash, 1, len), StandardCharsets.UTF_8);
+    }
 
     public static void writeFile(String fileName, String content) throws IOException {
         writeFile(fileName, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));

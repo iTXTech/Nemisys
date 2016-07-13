@@ -7,6 +7,7 @@ import org.itxtech.nemisys.network.synlib.SynapseServer;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.BinaryStream;
 import org.itxtech.nemisys.utils.Util;
+import org.itxtech.nemisys.utils.Utils;
 
 import java.util.*;
 
@@ -39,7 +40,7 @@ public class SynapseInterface {
     }
 
     public void removeClient(Client client) {
-        this.interfaz.addExternalClientCloseRequest(client.getHash());
+        this.interfaz.addExternalClientCloseRequest(Utils.writeClientHash(client.getHash()));
         this.clients.remove(client.getHash());
     }
 
@@ -54,8 +55,9 @@ public class SynapseInterface {
     public void process() {
         byte[] open = this.interfaz.getClientOpenRequest();
         while (open != null && open.length > 0) {
-            //TODO ???表示这不懂
-            open = this.interfaz.getClientOpenRequest();
+            String hash = Utils.readClientHash(open);
+            String[] arr = hash.split(":");
+            this.addClient(arr[0], Integer.parseInt(arr[1]));
         }
 
         byte[] buffer = this.interfaz.readThreadToMainPacket();

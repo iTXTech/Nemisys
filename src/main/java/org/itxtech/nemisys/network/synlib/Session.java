@@ -3,52 +3,68 @@ package org.itxtech.nemisys.network.synlib;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Util;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
 /**
  * Created by boybook on 16/6/24.
  */
-public class ClientSession {
+public class Session {
     public static final byte[] MAGIC_BYTES = new byte[]{
             (byte) 0x35, (byte) 0xac, (byte) 0x66, (byte) 0xbf
     };
 
     private byte[] receiveBuffer = new byte[0];
     private byte[] sendBuffer = new byte[0];
-    private ClientManager clientManager;
+    private SessionManager sessionManager;
     private SocketChannel socket;
+    private Selector selector;
     private String ip;
     private int port;
     private String magicBytes;
 
-    public ClientSession(ClientManager clientManager, SocketChannel socket) {
-        this.clientManager = clientManager;
+    public Session(SessionManager sessionManager, SocketChannel socket, Selector selector) {
+        this.sessionManager = sessionManager;
         this.socket = socket;
+        this.selector = selector;
         this.ip = socket.socket().getInetAddress().getHostAddress();
         this.port = socket.socket().getPort();
 
         this.magicBytes = Util.bytesToHexString(MAGIC_BYTES);
     }
 
-    private void process() throws Exception {
+    public void close(){
+        try{
+            this.socket.close();
+        }catch (IOException e){
+            //Ignore
+        }
+    }
+
+    private boolean process() throws Exception {
         if (this.update()) {
             while (this.receivePacket()) ;
             while (this.sendPacket()) ;
+            return true;
         }
+        return false;
     }
 
     private boolean receivePacket() throws Exception {
         byte[] packet = this.readPacket();
         if (packet != null && packet.length > 0) {
-            this.server.pushThreadToMainPacket(packet);
+            this.sessionManager.getServer().pushThreadToMainPacket(packet);
             return true;
         }
         return false;
     }
 
     private boolean sendPacket() throws Exception {
-        byte[] packet = this.server.readMainToThreadPacket();
+        byte[] packet = this.sessionManager.getServer().readMainToThreadPacket();
         if (packet != null && packet.length > 0) {
             this.writePacket(packet);
             return true;
@@ -73,7 +89,31 @@ public class ClientSession {
     }
 
     public boolean update() throws Exception {
-
+        try{
+            if (this.selector.selectNow() > 0) {
+                for (SelectionKey sk : this.selector.selectedKeys()) {
+                    this.selector.selectedKeys().remove(sk);
+                    if (sk.isReadable()) {
+                        SocketChannel sc = (SocketChannel) sk.channel();
+                        ByteBuffer buff = ByteBuffer.allocate(65535);
+                        int n = sc.read(buff);
+                        buff.flip();
+                        sk.interestOps(SelectionKey.OP_READ);
+                        if(n > 0) {
+                            byte[] buffer = Arrays.copyOfRange(buff.array(), 0, n);
+                            this.receiveBuffer = Binary.appendBytes(buffer, this.receiveBuffer);
+                        }
+                    }
+                }
+            }
+            if (this.sendBuffer.length > 0) {
+                this.socket.write(ByteBuffer.wrap(this.sendBuffer));
+                this.sendBuffer = new byte[0];
+            }
+            return true;
+        }catch (IOException e){
+            return false;
+        }
     }
 
     public byte[] readPacket() throws Exception {
@@ -113,7 +153,7 @@ public class ClientSession {
     }
 
     public void writePacket(byte[] data) {
-        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, ClientSession.MAGIC_BYTES);
+        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, Session.MAGIC_BYTES);
         this.sendBuffer = Binary.appendBytes(buffer, this.sendBuffer);
     }
 
