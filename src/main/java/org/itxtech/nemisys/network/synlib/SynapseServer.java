@@ -61,7 +61,7 @@ public class SynapseServer extends Thread {
     }
 
     public void addInternalClientCloseRequest(byte[] hash){
-        this.internalClientCloseQueue.offer(hash);
+        this.internalClientCloseQueue.add(hash);
     }
 
     public byte[] getExternalClientCloseRequest(){
@@ -69,7 +69,7 @@ public class SynapseServer extends Thread {
     }
 
     public void addExternalClientCloseRequest(byte[] hash){
-        this.externalClientCloseQueue.offer(hash);
+        this.externalClientCloseQueue.add(hash);
     }
 
     public byte[] getClientOpenRequest(){
@@ -77,7 +77,7 @@ public class SynapseServer extends Thread {
     }
 
     public void addClientOpenRequest(byte[] hash){
-        this.clientOpenQueue.offer(hash);
+        this.clientOpenQueue.add(hash);
     }
 
     public boolean isShutdown() {

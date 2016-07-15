@@ -9,7 +9,6 @@ import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.utils.Binary;
-import org.itxtech.nemisys.utils.Util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,7 +114,7 @@ public class Client {
                 }
                 pk = new InformationPacket();
                 pk.type = InformationPacket.TYPE_LOGIN;
-                if (this.server.comparePassword(Util.base64Decode(connectPacket.encodedPassword))) {
+                if (this.server.comparePassword(connectPacket.password)) {
                     this.setVerified();
                     pk.message = InformationPacket.INFO_LOGIN_SUCCESS;
                     this.isMainServer = connectPacket.isMainServer;
@@ -134,7 +133,7 @@ public class Client {
                     this.sendDataPacket(pk);
                     this.close("Auth failed!");
                 }
-                this.server.getPluginManager().callEvent(new ClientAuthEvent(this, connectPacket.encodedPassword));
+                this.server.getPluginManager().callEvent(new ClientAuthEvent(this, connectPacket.password));
                 break;
             case SynapseInfo.DISCONNECT_PACKET:
                 /** @var DisconnectPacket packet */

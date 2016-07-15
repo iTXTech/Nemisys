@@ -217,15 +217,9 @@ public class Server {
         return (int)this.getConfig("synapse-port", 10305);
     }
 
-    public boolean comparePassword(byte[] pass){
+    public boolean comparePassword(String pass){
         String truePass = this.getPropertyString("password", "1234567890123456");
-        try {
-            String rawPass = AES.Decrypt(pass, truePass);
-            return truePass.equals(rawPass);
-        } catch (Exception e) {
-            this.getLogger().logException(e);
-            return false;
-        }
+        return (truePass.equals(pass));
     }
 
     public void enablePlugins(PluginLoadOrder type) {

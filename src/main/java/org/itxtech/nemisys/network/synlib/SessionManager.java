@@ -1,5 +1,6 @@
 package org.itxtech.nemisys.network.synlib;
 
+import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.Utils;
 
@@ -8,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -60,6 +62,35 @@ public class SessionManager {
         return this.server;
     }
 
+    private boolean sendPacket(){
+        byte[] data = this.server.readMainToThreadPacket();
+        if(data != null && data.length > 0){
+            int offset = 0;
+            int len = data[offset++];
+            String hash = new String(Binary.subBytes(data, offset, len), StandardCharsets.UTF_8);
+            if(this.sessions.containsKey(hash)){
+                offset += len;
+                byte[] payload = Binary.subBytes(data, offset);
+                this.sessions.get(hash).writePacket(payload);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean closeSessions(){
+        byte[] data = this.server.getExternalClientCloseRequest();
+        if(data != null && data.length > 0){
+            String hash = Utils.readClientHash(data);
+            if(this.sessions.containsKey(hash)){
+                this.sessions.get(hash).close();
+                this.sessions.remove(hash);
+            }
+            return true;
+        }
+        return false;
+    }
+
     public void tick(){
         try{
             while(this.socket.getSelector().selectNow() > 0){
@@ -81,6 +112,22 @@ public class SessionManager {
                     }
                 }
             }
+
+            while(this.sendPacket());
+            for (Session ses : this.sessions.values()){
+                try {
+                    if (ses.process()) {
+
+                    }else{
+                        ses.close();;
+                        this.server.addInternalClientCloseRequest(Utils.writeClientHash(ses.getHash()));
+                        this.sessions.remove(ses.getHash());
+                    }
+                }catch (Exception e){
+
+                }
+            }
+            while(this.closeSessions());
         }catch (IOException e){
             MainLogger.getLogger().logException(e);
         }

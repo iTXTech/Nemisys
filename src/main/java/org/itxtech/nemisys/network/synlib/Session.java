@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -45,10 +46,9 @@ public class Session {
         }
     }
 
-    private boolean process() throws Exception {
+    public boolean process() throws Exception {
         if (this.update()) {
             while (this.receivePacket()) ;
-            while (this.sendPacket()) ;
             return true;
         }
         return false;
@@ -57,16 +57,11 @@ public class Session {
     private boolean receivePacket() throws Exception {
         byte[] packet = this.readPacket();
         if (packet != null && packet.length > 0) {
-            this.sessionManager.getServer().pushThreadToMainPacket(packet);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean sendPacket() throws Exception {
-        byte[] packet = this.sessionManager.getServer().readMainToThreadPacket();
-        if (packet != null && packet.length > 0) {
-            this.writePacket(packet);
+            byte[] buffer = Binary.appendBytes(
+                    new byte[]{(byte) (this.getHash().length() & 0xff)},
+                    this.getHash().getBytes(StandardCharsets.UTF_8),
+                    packet);
+            this.sessionManager.getServer().pushThreadToMainPacket(buffer);
             return true;
         }
         return false;

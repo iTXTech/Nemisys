@@ -9,6 +9,7 @@ import org.itxtech.nemisys.utils.BinaryStream;
 import org.itxtech.nemisys.utils.Util;
 import org.itxtech.nemisys.utils.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -48,7 +49,11 @@ public class SynapseInterface {
         if (!pk.isEncoded) {
             pk.encode();
         }
-        this.interfaz.pushMainToThreadPacket(pk.getBuffer());  //TODO this.interface.pushMainToThreadPacket(client.getHash() . "|" . pk.buffer);
+        this.interfaz.pushMainToThreadPacket(Binary.appendBytes(
+                new byte[]{(byte) (client.getHash().length() & 0xff)},
+                client.getHash().getBytes(StandardCharsets.UTF_8),
+                pk.getBuffer()
+        ));
     }
 
     //TODO
@@ -62,20 +67,26 @@ public class SynapseInterface {
 
         byte[] buffer = this.interfaz.readThreadToMainPacket();
         while (buffer != null && buffer.length > 0) {
-            this.handlePacket(buffer);
-            buffer = this.interfaz.readThreadToMainPacket();
+            int offset = 0;
+            int len = buffer[offset++];
+            String hash = new String(Binary.subBytes(buffer, offset, len), StandardCharsets.UTF_8);
+            offset += len;
+            byte[] payload = Binary.subBytes(buffer, offset);
+            this.handlePacket(hash, payload);
         }
 
         byte[] close = this.interfaz.getInternalClientCloseRequest();
         while (close != null && close.length > 0) {
-            //TODO
-            close = this.interfaz.getInternalClientCloseRequest();
+            String hash = Utils.readClientHash(close);
+            if(this.clients.containsKey(hash)){
+                this.clients.get(hash).close();
+                this.clients.remove(hash);
+            }
         }
     }
 
     public SynapseDataPacket getPacket(byte[] buffer) {
         byte pid = buffer[0];
-        /** @var DataPacket class */
         SynapseDataPacket clazz = this.packetPool.get(pid);
         if (clazz != null) {
             SynapseDataPacket pk = clazz.clone();

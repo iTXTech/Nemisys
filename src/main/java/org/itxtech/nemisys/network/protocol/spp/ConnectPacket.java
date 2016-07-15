@@ -1,7 +1,5 @@
 package org.itxtech.nemisys.network.protocol.spp;
 
-import cn.nukkit.network.protocol.DataPacket;
-
 /**
  * Created by boybook on 16/6/24.
  */
@@ -18,7 +16,7 @@ public class ConnectPacket extends SynapseDataPacket {
     public int maxPlayers;
     public boolean isMainServer;
     public String description;
-    public String encodedPassword;
+    public String password;
 
     @Override
     public void encode(){
@@ -27,7 +25,7 @@ public class ConnectPacket extends SynapseDataPacket {
         this.putInt(this.maxPlayers);
         this.putByte(this.isMainServer ? (byte)1 : (byte)0);
         this.putString(this.description);
-        this.putString(this.encodedPassword);
+        this.putString(this.password);
     }
     
     @Override
@@ -36,6 +34,6 @@ public class ConnectPacket extends SynapseDataPacket {
         this.maxPlayers = this.getInt();
         this.isMainServer = this.getByte() == 1;
         this.description = this.getString();
-        this.encodedPassword = this.getString();
+        this.password = this.getString();
     }
 }
