@@ -406,8 +406,6 @@ public class Server {
             this.getNetwork().updateName();
         }
 
-        Timings.serverTickTimer.stopTiming();
-
         //long now = System.currentTimeMillis();
         long nowNano = System.nanoTime();
         //float tick = Math.min(20, 1000 / Math.max(1, now - tickTime));

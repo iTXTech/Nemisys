@@ -26,10 +26,6 @@ public class PluginCommand<T extends Plugin> extends Command implements PluginId
             return false;
         }
 
-        if (!this.testPermission(sender)) {
-            return false;
-        }
-
         boolean success = this.executor.onCommand(sender, this, commandLabel, args);
 
         if (!success && !this.usageMessage.equals("")) {

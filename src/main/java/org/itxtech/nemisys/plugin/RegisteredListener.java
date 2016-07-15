@@ -18,15 +18,12 @@ public class RegisteredListener {
 
     private boolean ignoreCancelled;
 
-    private TimingsHandler timings;
-
-    public RegisteredListener(Listener listener, EventExecutor executor, EventPriority priority, Plugin plugin, boolean ignoreCancelled, TimingsHandler timings) {
+    public RegisteredListener(Listener listener, EventExecutor executor, EventPriority priority, Plugin plugin, boolean ignoreCancelled) {
         this.listener = listener;
         this.priority = priority;
         this.plugin = plugin;
         this.executor = executor;
         this.ignoreCancelled = ignoreCancelled;
-        this.timings = timings;
     }
 
     public Listener getListener() {
@@ -47,13 +44,11 @@ public class RegisteredListener {
                 return;
             }
         }
-        this.timings.startTiming();
         executor.execute(listener, event);
-        this.timings.stopTiming();
     }
 
     public void destruct() {
-        this.timings.remove();
+
     }
 
     public boolean isIgnoringCancelled() {

@@ -3,7 +3,6 @@ package org.itxtech.nemisys.plugin;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.command.PluginCommand;
 import org.itxtech.nemisys.command.SimpleCommandMap;
-import org.itxtech.nemisys.command.defaults.TimingsCommand;
 import org.itxtech.nemisys.event.*;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.PluginException;
@@ -29,8 +28,6 @@ public class PluginManager {
     protected Map<String, Plugin> plugins = new LinkedHashMap<>();
 
     protected Map<String, PluginLoader> fileAssociations = new HashMap<>();
-
-    public static TimingsHandler pluginParentTimer;
 
     public static boolean useTimings = false;
 
@@ -298,11 +295,8 @@ public class PluginManager {
                 }
             }
 
-            TimingsCommand.timingStart = System.nanoTime();
-
             return loadedPlugins;
         } else {
-            TimingsCommand.timingStart = System.nanoTime();
 
             return new HashMap<>();
         }
@@ -483,16 +477,6 @@ public class PluginManager {
     public void registerEvent(Class<? extends Event> event, Listener listener, EventPriority priority, EventExecutor executor, Plugin plugin, boolean ignoreCancelled) throws PluginException {
         if (!plugin.isEnabled()) {
             throw new PluginException("Plugin attempted to register " + event + " while not enabled");
-        }
-
-        try {
-            TimingsHandler timings = new TimingsHandler("Plugin: " + plugin.getDescription().getFullName()
-                    + " Event: " + listener.getClass().getName() + "."
-                    + (executor instanceof MethodEventExecutor ? ((MethodEventExecutor) executor).getMethod().getName() : "???")
-                    + "(" + event.getSimpleName() + ")", pluginParentTimer);
-            this.getEventListeners(event).register(new RegisteredListener(listener, executor, priority, plugin, ignoreCancelled, timings));
-        } catch (IllegalAccessException e) {
-            Server.getInstance().getLogger().logException(e);
         }
     }
 

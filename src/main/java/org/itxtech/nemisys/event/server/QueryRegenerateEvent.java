@@ -55,19 +55,17 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.plugins = server.getPluginManager().getPlugins().values().toArray(new Plugin[server.getPluginManager().getPlugins().values().size()]);
         List<Player> players = new ArrayList<>();
         for (Player player : server.getOnlinePlayers().values()) {
-            if (player.isOnline()) {
-                players.add(player);
-            }
+            players.add(player);
         }
         this.players = players.toArray(new Player[players.size()]);
 
-        this.gameType = (server.getGamemode() & 0x01) == 0 ? "SMP" : "CMP";
+        this.gameType = "SMP";
         this.version = server.getVersion();
-        this.server_engine = server.getName() + " " + server.getNukkitVersion();
-        this.map = server.getDefaultLevel() == null ? "unknown" : server.getDefaultLevel().getName();
+        this.server_engine = server.getName() + " " + server.getNemisysVersion();
+        this.map = "Numisys";
         this.numPlayers = this.players.length;
         this.maxPlayers = server.getMaxPlayers();
-        this.whitelist = server.hasWhitelist() ? "on" : "off";
+        this.whitelist = "off";
         this.port = server.getPort();
         this.ip = server.getIp();
     }

@@ -2,7 +2,6 @@ package org.itxtech.nemisys.command;
 
 import org.itxtech.nemisys.InterruptibleThread;
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.event.Timings;
 import org.itxtech.nemisys.event.server.ServerCommandEvent;
 import jline.console.ConsoleReader;
 import jline.console.CursorBuffer;
@@ -63,13 +62,11 @@ public class CommandReader extends Thread implements InterruptibleThread {
             if (line != null && !line.trim().equals("")) {
                 //todo 将即时执行指令改为每tick执行
                 try {
-                    Timings.serverCommandTimer.startTiming();
                     ServerCommandEvent event = new ServerCommandEvent(Server.getInstance().getConsoleSender(), line);
                     Server.getInstance().getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         Server.getInstance().dispatchCommand(event.getSender(), event.getCommand());
                     }
-                    Timings.serverCommandTimer.stopTiming();
                 } catch (Exception e) {
                     Server.getInstance().getLogger().logException(e);
                 }

@@ -1,8 +1,6 @@
 package org.itxtech.nemisys.scheduler;
 
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.event.Timings;
-import org.itxtech.nemisys.event.TimingsHandler;
 import org.itxtech.nemisys.plugin.Plugin;
 
 /**
@@ -26,15 +24,12 @@ public class TaskHandler {
 
     private boolean cancelled;
 
-    public TimingsHandler timings;
-
     public TaskHandler(Plugin plugin, String timingName, Runnable task, int taskId, boolean asynchronous) {
         this.asynchronous = asynchronous;
         this.plugin = plugin;
         this.task = task;
         this.taskId = taskId;
         this.timingName = timingName == null ? "Unknown" : timingName;
-        this.timings = Timings.getPluginTaskTimings(this, period);
     }
 
     public boolean isCancelled() {

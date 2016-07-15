@@ -1,7 +1,6 @@
 package org.itxtech.nemisys.scheduler;
 
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.event.Timings;
 import org.itxtech.nemisys.utils.ThreadStore;
 
 import java.util.Queue;
@@ -76,11 +75,9 @@ public abstract class AsyncTask implements Runnable {
     }
 
     public static void collectTask() {
-        Timings.schedulerAsyncTimer.startTiming();
         while (!FINISHED_LIST.isEmpty()) {
             FINISHED_LIST.poll().onCompletion(Server.getInstance());
         }
-        Timings.schedulerAsyncTimer.stopTiming();
     }
 
 }
