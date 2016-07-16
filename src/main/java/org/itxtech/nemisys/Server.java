@@ -271,9 +271,6 @@ public class Server {
         }
 
         try {
-            if (!this.isRunning) {
-                //todo sendUsage
-            }
 
             // clean shutdown of console thread asap
             this.console.shutdown();
@@ -282,16 +279,20 @@ public class Server {
 
             this.shutdown();
 
+
+            for(Client client : this.clients.values()){
+                for (Player player : client.getPlayers().values()) {
+                    player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
+                }
+                client.close("Synapse server closed");
+            }
+
             if (this.rcon != null) {
                 this.rcon.close();
             }
 
             this.getLogger().debug("Disabling all plugins");
             this.pluginManager.disablePlugins();
-
-            for (Player player : new ArrayList<>(this.players.values())) {
-                player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
-            }
 
             this.getLogger().debug("Removing event handlers");
             HandlerList.unregisterAll();
@@ -308,6 +309,7 @@ public class Server {
                 interfaz.shutdown();
                 this.network.unregisterInterface(interfaz);
             }
+            this.synapseInterface.getInterface().shutdown();
 
             //todo other things
         } catch (Exception e) {
@@ -321,8 +323,6 @@ public class Server {
         if (this.getPropertyBoolean("enable-query", true)) {
             this.queryHandler = new QueryHandler();
         }
-
-        //todo send usage setting
 
         this.tickCounter = 0;
 
@@ -376,6 +376,7 @@ public class Server {
         ++this.tickCounter;
 
         this.network.processInterfaces();
+        this.synapseInterface.process();
 
         if (this.rcon != null) {
             this.rcon.check();

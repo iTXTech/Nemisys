@@ -49,7 +49,7 @@ public class SynapseSocket {
             this.logger.info("Synapse Server is running on " + this.interfaz + ":" + this.port);
             this.connected = true;
         } catch (IOException e) {
-            this.logger.critical("Synapse Server can't bind to " + this.interfaz + ":" + this.port);
+            this.logger.critical("Synapse Server can't bind " + this.interfaz + ":" + this.port);
             this.logger.error("Socket error: " + e.getMessage());
             return false;
         }

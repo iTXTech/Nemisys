@@ -32,6 +32,10 @@ public class SynapseInterface {
         this.interfaz = new SynapseServer(server.getLogger(), this, port, ip);
     }
 
+    public SynapseServer getInterface(){
+        return this.interfaz;
+    }
+
     public Server getServer() {
         return server;
     }
@@ -56,33 +60,48 @@ public class SynapseInterface {
         ));
     }
 
-    //TODO
-    public void process() {
+    private boolean openClients(){
         byte[] open = this.interfaz.getClientOpenRequest();
-        while (open != null && open.length > 0) {
+        if(open != null && open.length > 0) {
             String hash = Utils.readClientHash(open);
             String[] arr = hash.split(":");
             this.addClient(arr[0], Integer.parseInt(arr[1]));
+            return true;
         }
+        return false;
+    }
 
+    private boolean processPackets(){
         byte[] buffer = this.interfaz.readThreadToMainPacket();
-        while (buffer != null && buffer.length > 0) {
+        if(buffer != null && buffer.length > 0) {
             int offset = 0;
             int len = buffer[offset++];
             String hash = new String(Binary.subBytes(buffer, offset, len), StandardCharsets.UTF_8);
             offset += len;
             byte[] payload = Binary.subBytes(buffer, offset);
             this.handlePacket(hash, payload);
+            return true;
         }
+        return false;
+    }
 
+    private boolean closeClients(){
         byte[] close = this.interfaz.getInternalClientCloseRequest();
-        while (close != null && close.length > 0) {
+        if(close != null && close.length > 0) {
             String hash = Utils.readClientHash(close);
             if(this.clients.containsKey(hash)){
                 this.clients.get(hash).close();
                 this.clients.remove(hash);
             }
+            return true;
         }
+        return false;
+    }
+
+    public void process() {
+        while(this.openClients());
+        while(this.processPackets());
+        while(this.closeClients());
     }
 
     public SynapseDataPacket getPacket(byte[] buffer) {

@@ -1,5 +1,6 @@
 package org.itxtech.nemisys.network.synlib;
 
+import org.itxtech.nemisys.InterruptibleThread;
 import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.utils.ThreadedLogger;
@@ -9,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Created by boybook on 16/6/24.
  */
-public class SynapseServer extends Thread {
+public class SynapseServer extends Thread implements InterruptibleThread{
 
     public static final String VERSION = "0.1.2";
 
@@ -98,10 +99,6 @@ public class SynapseServer extends Thread {
 
     public ThreadedLogger getLogger() {
         return logger;
-    }
-
-    public void quit() {
-        this.shutdown();
     }
 
     public void pushMainToThreadPacket(byte[] data) {
