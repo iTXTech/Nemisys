@@ -163,42 +163,4 @@ public class SimpleCommandMap implements CommandMap {
         return knownCommands;
     }
 
-    public void registerServerAliases() {
-        for (Map.Entry<String, List<String>> entry : values.entrySet()) {
-            String alias = entry.getKey();
-            List<String> commandStrings = entry.getValue();
-            if (alias.contains(" ") || alias.contains(":")) {
-                this.server.getLogger().warning(this.server.getLanguage().translateString("nemisys.command.alias.illegal", alias));
-                continue;
-            }
-            List<String> targets = new ArrayList<>();
-
-            String bad = "";
-
-            for (String commandString : commandStrings) {
-                String[] args = commandString.split(" ");
-                Command command = this.getCommand(args[0]);
-
-                if (command == null) {
-                    if (bad.length() > 0) {
-                        bad += ", ";
-                    }
-                    bad += commandString;
-                } else {
-                    targets.add(commandString);
-                }
-            }
-
-            if (bad.length() > 0) {
-                this.server.getLogger().warning(this.server.getLanguage().translateString("nemisys.command.alias.notFound", new String[]{alias, bad}));
-                continue;
-            }
-
-            if (!targets.isEmpty()) {
-                this.knownCommands.put(alias.toLowerCase(), new FormattedCommandAlias(alias.toLowerCase(), targets));
-            } else {
-                this.knownCommands.remove(alias.toLowerCase());
-            }
-        }
-    }
 }

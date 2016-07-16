@@ -189,9 +189,6 @@ abstract public class PluginBase implements Plugin {
 
     @Override
     public boolean saveResource(String filename, String outputName, boolean replace) {
-        Preconditions.checkArgument(filename != null && outputName != null, "Filename can not be null!");
-        Preconditions.checkArgument(filename.trim().length() != 0 && outputName.trim().length() != 0, "Filename can not be empty!");
-
         File out = new File(dataFolder, outputName);
         if (!out.exists() || replace) {
             try (InputStream resource = getResource(filename)) {
