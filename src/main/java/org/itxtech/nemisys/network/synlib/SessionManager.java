@@ -10,10 +10,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Author: PeratX
@@ -114,12 +111,12 @@ public class SessionManager {
             }
 
             while(this.sendPacket());
-            for (Session ses : this.sessions.values()){
+            for (Session ses : new ArrayList<>(this.sessions.values())){
                 try {
                     if (ses.process()) {
 
                     }else{
-                        ses.close();;
+                        ses.close();
                         this.server.addInternalClientCloseRequest(Utils.writeClientHash(ses.getHash()));
                         this.sessions.remove(ses.getHash());
                     }

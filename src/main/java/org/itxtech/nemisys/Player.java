@@ -192,7 +192,7 @@ public class Player {
 
             this.isFirstTimeLogin = false;
 
-            this.server.getLogger().info(this.name + " has been transferred to " + this.client.getIp() + ": + " + this.client.getPort());
+            this.server.getLogger().info(this.name + " has been transferred to " + this.client.getIp() + ":" + this.client.getPort());
         }
     }
 
