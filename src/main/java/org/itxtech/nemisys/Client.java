@@ -12,6 +12,7 @@ import org.itxtech.nemisys.utils.Binary;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Author: PeratX
@@ -22,7 +23,7 @@ public class Client {
     private SynapseInterface interfaz;
     private String ip;
     private int port;
-    private Map<byte[], Player> players = new HashMap<>();
+    private Map<UUID, Player> players = new HashMap<>();
     private boolean verified = false;
     private boolean isMainServer = false;
     private int maxPlayers;
@@ -138,7 +139,7 @@ public class Client {
                 this.close(((org.itxtech.nemisys.network.protocol.spp.DisconnectPacket)packet).message, false);
                 break;
             case SynapseInfo.REDIRECT_PACKET:
-                byte[] uuid = Binary.writeUUID(((RedirectPacket) packet).uuid);
+                UUID uuid = ((RedirectPacket) packet).uuid;
                 if (this.players.containsKey(uuid)) {
                     GenericPacket pk0 = new GenericPacket();
                     pk0.setBuffer(((RedirectPacket) packet).mcpeBuffer);
@@ -149,9 +150,9 @@ public class Client {
                 break;
             case SynapseInfo.TRANSFER_PACKET:
                 Map<String, Client> clients = this.server.getClients();
-                byte[] rawUUID = Binary.writeUUID(((TransferPacket)packet).uuid);
-                if (this.players.containsKey(rawUUID) && clients.containsKey(((TransferPacket)packet).clientHash)){
-                this.players.get(rawUUID).transfer(clients.get(((TransferPacket)packet).clientHash), true);
+                UUID uuid0 = ((TransferPacket)packet).uuid;
+                if (this.players.containsKey(uuid0) && clients.containsKey(((TransferPacket)packet).clientHash)){
+                this.players.get(uuid0).transfer(clients.get(((TransferPacket)packet).clientHash), true);
             }
             break;
             default:
@@ -183,16 +184,16 @@ public class Client {
         this.verified = true;
     }
 
-    public Map<byte[], Player> getPlayers() {
+    public Map<UUID, Player> getPlayers() {
         return this.players;
     }
 
     public void addPlayer(Player player) {
-        this.players.put(player.getRawUUID(), player);
+        this.players.put(player.getUUID(), player);
     }
 
     public void removePlayer(Player player) {
-        this.players.remove(player.getRawUUID());
+        this.players.remove(player.getUUID());
     }
 
     public void closeAllPlayers() {
