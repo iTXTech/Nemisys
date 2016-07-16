@@ -138,7 +138,7 @@ public class Server {
 
         this.maxPlayers = this.getPropertyInt("max-players", 20);
 
-        Nemisys.DEBUG = (int) this.getConfig("debug", 1);
+        Nemisys.DEBUG = this.getPropertyInt("debug", 1);
         if (this.logger instanceof MainLogger) {
             this.logger.setLogDebug(Nemisys.DEBUG > 1);
         }
@@ -214,7 +214,7 @@ public class Server {
     }
 
     public int getSynapsePort(){
-        return (int)this.getConfig("synapse-port", 10305);
+        return this.getPropertyInt("synapse-port", 10305);
     }
 
     public boolean comparePassword(String pass){
@@ -326,7 +326,7 @@ public class Server {
 
         this.tickCounter = 0;
 
-        this.getLogger().info(this.getLanguage().translateString("synapse.server.startFinished", String.valueOf(Math.round(System.currentTimeMillis() - Nemisys.START_TIME))));
+        this.getLogger().info(this.getLanguage().translateString("nemisys.server.startFinished", String.valueOf(Math.round(System.currentTimeMillis() - Nemisys.START_TIME))));
 
         this.tickProcessor();
         this.forceShutdown();

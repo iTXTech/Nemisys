@@ -84,11 +84,11 @@ public class Player {
                 this.randomClientId = loginPacket.clientId;
                 this.protocol = loginPacket.protocol;
 
-                this.server.getLogger().info(this.getServer().getLanguage().translateString("synapse.player.logIn", new String[]{
+                this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logIn", new String[]{
                         TextFormat.AQUA + this.name + TextFormat.WHITE,
                         this.ip,
                         String.valueOf(this.port),
-                        TextFormat.GREEN + this.randomClientId + TextFormat.WHITE,
+                        TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
                 }));
 
                 Map<String, Client> c = this.server.getMainClients();
@@ -235,7 +235,7 @@ public class Player {
                 this.client.removePlayer(this);
             }
 
-            this.server.getLogger().info(this.getServer().getLanguage().translateString("synapse.player.logOut", new String[]{
+            this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logOut", new String[]{
                             TextFormat.AQUA + this.getName() + TextFormat.WHITE,
                             this.ip,
                             String.valueOf(this.port),
