@@ -5,7 +5,6 @@ import org.itxtech.nemisys.event.client.ClientConnectEvent;
 import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.DisconnectPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.utils.Binary;
@@ -136,11 +135,9 @@ public class Client {
                 this.server.getPluginManager().callEvent(new ClientAuthEvent(this, connectPacket.password));
                 break;
             case SynapseInfo.DISCONNECT_PACKET:
-                /** @var DisconnectPacket packet */
                 this.close(((org.itxtech.nemisys.network.protocol.spp.DisconnectPacket)packet).message, false);
                 break;
             case SynapseInfo.REDIRECT_PACKET:
-                /** @var RedirectPacket packet */
                 byte[] uuid = Binary.writeUUID(((RedirectPacket) packet).uuid);
                 if (this.players.containsKey(uuid)) {
                     GenericPacket pk0 = new GenericPacket();
@@ -151,7 +148,6 @@ public class Client {
 				}*/
                 break;
             case SynapseInfo.TRANSFER_PACKET:
-                /** @var TransferPacket pk */
                 Map<String, Client> clients = this.server.getClients();
                 byte[] rawUUID = Binary.writeUUID(((TransferPacket)packet).uuid);
                 if (this.players.containsKey(rawUUID) && clients.containsKey(((TransferPacket)packet).clientHash)){
@@ -214,7 +210,7 @@ public class Client {
     }
 
     public void close(String reason, boolean needPk) {
-        this.close(reason, needPk, DisconnectPacket.NETWORK_ID);
+        this.close(reason, needPk, DisconnectPacket.TYPE_GENERIC);
     }
 
     public void close(String reason, boolean needPk, byte type) {
@@ -222,9 +218,9 @@ public class Client {
         ClientDisconnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();
-        this.server.getLogger().info("Client " + this.ip + ":" + this.port + " has disconnected due to reason");
+        this.server.getLogger().info("Client " + this.ip + ":" + this.port + " has disconnected due to " + reason);
         if (needPk) {
-            org.itxtech.nemisys.network.protocol.spp.DisconnectPacket pk = new org.itxtech.nemisys.network.protocol.spp.DisconnectPacket();
+            DisconnectPacket pk = new DisconnectPacket();
             pk.type = type;
             pk.message = reason;
             this.sendDataPacket(pk);
