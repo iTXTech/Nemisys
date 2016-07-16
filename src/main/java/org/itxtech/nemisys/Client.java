@@ -136,14 +136,14 @@ public class Client {
                 this.server.getPluginManager().callEvent(new ClientAuthEvent(this, connectPacket.password));
                 break;
             case SynapseInfo.DISCONNECT_PACKET:
-                this.close(((org.itxtech.nemisys.network.protocol.spp.DisconnectPacket)packet).message, false);
+                this.close(((DisconnectPacket) packet).message, false);
                 break;
             case SynapseInfo.REDIRECT_PACKET:
                 UUID uuid = ((RedirectPacket) packet).uuid;
                 if (this.players.containsKey(uuid)) {
-                    GenericPacket pk0 = new GenericPacket();
-                    pk0.setBuffer(((RedirectPacket) packet).mcpeBuffer);
-                    this.players.get(uuid).sendDataPacket(pk0, ((RedirectPacket) packet).direct);
+                    GenericPacket genericPacket = new GenericPacket();
+                    genericPacket.setBuffer(((RedirectPacket) packet).mcpeBuffer);System.out.println(genericPacket.getBuffer().length);
+                    this.players.get(uuid).sendDataPacket(genericPacket, ((RedirectPacket) packet).direct);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
 				}*/
@@ -156,7 +156,7 @@ public class Client {
             }
             break;
             default:
-                this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " send an unknown packet " + packet.pid());
+                this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an unknown packet " + packet.pid());
         }
     }
 

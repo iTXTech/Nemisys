@@ -18,7 +18,7 @@ import java.util.*;
  * Nemisys Project
  */
 public class Player {
-    private LoginPacket cachedLoginPacket = null;
+    private byte[] cachedLoginPacket = new byte[0];
     private String name;
     private String ip;
     private int port;
@@ -68,8 +68,7 @@ public class Player {
 
         switch (packet.pid()){
             case ProtocolInfo.BATCH_PACKET:
-                if(this.cachedLoginPacket == null){
-                    /** @var BatchPacket pk */
+                if(this.cachedLoginPacket.length == 0){
                     this.getServer().getNetwork().processBatch((BatchPacket)packet, this);
                 }else{
                     this.redirectPacket(packet.getBuffer());
@@ -77,7 +76,7 @@ public class Player {
                 break;
             case ProtocolInfo.LOGIN_PACKET:
                 LoginPacket loginPacket = (LoginPacket)packet; 
-                this.cachedLoginPacket = loginPacket;
+                this.cachedLoginPacket = loginPacket.cacheBuffer;
                 this.name = loginPacket.username;
                 this.uuid = loginPacket.clientUUID;
                 this.rawUUID = Binary.writeUUID(this.uuid);
@@ -187,7 +186,7 @@ public class Player {
             pk.address = this.ip;
             pk.port = this.port;
             pk.isFirstTime = this.isFirstTimeLogin;
-            pk.cachedLoginPacket = this.cachedLoginPacket.getBuffer();
+            pk.cachedLoginPacket = this.cachedLoginPacket;
             this.client.sendDataPacket(pk);
 
             this.isFirstTimeLogin = false;
@@ -205,7 +204,7 @@ public class Player {
     }
 
     public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK){
-        this.interfaz.putPacket(this,pk, needACK, direct);
+        this.interfaz.putPacket(this, pk, needACK, direct);
     }
 
     public void close(){

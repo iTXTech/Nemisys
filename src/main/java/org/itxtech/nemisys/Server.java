@@ -388,6 +388,10 @@ public class Server {
             player.onUpdate(this.tickCounter);
         }
 
+        for (Client client : new ArrayList<>(this.clients.values())) {
+            client.onUpdate(this.tickCounter);
+        }
+
         if ((this.tickCounter & 0b1111) == 0) {
             this.titleTick();
             this.maxTick = 20;

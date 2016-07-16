@@ -1,7 +1,6 @@
 package org.itxtech.nemisys.network.synlib;
 
 import org.itxtech.nemisys.utils.Binary;
-import org.itxtech.nemisys.utils.Util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -35,7 +34,7 @@ public class Session {
         this.ip = socket.socket().getInetAddress().getHostAddress();
         this.port = socket.socket().getPort();
 
-        this.magicBytes = Util.bytesToHexString(MAGIC_BYTES);
+        this.magicBytes = Binary.bytesToHexString(MAGIC_BYTES);
     }
 
     public void close(){
@@ -112,7 +111,7 @@ public class Session {
     }
 
     public byte[] readPacket() throws Exception {
-        String str = Util.bytesToHexString(this.receiveBuffer);
+        String str = Binary.bytesToHexString(this.receiveBuffer);
         if(str != null) {
             String[] arr = str.split(this.magicBytes, 2);
             if (arr.length <= 2) {
@@ -124,7 +123,7 @@ public class Session {
                         return new byte[0];
                     }
                 } else {
-                    byte[] newBuffer = Util.hexStringToBytes(arr[1]);
+                    byte[] newBuffer = Binary.hexStringToBytes(arr[1]);
                     if(newBuffer != null){
                         this.receiveBuffer = newBuffer;
                     }else{
@@ -132,7 +131,7 @@ public class Session {
                     }
                 }
                 byte[] buffer;
-                buffer = Util.hexStringToBytes(arr[0]);
+                buffer = Binary.hexStringToBytes(arr[0]);
                 if (buffer.length < 4) {
                     return new byte[0];
                 }
@@ -148,7 +147,7 @@ public class Session {
     }
 
     public void writePacket(byte[] data) {
-        byte[] buffer = Util.concatByte(Binary.writeLInt(data.length), data, Session.MAGIC_BYTES);
+        byte[] buffer = Binary.appendBytes(Binary.writeLInt(data.length), data, Session.MAGIC_BYTES);
         this.sendBuffer = Binary.appendBytes(buffer, this.sendBuffer);
     }
 
