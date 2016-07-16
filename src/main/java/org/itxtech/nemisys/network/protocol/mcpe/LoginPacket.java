@@ -34,6 +34,7 @@ public class LoginPacket extends DataPacket {
 
     @Override
     public void decode() {
+        byte[] oldBuffer = this.getBuffer();
         this.protocol = this.getInt();
         byte[] str;
         try {
@@ -45,6 +46,7 @@ public class LoginPacket extends DataPacket {
         this.setBuffer(str, 0);
         decodeChainData();
         decodeSkinData();
+        this.setBuffer(oldBuffer);
     }
 
     @Override
