@@ -46,7 +46,7 @@ public class SynapseSocket {
             this.socket.configureBlocking(false);
             this.socket.socket().bind(isa);
             this.socket.register(selector, SelectionKey.OP_ACCEPT);
-            this.logger.notice("SynapseAPI has connected to " + this.interfaz + ":" + this.port);
+            this.logger.info("Synapse Server is running on " + this.interfaz + ":" + this.port);
             this.connected = true;
         } catch (IOException e) {
             this.logger.critical("Synapse Server can't bind to " + this.interfaz + ":" + this.port);
