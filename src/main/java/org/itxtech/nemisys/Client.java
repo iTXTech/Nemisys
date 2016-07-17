@@ -95,7 +95,7 @@ public class Client {
                 }
                 HeartbeatPacket heartbeatPacket = (HeartbeatPacket) packet;
                 this.lastUpdate = System.currentTimeMillis();
-                this.server.getLogger().notice("Received Heartbeat Packet from " + this.getIp() + ":" + this.getPort());
+                this.server.getLogger().debug("Received Heartbeat Packet from " + this.getIp() + ":" + this.getPort());
                 this.tps = heartbeatPacket.tps;
                 this.load = heartbeatPacket.load;
                 this.upTime = heartbeatPacket.upTime;
@@ -142,7 +142,7 @@ public class Client {
                 UUID uuid = ((RedirectPacket) packet).uuid;
                 if (this.players.containsKey(uuid)) {
                     GenericPacket genericPacket = new GenericPacket();
-                    genericPacket.setBuffer(((RedirectPacket) packet).mcpeBuffer);System.out.println(genericPacket.getBuffer().length);
+                    genericPacket.setBuffer(((RedirectPacket) packet).mcpeBuffer);
                     this.players.get(uuid).sendDataPacket(genericPacket, ((RedirectPacket) packet).direct);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
