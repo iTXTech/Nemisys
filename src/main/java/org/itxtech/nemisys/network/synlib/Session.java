@@ -148,7 +148,7 @@ public class Session {
 
     public void writePacket(byte[] data) {
         byte[] buffer = Binary.appendBytes(Binary.writeLInt(data.length), data, Session.MAGIC_BYTES);
-        this.sendBuffer = Binary.appendBytes(buffer, this.sendBuffer);
+        this.sendBuffer = Binary.appendBytes(this.sendBuffer, buffer);
     }
 
 }
