@@ -478,6 +478,11 @@ public class PluginManager {
         if (!plugin.isEnabled()) {
             throw new PluginException("Plugin attempted to register " + event + " while not enabled");
         }
+        try {
+            this.getEventListeners(event).register(new RegisteredListener(listener, executor, priority, plugin, ignoreCancelled));
+        } catch (IllegalAccessException e) {
+            Server.getInstance().getLogger().logException(e);
+        }
     }
 
     private HandlerList getEventListeners(Class<? extends Event> type) throws IllegalAccessException {
