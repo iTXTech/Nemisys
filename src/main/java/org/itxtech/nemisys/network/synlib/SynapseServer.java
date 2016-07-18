@@ -26,6 +26,8 @@ public class SynapseServer extends Thread implements InterruptibleThread{
     private String mainPath;
     private SynapseInterface server;
 
+    private SessionManager sessionManager;
+
     public SynapseServer(ThreadedLogger logger, SynapseInterface server, int port) {
         this(logger, server, port, "0.0.0.0");
     }
@@ -121,7 +123,8 @@ public class SynapseServer extends Thread implements InterruptibleThread{
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         try {
             SynapseSocket socket = new SynapseSocket(this.getLogger(), this.port, this.interfaz);
-            new SessionManager(this, socket);
+            this.sessionManager = new SessionManager(this, socket);
+            this.sessionManager.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -135,4 +138,7 @@ public class SynapseServer extends Thread implements InterruptibleThread{
         }
     }
 
+    public SessionManager getSessionManager() {
+        return sessionManager;
+    }
 }

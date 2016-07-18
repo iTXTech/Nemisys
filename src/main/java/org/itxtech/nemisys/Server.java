@@ -454,12 +454,17 @@ public class Server {
         String title = (char) 0x1b + "]0;" + this.getName() + " " +
                 this.getNemisysVersion() +
                 " | Online " + this.players.size() + "/" + this.getMaxPlayers() +
-                " | Clients " + this.clients.size() + "/" +
+                " | Clients " + this.clients.size() +
                 " | Memory " + usage;
         if (!Nemisys.shortTitle) {
             title += " | U " + NemisysMath.round((this.network.getUpload() / 1024 * 1000), 2)
                     + " D " + NemisysMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
+        if (this.synapseInterface.getInterface().getSessionManager() != null) {
+            title += " | SynLibTPS " + this.synapseInterface.getInterface().getSessionManager().getTicksPerSecond() +
+                    " | SynLibLoad " + this.synapseInterface.getInterface().getSessionManager().getTickUsage();
+        }
+
         title += " | TPS " + this.getTicksPerSecond() +
                 " | Load " + this.getTickUsage() + "%" + (char) 0x07;
 
