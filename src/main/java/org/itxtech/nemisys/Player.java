@@ -39,7 +39,7 @@ public class Player {
         this.clientId = clientId;
         this.ip = ip;
         this.port = port;
-        this.name = "Unknown";
+        this.name = "null";
         this.server = Server.getInstance();
         this.lastUpdate = System.currentTimeMillis();
     }
@@ -114,7 +114,7 @@ public class Player {
                 this.transfer(this.server.getClients().get(ev.getClientHash()));
                 break;
             default:
-                this.redirectPacket(packet.getBuffer());
+                if (this.client != null) this.redirectPacket(packet.getBuffer());
         }
     }
 
