@@ -64,7 +64,7 @@ public class ClientData {
         }
     }
 
-    public String getHashFormDescription(String description) {
+    public String getHashByDescription(String description) {
         final String[] re = new String[1];
         this.clientList.forEach((hash, entry) -> {
             if (entry.getDescription().equals(description)) {
