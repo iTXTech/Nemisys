@@ -110,20 +110,29 @@ public class Session {
 
     public List<byte[]> readPacket() throws Exception {
         List<byte[]> packets = new ArrayList<>();
-        if(this.receiveBuffer != null) {
+        if(this.receiveBuffer != null && this.receiveBuffer.length > 0) {
             int len = this.receiveBuffer.length;
             int offset = 0;
             while (offset < len) {
                 int pkLen = Binary.readInt(Binary.subBytes(this.receiveBuffer, offset, 4));
                 offset += 4;
 
-                byte[] buf = Binary.subBytes(this.receiveBuffer, offset, pkLen);
-                offset += pkLen;
+                if(pkLen <= (len - offset)) {
+                    byte[] buf = Binary.subBytes(this.receiveBuffer, offset, pkLen);
+                    offset += pkLen;
 
-                packets.add(buf);
+                    packets.add(buf);
+                }else{
+                    offset -= 4;
+                    break;
+                }
+            }
+            if(offset < len){
+                this.receiveBuffer = Binary.subBytes(this.receiveBuffer, offset);
+            }else{
+                this.receiveBuffer = new byte[0];
             }
         }
-        this.receiveBuffer = new byte[0];
         return packets;
     }
 
