@@ -281,7 +281,7 @@ public class Server {
 
 
             for(Client client : this.clients.values()){
-                for (Player player : client.getPlayers().values()) {
+                for (Player player : new ArrayList<>(client.getPlayers().values())) {
                     player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
                 }
                 client.close("Synapse server closed");
@@ -462,7 +462,7 @@ public class Server {
         }
         if (this.synapseInterface.getInterface().getSessionManager() != null) {
             title += " | SynLibTPS " + this.synapseInterface.getInterface().getSessionManager().getTicksPerSecond() +
-                    " | SynLibLoad " + this.synapseInterface.getInterface().getSessionManager().getTickUsage();
+                    " | SynLibLoad " + this.synapseInterface.getInterface().getSessionManager().getTickUsage() + "%";
         }
 
         title += " | TPS " + this.getTicksPerSecond() +
