@@ -139,5 +139,6 @@ public class SynapseInterface {
         this.registerPacket(SynapseInfo.PLAYER_LOGOUT_PACKET, new PlayerLogoutPacket());
         this.registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
         this.registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
+        this.registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
     }
 }

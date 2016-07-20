@@ -84,6 +84,15 @@ public class Client {
 		}*/
 
         switch (packet.pid()) {
+            case SynapseInfo.BROADCAST_PACKET:
+                GenericPacket gPacket = new GenericPacket();
+                gPacket.setBuffer(((BroadcastPacket) packet).payload);
+                for (UUID uniqueId : ((BroadcastPacket) packet).entries){
+                    if(this.players.containsKey(uniqueId)){
+                        this.players.get(uniqueId).sendDataPacket(gPacket, ((BroadcastPacket) packet).direct);
+                    }
+                }
+                break;
             case SynapseInfo.HEARTBEAT_PACKET:
                 if (!this.isVerified()) {
                     this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " is not verified");

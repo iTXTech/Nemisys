@@ -5,7 +5,7 @@ package org.itxtech.nemisys.network.protocol.spp;
  */
 public class SynapseInfo {
 
-    public static final int CURRENT_PROTOCOL = 4;
+    public static final int CURRENT_PROTOCOL = 5;
 
     public static final byte HEARTBEAT_PACKET = 0x01;
     public static final byte CONNECT_PACKET = 0x02;
@@ -15,5 +15,6 @@ public class SynapseInfo {
     public static final byte PLAYER_LOGOUT_PACKET = 0x06;
     public static final byte INFORMATION_PACKET = 0x07;
     public static final byte TRANSFER_PACKET = 0x08;
+    public static final byte BROADCAST_PACKET = 0x09;
 
 }
