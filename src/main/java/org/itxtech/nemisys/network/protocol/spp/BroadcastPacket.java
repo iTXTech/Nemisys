@@ -22,6 +22,7 @@ public class BroadcastPacket extends SynapseDataPacket{
 
     @Override
     public void encode() {
+        this.reset();
         this.putBoolean(this.direct);
         this.putShort(this.entries.size());
         for(UUID uniqueId : this.entries){
