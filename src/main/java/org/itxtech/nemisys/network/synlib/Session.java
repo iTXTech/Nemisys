@@ -20,7 +20,7 @@ import java.util.List;
 public class Session {
 
     private byte[] receiveBuffer = new byte[0];
-    private byte[] sendBuffer = new byte[0];
+    //private byte[] sendBuffer = new byte[0];
     private SessionManager sessionManager;
     private SocketChannel socket;
     private Selector selector;
@@ -98,10 +98,10 @@ public class Session {
                     }
                 }
             }
-            if (this.sendBuffer.length > 0) {
+            /*if (this.sendBuffer.length > 0) {
                 this.socket.write(ByteBuffer.wrap(this.sendBuffer));
                 this.sendBuffer = new byte[0];
-            }
+            }*/
             return true;
         }catch (IOException e){
             return false;
@@ -138,8 +138,13 @@ public class Session {
     }
 
     public void writePacket(byte[] data) {
-        byte[] buffer = Binary.appendBytes(Binary.writeInt(data.length), data);
-        this.sendBuffer = Binary.appendBytes(this.sendBuffer, buffer);
+        /*byte[] buffer = Binary.appendBytes(Binary.writeInt(data.length), data);
+        this.sendBuffer = Binary.appendBytes(this.sendBuffer, buffer);*/
+        try {
+            this.socket.write(ByteBuffer.wrap(Binary.appendBytes(Binary.writeInt(data.length), data)));
+        }catch (IOException e){
+            //
+        }
     }
 
 }
