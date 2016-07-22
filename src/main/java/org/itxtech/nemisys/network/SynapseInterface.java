@@ -140,5 +140,6 @@ public class SynapseInterface {
         this.registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
         this.registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
         this.registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
+        this.registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
     }
 }

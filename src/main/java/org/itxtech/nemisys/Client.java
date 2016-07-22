@@ -6,6 +6,7 @@ import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.PlayerListPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
 
 import java.util.*;
@@ -160,8 +161,44 @@ public class Client {
                 this.players.get(uuid0).transfer(clients.get(((TransferPacket)packet).clientHash), true);
             }
             break;
+            case SynapseInfo.FAST_PLAYER_LIST_PACKET:
+                this.server.getScheduler().scheduleTask(new HandleFastPlayerListPacketRunnable((FastPlayerListPacket)packet), true);
+                break;
             default:
                 this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an unknown packet " + packet.pid());
+        }
+    }
+
+    public class HandleFastPlayerListPacketRunnable implements Runnable {
+        private FastPlayerListPacket pk;
+        public HandleFastPlayerListPacketRunnable(FastPlayerListPacket pk) {
+            this.pk = pk;
+        }
+        @Override
+        public void run() {
+            handleFastPlayerListPacket(pk);
+        }
+    }
+
+    public void handleFastPlayerListPacket(FastPlayerListPacket fastPlayerListPacket) {
+        Player sendTo = this.getPlayers().get(fastPlayerListPacket.sendTo);
+        if (sendTo != null) {
+            PlayerListPacket playerListPacket = new PlayerListPacket();
+            playerListPacket.type = fastPlayerListPacket.type;
+            List<PlayerListPacket.Entry> entries = new ArrayList<>();
+            if (fastPlayerListPacket.type == FastPlayerListPacket.TYPE_ADD) {
+                for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
+                    Player player = this.getPlayers().get(entry.uuid);
+                    if (player != null && player.getSkin() != null && player.getSkin().isValid())
+                        entries.add(new PlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
+                }
+            } else {
+                for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
+                    entries.add(new PlayerListPacket.Entry(entry.uuid));
+                }
+            }
+            playerListPacket.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
+            sendTo.sendDataPacket(playerListPacket);
         }
     }
 
@@ -220,7 +257,6 @@ public class Client {
     }
 
     public void close(String reason, boolean needPk, byte type) {
-
         ClientDisconnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();

@@ -241,6 +241,18 @@ public class BinaryStream {
         this.put(b);
     }
 
+    public void putSkin(Skin skin) {
+        this.putString(skin.getModel());
+        this.putShort(skin.getData().length);
+        this.put(skin.getData());
+    }
+
+    public Skin getSkin() {
+        String modelId = this.getString();
+        byte[] skinData = this.get(this.getShort());
+        return new Skin(skinData, modelId);
+    }
+
     public boolean feof() {
         return this.offset < 0 || this.offset >= this.buffer.length;
     }

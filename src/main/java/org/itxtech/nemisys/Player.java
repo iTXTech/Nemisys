@@ -9,6 +9,7 @@ import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
 import org.itxtech.nemisys.utils.Binary;
+import org.itxtech.nemisys.utils.Skin;
 import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.*;
@@ -33,6 +34,7 @@ public class Player {
     private boolean isFirstTimeLogin = true;
     private long lastUpdate;
     public boolean closed;
+    private Skin skin;
 
     public Player(SourceInterface interfaz, long clientId, String ip, int port){
         this.interfaz = interfaz;
@@ -77,6 +79,7 @@ public class Player {
             case ProtocolInfo.LOGIN_PACKET:
                 LoginPacket loginPacket = (LoginPacket)packet; 
                 this.cachedLoginPacket = loginPacket.cacheBuffer;
+                this.skin = loginPacket.skin;
                 this.name = loginPacket.username;
                 this.uuid = loginPacket.clientUUID;
                 this.rawUUID = Binary.writeUUID(this.uuid);
@@ -257,4 +260,9 @@ public class Player {
     public long getRandomClientId() {
         return randomClientId;
     }
+
+    public Skin getSkin() {
+        return this.skin;
+    }
+
 }

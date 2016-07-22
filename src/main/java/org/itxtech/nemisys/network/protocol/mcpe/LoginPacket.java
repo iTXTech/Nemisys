@@ -2,6 +2,7 @@ package org.itxtech.nemisys.network.protocol.mcpe;
 
 import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Server;
+import org.itxtech.nemisys.utils.Skin;
 import org.itxtech.nemisys.utils.Zlib;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -27,6 +28,8 @@ public class LoginPacket extends DataPacket {
     public String identityPublicKey;
     public String serverAddress;
     public byte[] cacheBuffer;
+
+    public Skin skin;
 
     @Override
     public byte pid() {
@@ -82,6 +85,8 @@ public class LoginPacket extends DataPacket {
         String skinId = null;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
         if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").getAsString();
+        if (skinToken.has("SkinId")) skinId = skinToken.get("SkinId").getAsString();
+        if (skinToken.has("SkinData")) this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
     }
 
     private JsonObject decodeToken(String token) {
