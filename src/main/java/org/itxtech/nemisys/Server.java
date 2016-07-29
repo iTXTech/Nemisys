@@ -280,7 +280,7 @@ public class Server {
             this.shutdown();
 
 
-            for(Client client : this.clients.values()){
+            for(Client client : new ArrayList<>(this.clients.values())){
                 for (Player player : new ArrayList<>(client.getPlayers().values())) {
                     player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
                 }
@@ -305,7 +305,7 @@ public class Server {
             this.console.interrupt();
 
             this.getLogger().debug("Stopping network interfaces");
-            for (SourceInterface interfaz : this.network.getInterfaces()) {
+            for (SourceInterface interfaz : new ArrayList<>(this.network.getInterfaces())) {
                 interfaz.shutdown();
                 this.network.unregisterInterface(interfaz);
             }
