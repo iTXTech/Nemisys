@@ -7,6 +7,8 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
 import org.itxtech.nemisys.raknet.protocol.packet.*;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.BinaryStream;
+import org.itxtech.nemisys.utils.MainLogger;
+import org.itxtech.nemisys.utils.Utils;
 
 import java.io.IOException;
 import java.util.*;
@@ -263,27 +265,31 @@ public class Session {
         }
 
         if (packet.getTotalLength() + 4 > this.mtuSize) {
-            byte[][] buffers = Binary.splitBytes(packet.buffer, this.mtuSize - 34);
-            int splitID = ++this.splitID % 65536;
-            for (int count = 0; count < buffers.length; count++) {
-                byte[] buffer = buffers[count];
-                EncapsulatedPacket pk = new EncapsulatedPacket();
-                pk.splitID = splitID;
-                pk.hasSplit = true;
-                pk.splitCount = buffers.length;
-                pk.reliability = packet.reliability;
-                pk.splitIndex = count;
-                pk.buffer = buffer;
-                if (count > 0) {
-                    pk.messageIndex = this.messageIndex++;
-                } else {
-                    pk.messageIndex = packet.messageIndex;
+            try {
+                byte[][] buffers = Binary.splitBytes(packet.buffer, this.mtuSize - 34);
+                int splitID = ++this.splitID % 65536;
+                for (int count = 0; count < buffers.length; count++) {
+                    byte[] buffer = buffers[count];
+                    EncapsulatedPacket pk = new EncapsulatedPacket();
+                    pk.splitID = splitID;
+                    pk.hasSplit = true;
+                    pk.splitCount = buffers.length;
+                    pk.reliability = packet.reliability;
+                    pk.splitIndex = count;
+                    pk.buffer = buffer;
+                    if (count > 0) {
+                        pk.messageIndex = this.messageIndex++;
+                    } else {
+                        pk.messageIndex = packet.messageIndex;
+                    }
+                    if (pk.reliability == 3) {
+                        pk.orderChannel = packet.orderChannel;
+                        pk.orderIndex = packet.orderIndex;
+                    }
+                    this.addToQueue(pk, flags | RakNet.PRIORITY_IMMEDIATE);
                 }
-                if (pk.reliability == 3) {
-                    pk.orderChannel = packet.orderChannel;
-                    pk.orderIndex = packet.orderIndex;
-                }
-                this.addToQueue(pk, flags | RakNet.PRIORITY_IMMEDIATE);
+            } catch (Exception e) {
+                this.sessionManager.getLogger().alert(Utils.getExceptionMessage(e));
             }
         } else {
             this.addToQueue(packet, flags);
