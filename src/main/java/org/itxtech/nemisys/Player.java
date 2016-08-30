@@ -3,6 +3,8 @@ package org.itxtech.nemisys;
 import org.itxtech.nemisys.event.player.PlayerLoginEvent;
 import org.itxtech.nemisys.event.player.PlayerLogoutEvent;
 import org.itxtech.nemisys.event.player.PlayerTransferEvent;
+import org.itxtech.nemisys.event.server.DataPacketReceiveEvent;
+import org.itxtech.nemisys.event.server.DataPacketSendEvent;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
@@ -68,6 +70,12 @@ public class Player {
         }
         this.lastUpdate = System.currentTimeMillis();
 
+		DataPacketReceiveEvent ev;
+		this.server.getPluginManager().callEvent((ev = new DataPacketReceiveEvent(this, packet)));
+		if(ev.isCancelled()){
+			return;
+		}
+
         switch (packet.pid()){
             case ProtocolInfo.BATCH_PACKET:
                 if(this.cachedLoginPacket.length == 0){
@@ -87,11 +95,11 @@ public class Player {
                 this.protocol = loginPacket.protocol;
 
                 this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logIn", new String[]{
-                        TextFormat.AQUA + this.name + TextFormat.WHITE,
-                        this.ip,
-                        String.valueOf(this.port),
-                        TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
-                }));
+					TextFormat.AQUA + this.name + TextFormat.WHITE,
+					this.ip,
+					String.valueOf(this.port),
+					TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
+				}));
 
                 Map<String, Client> c = this.server.getMainClients();
 
@@ -207,6 +215,11 @@ public class Player {
     }
 
     public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK){
+		DataPacketSendEvent ev;
+		this.server.getPluginManager().callEvent((ev = new DataPacketSendEvent(this, pk)));
+		if(ev.isCancelled()){
+			return;
+		}
         this.interfaz.putPacket(this, pk, needACK, direct);
     }
 
@@ -238,11 +251,11 @@ public class Player {
             }
 
             this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logOut", new String[]{
-                            TextFormat.AQUA + this.getName() + TextFormat.WHITE,
-                            this.ip,
-                            String.valueOf(this.port),
-                            this.getServer().getLanguage().translateString(reason)
-            }));
+																							TextFormat.AQUA + this.getName() + TextFormat.WHITE,
+																							this.ip,
+																							String.valueOf(this.port),
+																							this.getServer().getLanguage().translateString(reason)
+																						}));
 
             this.interfaz.close(this, notify ? reason : "");
             this.getServer().removePlayer(this);
