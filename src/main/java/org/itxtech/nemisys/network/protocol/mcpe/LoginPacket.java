@@ -3,6 +3,7 @@ package org.itxtech.nemisys.network.protocol.mcpe;
 import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.utils.Skin;
+import org.itxtech.nemisys.utils.Utils;
 import org.itxtech.nemisys.utils.Zlib;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -40,6 +41,10 @@ public class LoginPacket extends DataPacket {
     public void decode() {
         this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
+        if (this.protocol >= 90) {
+            this.clientUUID = UUID.randomUUID();
+            return;
+        }
         byte[] str;
         try {
             str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
