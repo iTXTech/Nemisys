@@ -41,13 +41,13 @@ public class LoginPacket extends DataPacket {
     public void decode() {
         this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
-        if (this.protocol >= 90) {
-            this.clientUUID = UUID.randomUUID();
-            return;
-        }
         byte[] str;
         try {
-            str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
+            if (this.protocol >= 90) {
+                str = Zlib.inflate(this.get(this.getShort()), 1024 * 1024 * 64);
+            } else {
+                str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
+            }
         } catch (Exception e) {
             if (Nemisys.DEBUG > 1) Server.getInstance().getLogger().logException(e);
             return;
