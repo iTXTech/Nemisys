@@ -168,13 +168,21 @@ public class MainLogger extends ThreadedLogger {
             while (this.logStream.length() > 0) {
                 String chunk = this.logStream;
                 this.logStream = "";
+                OutputStreamWriter writer = null;
                 try {
-                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
+                    writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
                     writer.write(chunk);
                     writer.flush();
-                    writer.close();
                 } catch (Exception e) {
                     this.logException(e);
+                } finally {
+                    try {
+                        if (writer != null) {
+                            writer.close();
+                        }
+                    } catch (Exception e) {
+                        this.logException(e);
+                    }
                 }
             }
 
@@ -190,13 +198,21 @@ public class MainLogger extends ThreadedLogger {
         if (this.logStream.length() > 0) {
             String chunk = this.logStream;
             this.logStream = "";
+            OutputStreamWriter writer = null;
             try {
-                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
+                writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
                 writer.write(chunk);
                 writer.flush();
-                writer.close();
             } catch (Exception e) {
                 this.logException(e);
+            } finally {
+                try {
+                    if (writer != null) {
+                        writer.close();
+                    }
+                } catch (Exception e) {
+                    this.logException(e);
+                }
             }
         }
     }
