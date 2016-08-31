@@ -174,14 +174,13 @@ public class MainLogger extends ThreadedLogger {
                     writer.flush();
                 } catch (Exception e) {
                     this.logException(e);
-                }
-				finally {
-					try {
+                } finally {
+                    try {
                         writer.close();
-					} catch (Exception e) {
-						this.logException(e);
-					}
-				}
+                    } catch (Exception e) {
+                        this.logException(e);
+                    }
+                }
             }
 
             try {
@@ -202,8 +201,7 @@ public class MainLogger extends ThreadedLogger {
                 writer.flush();
             } catch (Exception e) {
                 this.logException(e);
-            }
-            finally {
+            } finally {
                 try {
                     writer.close();
                 } catch (Exception e) {
