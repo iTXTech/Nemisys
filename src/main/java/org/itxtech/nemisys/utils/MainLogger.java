@@ -172,10 +172,16 @@ public class MainLogger extends ThreadedLogger {
                     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
                     writer.write(chunk);
                     writer.flush();
-                    writer.close();
                 } catch (Exception e) {
                     this.logException(e);
                 }
+				finally {
+					try {
+                        writer.close();
+					} catch (Exception e) {
+						this.logException(e);
+					}
+				}
             }
 
             try {
@@ -194,9 +200,15 @@ public class MainLogger extends ThreadedLogger {
                 OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
                 writer.write(chunk);
                 writer.flush();
-                writer.close();
             } catch (Exception e) {
                 this.logException(e);
+            }
+            finally {
+                try {
+                    writer.close();
+                } catch (Exception e) {
+                    this.logException(e);
+                }
             }
         }
     }
