@@ -108,6 +108,7 @@ public class Server {
                 put("server-ip", "0.0.0.0");
                 put("max-players", 20);
                 put("dynamic-player-count", false);
+                put("plus-one-max-count", false);
                 put("enable-query", true);
                 put("enable-rcon", false);
                 put("rcon.password", Base64.getEncoder().encodeToString(UUID.randomUUID().toString().replace("-", "").getBytes()).substring(3, 13));
