@@ -64,7 +64,11 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.server_engine = server.getName() + " " + server.getNemisysVersion();
         this.map = "Numisys";
         this.numPlayers = this.players.length;
-        this.maxPlayers = server.getMaxPlayers();
+        if(server.getConfig("plus-one-max-count")){
+            this.maxPlayers = this.numPlayers + 1;
+        }else{
+            this.maxPlayers = server.getMaxPlayers();
+        }
         this.whitelist = "off";
         this.port = server.getPort();
         this.ip = server.getIp();
