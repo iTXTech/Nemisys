@@ -4,10 +4,7 @@ import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.command.CommandReader;
 import org.fusesource.jansi.AnsiConsole;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +16,7 @@ import java.util.Date;
 public class MainLogger extends ThreadedLogger {
 
     protected File logFile;
+    protected OutputStreamWriter writer;
     protected String logStream = "";
     protected boolean shutdown;
     protected boolean logDebug = false;
@@ -43,6 +41,11 @@ public class MainLogger extends ThreadedLogger {
             } catch (IOException e) {
                 this.logException(e);
             }
+        }
+        try {
+            this.writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
+        } catch (FileNotFoundException e) {
+            this.logException(e);
         }
         this.logDebug = logDebug;
         this.start();
@@ -169,10 +172,8 @@ public class MainLogger extends ThreadedLogger {
                 String chunk = this.logStream;
                 this.logStream = "";
                 try {
-                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
-                    writer.write(chunk);
-                    writer.flush();
-                    writer.close();
+                    this.writer.write(chunk);
+                    this.writer.flush();
                 } catch (Exception e) {
                     this.logException(e);
                 }
@@ -191,13 +192,17 @@ public class MainLogger extends ThreadedLogger {
             String chunk = this.logStream;
             this.logStream = "";
             try {
-                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.logFile, true), StandardCharsets.UTF_8);
-                writer.write(chunk);
-                writer.flush();
-                writer.close();
+                this.writer.write(chunk);
+                this.writer.flush();
             } catch (Exception e) {
                 this.logException(e);
             }
+        }
+
+        try {
+            this.writer.close();
+        } catch (Exception e) {
+            //ignore
         }
     }
 
