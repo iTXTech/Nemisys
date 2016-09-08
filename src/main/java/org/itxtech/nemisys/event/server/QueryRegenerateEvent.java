@@ -16,7 +16,6 @@ import java.util.*;
  * Nukkit Project
  */
 public class QueryRegenerateEvent extends ServerEvent {
-    //alot todo
 
     private static final HandlerList handlers = new HandlerList();
 
@@ -62,12 +61,16 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.gameType = "SMP";
         this.version = server.getVersion();
         this.server_engine = server.getName() + " " + server.getNemisysVersion();
-        this.map = "Numisys";
+        this.map = "Nemisys";
         this.numPlayers = this.players.length;
-        this.maxPlayers = server.getMaxPlayers();
+        if(server.getPropertyBoolean("plus-one-max-count",false)){
+            this.maxPlayers = this.numPlayers + 1;
+        }else{
+            this.maxPlayers = server.getMaxPlayers();
+        }
         this.whitelist = "off";
-        this.port = server.getPort();
         this.ip = server.getIp();
+        this.port = server.getPort();
     }
 
     public int getTimeout() {

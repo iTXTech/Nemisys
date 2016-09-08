@@ -18,7 +18,6 @@ import org.itxtech.nemisys.plugin.PluginLoadOrder;
 import org.itxtech.nemisys.plugin.PluginManager;
 import org.itxtech.nemisys.scheduler.ServerScheduler;
 import org.itxtech.nemisys.utils.*;
-import sun.security.provider.MD5;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -78,6 +77,8 @@ public class Server {
     private String clientDataJson = "";
     private Map<String, Client> mainClients = new HashMap<>();
 
+    public int uptime = 0;
+
     public Server(MainLogger logger, final String filePath, String dataPath, String pluginPath) {
         instance = this;
         this.logger = logger;
@@ -97,7 +98,7 @@ public class Server {
         this.logger.info("Loading " + TextFormat.GREEN + "server properties" + TextFormat.WHITE + "...");
         this.properties = new Config(this.dataPath + "server.properties", Config.PROPERTIES, new ConfigSection() {
             {
-                put("motd", "Nemisys Proxy: Minecraft PE Server");
+                put("motd", "Nemisys Proxy");
                 put("server-port", 19132);
                 put("synapse-port", 10305);
                 put("password", "1234567890123456"/* TODO MD5 Password*/);
@@ -107,6 +108,7 @@ public class Server {
                 put("profile-report-trigger", 20);
                 put("server-ip", "0.0.0.0");
                 put("max-players", 20);
+		put("plus-one-max-count", false);
                 put("dynamic-player-count", false);
                 put("enable-query", true);
                 put("enable-rcon", false);
