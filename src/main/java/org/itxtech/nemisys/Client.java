@@ -110,6 +110,8 @@ public class Client {
                 pk.type = InformationPacket.TYPE_CLIENT_DATA;
                 pk.message = this.server.getClientDataJson();
                 this.sendDataPacket(pk);
+                
+                this.server.updateClientData();
 
                 break;
             case SynapseInfo.CONNECT_PACKET:
