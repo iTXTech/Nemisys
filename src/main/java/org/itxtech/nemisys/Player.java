@@ -108,6 +108,10 @@ public class Player {
                     this.close(ev.getKickMessage());
                     break;
                 }
+                if(this.server.getMaxPlayers() <= this.server.getOnlinePlayers().size()){
+                    this.close("Synapse Server: " + TextFormat.RED + "Synapse server is full!");
+                    break;
+                }
 
                 if(!this.server.getClients().containsKey(ev.getClientHash())){
                     this.close("Synapse Server: " + TextFormat.RED + "No server online!");
@@ -194,7 +198,7 @@ public class Player {
 
             this.isFirstTimeLogin = false;
 
-            this.server.getLogger().info(this.name + " has been transferred to " + this.client.getIp() + ":" + this.client.getPort());
+            this.server.getLogger().info(this.name + " has been transferred to " + this.client.getDescription());
         }
     }
 
@@ -238,10 +242,10 @@ public class Player {
             }
 
             this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logOut", new String[]{
-                            TextFormat.AQUA + this.getName() + TextFormat.WHITE,
-                            this.ip,
-                            String.valueOf(this.port),
-                            this.getServer().getLanguage().translateString(reason)
+                TextFormat.AQUA + this.getName() + TextFormat.WHITE,
+                this.ip,
+                String.valueOf(this.port),
+                this.getServer().getLanguage().translateString(reason)
             }));
 
             this.interfaz.close(this, notify ? reason : "");
