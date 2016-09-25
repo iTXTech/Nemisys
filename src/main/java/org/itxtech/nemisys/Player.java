@@ -82,6 +82,10 @@ public class Player {
                 this.skin = loginPacket.skin;
                 this.name = loginPacket.username;
                 this.uuid = loginPacket.clientUUID;
+                if (this.uuid == null) {
+                    this.close(TextFormat.RED + "Please choose another name and try again!");
+                    break;
+                }
                 this.rawUUID = Binary.writeUUID(this.uuid);
                 this.randomClientId = loginPacket.clientId;
                 this.protocol = loginPacket.protocol;
