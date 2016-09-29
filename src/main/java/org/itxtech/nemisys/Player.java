@@ -150,9 +150,9 @@ public class Player {
     }
 
     public void onUpdate(long currentTick){
-        if((System.currentTimeMillis() - this.lastUpdate) > 5 * 60 * 1000){//timeout
+        /*if((System.currentTimeMillis() - this.lastUpdate) > 5 * 60 * 1000){//timeout
             this.close("timeout");
-        }
+        }*/
     }
 
     public void removeAllPlayers(){
