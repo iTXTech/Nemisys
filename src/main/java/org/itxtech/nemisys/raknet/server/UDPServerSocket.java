@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import org.itxtech.nemisys.utils.MainLogger;
 
 /**
  * author: MagicDroidX
@@ -80,6 +81,10 @@ public class UDPServerSocket {
 
     public int writePacket(byte[] data, InetSocketAddress dest) throws IOException {
         //MainLogger.getLogger().debug(TextFormat.AQUA + "Out: " + Binary.bytesToHexString(data, true));
+        if (!(0 < dest.getPort() && dest.getPort() < 65536)) {
+            MainLogger.getLogger().notice("Invalid destination port for client address => " + dest.toString());
+            return 0;
+        }
         return this.channel.send(ByteBuffer.wrap(data), dest);
 
         /*DatagramPacket packet = new DatagramPacket(data, data.length, dest);
