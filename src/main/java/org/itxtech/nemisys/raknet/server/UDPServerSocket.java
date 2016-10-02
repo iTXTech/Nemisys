@@ -1,5 +1,13 @@
 package org.itxtech.nemisys.raknet.server;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.io.IOException;
@@ -10,16 +18,20 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
-public class UDPServerSocket {
+public class UDPServerSocket extends ChannelInboundHandlerAdapter {
 
-    protected DatagramChannel channel;
-    protected ThreadedLogger logger;
-    protected DatagramSocket socket;
+    protected final ThreadedLogger logger;
+    protected Bootstrap bootstrap;
+    protected EventLoopGroup group;
+    protected Channel channel;
+
+    protected ConcurrentLinkedQueue<io.netty.channel.socket.DatagramPacket> packets = new ConcurrentLinkedQueue<>();
 
     public UDPServerSocket(ThreadedLogger logger) {
         this(logger, 19132, "0.0.0.0");
@@ -32,46 +44,31 @@ public class UDPServerSocket {
     public UDPServerSocket(ThreadedLogger logger, int port, String interfaz) {
         this.logger = logger;
         try {
-            this.channel = DatagramChannel.open();
-            this.channel.configureBlocking(false);
-            this.socket = this.channel.socket();
-            this.socket.bind(new InetSocketAddress(interfaz, port));
-            //this.socket = new DatagramSocket(new InetSocketAddress(interfaz, port));
-            this.socket.setReuseAddress(true);
-            this.setSendBuffer(1024 * 1024 * 8).setRecvBuffer(1024 * 1024 * 8);
-        } catch (IOException e) {
+            bootstrap = new Bootstrap();
+            group = new NioEventLoopGroup();
+            bootstrap
+                    .group(group)
+                    .channel(NioDatagramChannel.class)
+                    .handler(this);
+            channel = bootstrap.bind(interfaz, port).sync().channel();
+        } catch (Exception e) {
             this.logger.critical("**** FAILED TO BIND TO " + interfaz + ":" + port + "!");
             this.logger.critical("Perhaps a server is already running on that port?");
             System.exit(1);
         }
     }
 
-    public DatagramSocket getSocket() {
-        return socket;
-    }
-
     public void close() {
-        this.socket.close();
+        this.group.shutdownGracefully();
+        try {
+            this.channel.closeFuture().sync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public DatagramPacket readPacket() throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(65536);
-        InetSocketAddress socketAddress = (InetSocketAddress) this.channel.receive(buffer);
-        if (socketAddress == null) {
-            return null;
-        }
-        DatagramPacket packet = new DatagramPacket(new byte[buffer.position()], buffer.position());
-        packet.setAddress(socketAddress.getAddress());
-        packet.setPort(socketAddress.getPort());
-        packet.setLength(buffer.position());
-        packet.setData(Arrays.copyOf(buffer.array(), packet.getLength()));
-        //MainLogger.getLogger().debug(TextFormat.YELLOW + "In: " + Binary.bytesToHexString(packet.getData(), true));
-        return packet;
-        /*DatagramPacket packet = new DatagramPacket(new byte[65536], 65536);
-
-        this.socket.receive(packet);
-        packet.setData(Arrays.copyOf(packet.getData(), packet.getLength()));
-        return packet;*/
+    public io.netty.channel.socket.DatagramPacket readPacket() throws IOException {
+        return this.packets.poll();
     }
 
     public int writePacket(byte[] data, String dest, int port) throws IOException {
@@ -79,22 +76,18 @@ public class UDPServerSocket {
     }
 
     public int writePacket(byte[] data, InetSocketAddress dest) throws IOException {
-        //MainLogger.getLogger().debug(TextFormat.AQUA + "Out: " + Binary.bytesToHexString(data, true));
-        return this.channel.send(ByteBuffer.wrap(data), dest);
-
-        /*DatagramPacket packet = new DatagramPacket(data, data.length, dest);
-        this.socket.send(packet);
-        return packet.getLength();*/
+        channel.writeAndFlush(new io.netty.channel.socket.DatagramPacket(Unpooled.wrappedBuffer(data), dest));
+        return data.length;
     }
 
-    public UDPServerSocket setSendBuffer(int size) throws SocketException {
-        socket.setSendBufferSize(size);
-        return this;
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        this.packets.add((io.netty.channel.socket.DatagramPacket) msg);
     }
 
-    public UDPServerSocket setRecvBuffer(int size) throws SocketException {
-        socket.setReceiveBufferSize(size);
-        return this;
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        this.logger.warning(cause.getMessage(), cause);
+        ctx.close();
     }
-
 }

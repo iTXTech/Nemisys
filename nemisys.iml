@@ -10,6 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="io.netty:netty-transport:4.1.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.fusesource.jansi:jansi:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.4" level="project" />
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.16" level="project" />
