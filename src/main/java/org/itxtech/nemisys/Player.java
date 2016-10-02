@@ -112,9 +112,12 @@ public class Player {
                     this.close("Synapse Server: " + TextFormat.RED + "Synapse server is full!");
                     break;
                 }
-
+                if (ev.getClientHash().equals("")) {
+                    this.close("Synapse Server: " + TextFormat.RED + "No target server!");
+                    break;
+                }
                 if(!this.server.getClients().containsKey(ev.getClientHash())){
-                    this.close("Synapse Server: " + TextFormat.RED + "No server online!");
+                    this.close("Synapse Server: " + TextFormat.RED + "Target server is not online!");
                     break;
                 }
 

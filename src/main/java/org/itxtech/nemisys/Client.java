@@ -8,6 +8,7 @@ import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.PlayerListPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.*;
 
@@ -239,8 +240,12 @@ public class Client {
     }
 
     public void closeAllPlayers() {
+        this.closeAllPlayers("");
+    }
+
+    public void closeAllPlayers(String reason) {
         for (Player player : new ArrayList<>(this.players.values())) {
-            player.close("Server Closed");
+            player.close("Server Closed" + (reason.equals("") ? "" : ": " + TextFormat.YELLOW + reason));
         }
     }
 
@@ -267,7 +272,7 @@ public class Client {
             pk.message = reason;
             this.sendDataPacket(pk);
         }
-        this.closeAllPlayers();
+        this.closeAllPlayers(reason);
         this.interfaz.removeClient(this);
         this.server.removeClient(this);
     }
