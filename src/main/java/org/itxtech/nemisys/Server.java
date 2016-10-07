@@ -328,7 +328,7 @@ public class Server {
 
         this.tickCounter = 0;
 
-        this.getLogger().info(this.getLanguage().translateString("nemisys.server.startFinished", String.valueOf(Math.round(System.currentTimeMillis() - Nemisys.START_TIME))));
+        this.getLogger().info(this.getLanguage().translateString("nemisys.server.startFinished", String.valueOf(Math.round(System.currentTimeMillis() - Nemisys.START_TIME) / 1000)));
 
         this.tickProcessor();
         this.forceShutdown();
