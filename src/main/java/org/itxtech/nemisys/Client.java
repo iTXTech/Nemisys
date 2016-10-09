@@ -3,6 +3,7 @@ package org.itxtech.nemisys;
 import org.itxtech.nemisys.event.client.ClientAuthEvent;
 import org.itxtech.nemisys.event.client.ClientConnectEvent;
 import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
+import org.itxtech.nemisys.event.client.PluginMsgRecvEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
@@ -165,6 +166,12 @@ public class Client {
             case SynapseInfo.FAST_PLAYER_LIST_PACKET:
                 this.server.getScheduler().scheduleTask(new HandleFastPlayerListPacketRunnable((FastPlayerListPacket)packet), true);
                 break;
+            case SynapseInfo.INFORMATION_PACKET:
+                InformationPacket informationPacket = (InformationPacket) packet;
+                if(informationPacket.type != InformationPacket.TYPE_PLUGIN_MESSAGE){
+                    this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an invalid InformationPacket.");
+                }
+                this.server.getPluginManager().callEvent(new PluginMsgRecvEvent(this, informationPacket.message));
             default:
                 this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an unknown packet " + packet.pid());
         }
@@ -277,4 +284,10 @@ public class Client {
         this.server.removeClient(this);
     }
 
+    public void sendPluginMesasage(String message) {
+        InformationPacket pk = new InformationPacket();
+        pk.type = InformationPacket.TYPE_PLUGIN_MESSAGE;
+        pk.message = message;
+        this.sendDataPacket(pk);
+    }
 }
