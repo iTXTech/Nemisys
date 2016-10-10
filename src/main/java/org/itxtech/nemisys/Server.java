@@ -172,7 +172,12 @@ public class Server {
 
         this.start();
     }
-
+	public void broadcastMessage(String msg){
+    	for(Player p : new ArrayList<Player>(this.getOnlinePlayers().values())){
+    		p.sendMessage(msg);
+    	}
+    	MainLogger.getLogger().info(msg);
+    }
     public void addClient(Client client){
         this.clients.put(client.getHash(), client);
         if(client.isMainServer()){
