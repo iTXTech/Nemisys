@@ -328,7 +328,7 @@ public class Server {
 
         this.tickCounter = 0;
 
-        this.getLogger().info(this.getLanguage().translateString("nemisys.server.startFinished", String.valueOf(Math.round(System.currentTimeMillis() - Nemisys.START_TIME))));
+        this.getLogger().info(this.getLanguage().translateString("nemisys.server.startFinished", String.valueOf((double) (System.currentTimeMillis() - Nemisys.START_TIME) / 1000)));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -461,10 +461,11 @@ public class Server {
         if (!Nemisys.shortTitle) {
             title += " | U " + NemisysMath.round((this.network.getUpload() / 1024 * 1000), 2)
                     + " D " + NemisysMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
-        }
-        if (this.synapseInterface.getInterface().getSessionManager() != null) {
-            title += " | SynLibTPS " + this.synapseInterface.getInterface().getSessionManager().getTicksPerSecond() +
-                    " | SynLibLoad " + this.synapseInterface.getInterface().getSessionManager().getTickUsage() + "%";
+
+            if (this.synapseInterface.getInterface().getSessionManager() != null) {
+                title += " | SynLibTPS " + this.synapseInterface.getInterface().getSessionManager().getTicksPerSecond() +
+                        " | SynLibLoad " + this.synapseInterface.getInterface().getSessionManager().getTickUsage() + "%";
+            }
         }
 
         title += " | TPS " + this.getTicksPerSecond() +

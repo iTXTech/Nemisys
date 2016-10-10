@@ -14,6 +14,7 @@ public class InformationPacket extends SynapseDataPacket {
 
     public static final byte TYPE_LOGIN = 0;
     public static final byte TYPE_CLIENT_DATA = 1;
+    public static final byte TYPE_PLUGIN_MESSAGE = 2;
 
     public static final String INFO_LOGIN_SUCCESS = "success";
     public static final String INFO_LOGIN_FAILED = "failed";
