@@ -58,10 +58,10 @@ public class QueryRegenerateEvent extends ServerEvent {
         }
         this.players = players.toArray(new Player[players.size()]);
 
-        this.gameType = "SMP";
+        this.gameType = "Anarchy";
         this.version = server.getVersion();
-        this.server_engine = server.getName() + " " + server.getNemisysVersion();
-        this.map = "Nemisys";
+        this.server_engine = "PorkMC " + server.getVersion();
+        this.map = "Default";
         this.numPlayers = this.players.length;
         if(server.getPropertyBoolean("plus-one-max-count",false)){
             this.maxPlayers = this.numPlayers + 1;
