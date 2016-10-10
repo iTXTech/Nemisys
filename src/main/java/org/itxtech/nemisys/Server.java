@@ -736,6 +736,10 @@ public class Server {
         }
     }
 
+    public SynapseInterface getSynapseInterface() {
+        return synapseInterface;
+    }
+
     public static Server getInstance() {
         return instance;
     }
