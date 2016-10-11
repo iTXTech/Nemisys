@@ -131,7 +131,12 @@ public class Player {
                 if (this.client != null) this.redirectPacket(packet.getBuffer());
         }
     }
-
+    public void sendMessage(String message){
+    	TextPacket pk = new TextPacket();
+        pk.type = TextPacket.TYPE_RAW;
+        pk.message = message;
+        this.sendDataPacket(pk);
+    }
     public void redirectPacket(byte[] buffer){
         RedirectPacket pk = new RedirectPacket();
         pk.uuid = this.uuid;
