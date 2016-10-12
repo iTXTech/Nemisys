@@ -11,7 +11,7 @@ public class ClientData {
     public Map<String, Entry> clientList = new HashMap<>();
 
     public class Entry {
-        public Entry(String ip, int port, int playerCount, int maxPlayers, String description, float tps, float load, long upTime) {
+        public Entry(String ip, int port, int playerCount, int maxPlayers, String description, float tps, float load, long upTime, boolean isMainServer) {
             this.ip = ip;
             this.port = port;
             this.playerCount = playerCount;
@@ -20,6 +20,7 @@ public class ClientData {
             this.tps = tps;
             this.load = load;
             this.upTime = upTime;
+            this.isMainServer = isMainServer;
         }
 
         private String ip;
@@ -30,6 +31,7 @@ public class ClientData {
         private float tps;
         private float load;
         private long upTime;
+        private boolean isMainServer = false;
 
         public String getIp() {
             return ip;
@@ -61,6 +63,10 @@ public class ClientData {
 
         public long getUpTime(){
             return this.upTime;
+        }
+        
+        public boolean isMainServer(){
+        	return this.isMainServer;
         }
     }
 
