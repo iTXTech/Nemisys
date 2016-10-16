@@ -160,9 +160,9 @@ public class Client {
                 Map<String, Client> clients = this.server.getClients();
                 UUID uuid0 = ((TransferPacket)packet).uuid;
                 if (this.players.containsKey(uuid0) && clients.containsKey(((TransferPacket)packet).clientHash)){
-                this.players.get(uuid0).transfer(clients.get(((TransferPacket)packet).clientHash), true);
-            }
-            break;
+                    this.players.get(uuid0).transfer(clients.get(((TransferPacket)packet).clientHash), true);
+                }
+                break;
             case SynapseInfo.FAST_PLAYER_LIST_PACKET:
                 this.server.getScheduler().scheduleTask(new HandleFastPlayerListPacketRunnable((FastPlayerListPacket)packet), true);
                 break;
@@ -172,6 +172,7 @@ public class Client {
                     this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an invalid InformationPacket.");
                 }
                 this.server.getPluginManager().callEvent(new PluginMsgRecvEvent(this, informationPacket.message));
+                break;
             default:
                 this.server.getLogger().error("Client " + this.getIp() + ":" + this.getPort() + " has sent an unknown packet " + packet.pid());
         }
@@ -284,7 +285,7 @@ public class Client {
         this.server.removeClient(this);
     }
 
-    public void sendPluginMesasage(String message) {
+    public void sendPluginMesssage(String message) {
         InformationPacket pk = new InformationPacket();
         pk.type = InformationPacket.TYPE_PLUGIN_MESSAGE;
         pk.message = message;
