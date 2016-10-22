@@ -83,7 +83,7 @@ public class Player {
                 this.name = loginPacket.username;
                 this.uuid = loginPacket.clientUUID;
                 if (this.uuid == null) {
-                    this.close(TextFormat.RED + "Please choose another name and try again!");
+                    this.close(TextFormat.RED + "Sorry, your version of MCPE is currently not supported by this server!");
                     break;
                 }
                 this.rawUUID = Binary.writeUUID(this.uuid);
