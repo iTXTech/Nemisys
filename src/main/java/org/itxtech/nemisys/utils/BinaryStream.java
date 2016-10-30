@@ -204,6 +204,24 @@ public class BinaryStream {
         this.put(new byte[]{b});
     }
 
+    public long getUnsignedVarInt() {
+        return Binary.readUnsignedVarInt(this);
+        //return VarInt.readUInt32(this);
+    }
+
+    public void putUnsignedVarInt(long v) {
+        this.put(Binary.writeUnsignedVarInt(v));
+        //VarInt.writeUInt32(this, v);
+    }
+
+    public int getVarInt() {
+        return Binary.readVarInt(this);
+    }
+
+    public void putVarInt(int v) {
+        this.put(Binary.writeVarInt(v));
+    }
+
     public byte[][] getDataArray() {
         return this.getDataArray(10);
     }

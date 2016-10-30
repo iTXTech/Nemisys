@@ -209,7 +209,7 @@ public class Network {
         this.registerPacket(ProtocolInfo.LOGIN_PACKET, LoginPacket.class);
         this.registerPacket(ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket.class);
         this.registerPacket(ProtocolInfo.BATCH_PACKET, BatchPacket.class);
-        this.registerPacket(ProtocolInfo.CHANGE_DIMENSION_PACKET, ChangeDimensionPacket.class);
-        this.registerPacket(ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket.class);
+        this.registerPacket(ProtocolInfo.OLD_PLAYER_LIST_PACKET, OldPlayerListPacket.class);
+        this.registerPacket(ProtocolInfo.PLAYER_LIST_PACKET, NewPlayerListPacket.class);
     }
 }

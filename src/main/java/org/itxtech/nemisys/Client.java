@@ -5,10 +5,9 @@ import org.itxtech.nemisys.event.client.ClientConnectEvent;
 import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.event.client.PluginMsgRecvEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
-import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.PlayerListPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.network.protocol.spp.DisconnectPacket;
 import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.*;
@@ -192,21 +191,21 @@ public class Client {
     public void handleFastPlayerListPacket(FastPlayerListPacket fastPlayerListPacket) {
         Player sendTo = this.getPlayers().get(fastPlayerListPacket.sendTo);
         if (sendTo != null) {
-            PlayerListPacket playerListPacket = new PlayerListPacket();
+            BasePlayerListPacket playerListPacket = sendTo.getProtocol() >= 90 ? new NewPlayerListPacket() : new OldPlayerListPacket();
             playerListPacket.type = fastPlayerListPacket.type;
-            List<PlayerListPacket.Entry> entries = new ArrayList<>();
+            List<BasePlayerListPacket.Entry> entries = new ArrayList<>();
             if (fastPlayerListPacket.type == FastPlayerListPacket.TYPE_ADD) {
                 for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
                     Player player = this.getPlayers().get(entry.uuid);
                     if (player != null && player.getSkin() != null && player.getSkin().isValid())
-                        entries.add(new PlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
+                        entries.add(new BasePlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
                 }
             } else {
                 for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
-                    entries.add(new PlayerListPacket.Entry(entry.uuid));
+                    entries.add(new BasePlayerListPacket.Entry(entry.uuid));
                 }
             }
-            playerListPacket.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
+            playerListPacket.entries = entries.stream().toArray(BasePlayerListPacket.Entry[]::new);
             sendTo.sendDataPacket(playerListPacket);
         }
     }

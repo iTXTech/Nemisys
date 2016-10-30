@@ -24,6 +24,7 @@ public class LoginPacket extends DataPacket {
 
     public String username;
     public int protocol;
+    public byte gameEdition;
     public UUID clientUUID;
     public long clientId;
     public String identityPublicKey;
@@ -41,10 +42,11 @@ public class LoginPacket extends DataPacket {
     public void decode() {
         this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
+        if (this.protocol >= 91) this.gameEdition = (byte) this.getByte();
         byte[] str;
         try {
             if (this.protocol >= 90) {
-                str = Zlib.inflate(this.get(this.getShort()), 1024 * 1024 * 64);
+                str = Zlib.inflate(this.get((int) this.getUnsignedVarInt()));
             } else {
                 str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
             }

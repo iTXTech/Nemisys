@@ -168,17 +168,17 @@ public class Player {
     }
 
     public void removeAllPlayers(){
-        PlayerListPacket pk = new PlayerListPacket();
-        pk.type = PlayerListPacket.TYPE_REMOVE;
-        List<PlayerListPacket.Entry> entries = new ArrayList<>();
+        BasePlayerListPacket pk = this.getProtocol() >= 90 ? new NewPlayerListPacket() : new OldPlayerListPacket();
+        pk.type = BasePlayerListPacket.TYPE_REMOVE;
+        List<BasePlayerListPacket.Entry> entries = new ArrayList<>();
         for (Player p : this.client.getPlayers().values()) {
             if (p == this) {
                 continue;
             }
-            entries.add(new PlayerListPacket.Entry(p.getUUID()));
+            entries.add(new BasePlayerListPacket.Entry(p.getUUID()));
         }
 
-        pk.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
+        pk.entries = entries.stream().toArray(BasePlayerListPacket.Entry[]::new);
         this.sendDataPacket(pk);
     }
 
