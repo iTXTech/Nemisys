@@ -193,19 +193,19 @@ public class Client {
         if (sendTo != null) {
             BasePlayerListPacket playerListPacket = sendTo.getProtocol() >= 90 ? new NewPlayerListPacket() : new OldPlayerListPacket();
             playerListPacket.type = fastPlayerListPacket.type;
-            List<NewPlayerListPacket.Entry> entries = new ArrayList<>();
+            List<BasePlayerListPacket.Entry> entries = new ArrayList<>();
             if (fastPlayerListPacket.type == FastPlayerListPacket.TYPE_ADD) {
                 for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
                     Player player = this.getPlayers().get(entry.uuid);
                     if (player != null && player.getSkin() != null && player.getSkin().isValid())
-                        entries.add(new NewPlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
+                        entries.add(new BasePlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
                 }
             } else {
                 for (FastPlayerListPacket.Entry entry: fastPlayerListPacket.entries) {
-                    entries.add(new NewPlayerListPacket.Entry(entry.uuid));
+                    entries.add(new BasePlayerListPacket.Entry(entry.uuid));
                 }
             }
-            playerListPacket.entries = entries.stream().toArray(NewPlayerListPacket.Entry[]::new);
+            playerListPacket.entries = entries.stream().toArray(BasePlayerListPacket.Entry[]::new);
             sendTo.sendDataPacket(playerListPacket);
         }
     }

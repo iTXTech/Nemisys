@@ -12,7 +12,7 @@ public class OldPlayerListPacket extends BasePlayerListPacket {
         this.reset();
         this.putByte(this.type);
         this.putInt(this.entries.length);
-        for (NewPlayerListPacket.Entry entry : this.entries) {
+        for (BasePlayerListPacket.Entry entry : this.entries) {
             if (type == TYPE_ADD) {
                 this.putUUID(entry.uuid);
                 this.putLong(entry.entityId);
