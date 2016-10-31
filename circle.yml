@@ -1,8 +1,6 @@
 machine:
   java:
     version: oraclejdk8
-  services:
-    - docker
 
 checkout:
     post:
