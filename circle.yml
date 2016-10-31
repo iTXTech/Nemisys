@@ -10,8 +10,6 @@ checkout:
 test:
     post:
         - cp target/*.jar $CIRCLE_ARTIFACTS/
-        - docker build --rm=false --tag=dragonet/dragonet:unstable .
-
 deployment:
   # docker images deployment on Docker Hub (https://hub.docker.com/)
   hub:
