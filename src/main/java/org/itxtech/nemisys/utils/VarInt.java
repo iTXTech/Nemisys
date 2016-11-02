@@ -1,128 +1,163 @@
 package org.itxtech.nemisys.utils;
 
+import java.math.BigInteger;
+
 public class VarInt {
-    public static long encodeZigZag32(int n) {
+
+    private static final BigInteger UNSIGNED_LONG_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFF", 16);
+
+    private static void _assert(BigInteger integer) {
+        if (integer == null) {
+            throw new IllegalArgumentException("The value should not be null");
+        }
+
+        if (integer.compareTo(UNSIGNED_LONG_MAX_VALUE) > 0) {
+            throw new IllegalArgumentException("The value is too big");
+        }
+    }
+
+    /**
+     * @param v Signed int
+     * @return Unsigned encoded int
+     */
+    public static long encodeZigZag32(int v) {
         // Note:  the right-shift must be arithmetic
-        return (long) ((n << 1) ^ (n >> 31));
+        return (long) ((v << 1) ^ (v >> 31));
     }
 
-    public static int decodeZigZag32(long n) {
-        return (int) (n >> 1) ^ -(int) (n & 1);
+    /**
+     * @param v Unsigned encoded int
+     * @return Signed decoded int
+     */
+    public static int decodeZigZag32(long v) {
+        return (int) (v >> 1) ^ -(int) (v & 1);
     }
 
-    public static long encodeZigZag64(long n) {
-        return ((n << 1) ^ (n >> 63));
+    /**
+     * @param v Signed long
+     * @return Unsigned encoded long
+     */
+    public static BigInteger encodeZigZag64(long v) {
+        BigInteger origin = BigInteger.valueOf(v);
+        BigInteger left = origin.shiftLeft(1);
+        BigInteger right = origin.shiftRight(63);
+        return left.xor(right);
     }
 
-    public static long decodeZigZag64(long n) {
-        return (n >> 1) ^ -(n & 1);
+    /**
+     * @param v Signed encoded long
+     * @return Unsigned decoded long
+     */
+    public static BigInteger decodeZigZag64(long v) {
+        return decodeZigZag64(BigInteger.valueOf(v).and(UNSIGNED_LONG_MAX_VALUE));
     }
 
-    public static long readRawVarInt32(BinaryStream buf, int maxSize) {
-        long result = 0;
-        int j = 0;
-        int b0;
+    /**
+     * @param v Unsigned encoded long
+     * @return Unsigned decoded long
+     */
+    public static BigInteger decodeZigZag64(BigInteger v) {
+        _assert(v);
+        BigInteger left = v.shiftRight(1);
+        BigInteger right = v.and(BigInteger.ONE).negate();
+        return left.xor(right);
+    }
+
+    private static BigInteger _readVarInt(BinaryStream stream, int maxSize) {
+        BigInteger result = BigInteger.ZERO;
+        int offset = 0;
+        int b;
 
         do {
-            b0 = buf.getByte(); // -1 if EOS
-            if (b0 < 0) throw new IllegalArgumentException("Not enough bytes for VarInt");
-
-            result |= (long) (b0 & 0x7f) << j++ * 7;
-
-            if (j > maxSize) {
+            if (offset >= maxSize) {
                 throw new IllegalArgumentException("VarInt too big");
             }
-        } while ((b0 & 0x80) == 0x80);
+
+            b = stream.getByte();
+            result = result.or(BigInteger.valueOf((b & 0x7f) << (offset * 7)));
+            offset++;
+        } while ((b & 0x80) > 0);
 
         return result;
     }
 
-    public static long readRawVarInt64(BinaryStream buf, int maxSize) {
-        long result = 0;
-        int j = 0;
-        int b0;
-
-        do {
-            b0 = buf.getByte(); // -1 if EOS
-            if (b0 < 0) throw new IllegalArgumentException("Not enough bytes for VarInt");
-
-            result |= (long) (b0 & 0x7f) << j++ * 7;
-
-            if (j > maxSize) {
-                throw new IllegalArgumentException("VarInt too big");
-            }
-        } while ((b0 & 0x80) == 0x80);
-
-        return result;
+    /**
+     * @param stream
+     * @return Signed int
+     */
+    public static int readVarInt(BinaryStream stream) {
+        return decodeZigZag32(readUnsignedVarInt(stream));
     }
 
-    public static void writeRawVarInt32(BinaryStream buf, long value) {
-        while ((value & -128) != 0) {
-            buf.putByte((byte) ((value & 0x7F) | 0x80));
-            value >>= 7;
+    /**
+     * @param stream
+     * @return Unsigned int
+     */
+    public static long readUnsignedVarInt(BinaryStream stream) {
+        return _readVarInt(stream, 5).longValue();
+    }
+
+    /**
+     * @param stream
+     * @return Signed long
+     */
+    public static long readVarLong(BinaryStream stream) {
+        return decodeZigZag64(readUnsignedVarInt(stream)).longValue();
+    }
+
+    /**
+     * @param stream
+     * @return Unsigned long
+     */
+    public static BigInteger readUnsignedVarLong(BinaryStream stream) {
+        return _readVarInt(stream, 10);
+    }
+
+    private static void _writeVarInt(BinaryStream stream, BigInteger v) {
+        _assert(v);
+        v = v.and(UNSIGNED_LONG_MAX_VALUE);
+        BigInteger i = BigInteger.valueOf(-128);
+        BigInteger BIX7F = BigInteger.valueOf(0x7f);
+        BigInteger BIX80 = BigInteger.valueOf(0x80);
+        while (!v.and(i).equals(BigInteger.ZERO)) {
+            stream.putByte(v.and(BIX7F).or(BIX80).byteValue());
+            v = v.shiftRight(7);
         }
 
-        buf.putByte((byte) value);
+        stream.putByte(v.byteValue());
     }
 
-    public static void writeRawVarInt64(BinaryStream buf, long value) {
-        while ((value & 0xFFFFFFFFFFFFFF80L) != 0) {
-            buf.putByte((byte) ((value & 0x7F) | 0x80));
-            value >>= 7;
-        }
-
-        buf.putByte((byte) value);
+    /**
+     * @param stream
+     * @param value  Signed int
+     */
+    public static void writeVarInt(BinaryStream stream, int value) {
+        writeUnsignedVarInt(stream, encodeZigZag32(value));
     }
 
-    // Int
-
-    public static void writeInt32(BinaryStream stream, int value) {
-        writeRawVarInt32(stream, value);
+    /**
+     * @param stream
+     * @param value  Unsigned int
+     */
+    public static void writeUnsignedVarInt(BinaryStream stream, long value) {
+        _writeVarInt(stream, BigInteger.valueOf(value));
     }
 
-    public static int readInt32(BinaryStream stream) {
-        return (int) readRawVarInt32(stream, 5);
+    /**
+     * @param stream
+     * @param value  Signed long
+     */
+    public static void writeVarLong(BinaryStream stream, long value) {
+        writeUnsignedVarLong(stream, encodeZigZag64(value));
     }
 
-    public static void writeSInt32(BinaryStream stream, int value) {
-        writeRawVarInt32(stream, encodeZigZag32(value));
+    /**
+     * @param stream
+     * @param value  Unsigned long
+     */
+    public static void writeUnsignedVarLong(BinaryStream stream, BigInteger value) {
+        _assert(value);
+        _writeVarInt(stream, value);
     }
 
-    public static int readSInt32(BinaryStream stream) {
-        return decodeZigZag32(readRawVarInt32(stream, 5));
-    }
-
-    public static void writeUInt32(BinaryStream stream, long value) {
-        writeRawVarInt32(stream, value);
-    }
-
-    public static long readUInt32(BinaryStream stream) {
-        return readRawVarInt32(stream, 5);
-    }
-
-    // Long
-
-    public static void writeInt64(BinaryStream stream, long value) {
-        writeRawVarInt64(stream, (long) value);
-    }
-
-    public static long readInt64(BinaryStream stream) {
-        return (long) readRawVarInt64(stream, 10);
-    }
-
-    public static void writeSInt64(BinaryStream stream, long value) {
-        writeRawVarInt64(stream, encodeZigZag64(value));
-    }
-
-    public static long readSInt64(BinaryStream stream) {
-        return decodeZigZag64(readRawVarInt64(stream, 10));
-    }
-
-    public static void writeUInt64(BinaryStream stream, long value) {
-        writeRawVarInt64(stream, value);
-    }
-
-    public static long readUInt64(BinaryStream stream) {
-        return readRawVarInt64(stream, 10);
-    }
 }

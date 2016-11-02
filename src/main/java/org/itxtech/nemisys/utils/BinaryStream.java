@@ -1,5 +1,6 @@
 package org.itxtech.nemisys.utils;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
@@ -73,6 +74,7 @@ public class BinaryStream {
             this.offset = this.count - 1;
             return new byte[0];
         }
+        len = Math.min(len, this.getCount() - this.offset);
         this.offset += len;
         return Arrays.copyOfRange(this.buffer, this.offset - len, this.offset);
     }
@@ -204,24 +206,6 @@ public class BinaryStream {
         this.put(new byte[]{b});
     }
 
-    public long getUnsignedVarInt() {
-        return Binary.readUnsignedVarInt(this);
-        //return VarInt.readUInt32(this);
-    }
-
-    public void putUnsignedVarInt(long v) {
-        this.put(Binary.writeUnsignedVarInt(v));
-        //VarInt.writeUInt32(this, v);
-    }
-
-    public int getVarInt() {
-        return Binary.readVarInt(this);
-    }
-
-    public void putVarInt(int v) {
-        this.put(Binary.writeVarInt(v));
-    }
-
     public byte[][] getDataArray() {
         return this.getDataArray(10);
     }
@@ -249,26 +233,70 @@ public class BinaryStream {
         return Binary.readUUID(this.get(16));
     }
 
-    public String getString() {
-        return new String(this.get(this.getShort()), StandardCharsets.UTF_8);
-    }
-
-    public void putString(String string) {
-        byte[] b = string.getBytes(StandardCharsets.UTF_8);
-        this.putShort(b.length);
-        this.put(b);
-    }
-
     public void putSkin(Skin skin) {
         this.putString(skin.getModel());
-        this.putShort(skin.getData().length);
+        this.putUnsignedVarInt(skin.getData().length);
         this.put(skin.getData());
     }
 
     public Skin getSkin() {
         String modelId = this.getString();
-        byte[] skinData = this.get(this.getShort());
+        byte[] skinData = this.get((int)this.getUnsignedVarInt());
         return new Skin(skinData, modelId);
+    }
+
+    public String getString() {
+        return new String(this.get((int) this.getUnsignedVarInt()), StandardCharsets.UTF_8);
+    }
+
+    public void putString(String string) {
+        byte[] b = string.getBytes(StandardCharsets.UTF_8);
+        this.putUnsignedVarInt(b.length);
+        this.put(b);
+    }
+
+    public long getUnsignedVarInt() {
+        return VarInt.readUnsignedVarInt(this);
+    }
+
+    public void putUnsignedVarInt(long v) {
+        VarInt.writeUnsignedVarInt(this, v);
+    }
+
+    public int getVarInt() {
+        return VarInt.readVarInt(this);
+    }
+
+    public void putVarInt(int v) {
+        VarInt.writeVarInt(this, v);
+    }
+
+    public long getVarLong() {
+        return VarInt.readVarLong(this);
+    }
+
+    public void putVarLong(long v) {
+        VarInt.writeVarLong(this, v);
+    }
+
+    public BigInteger getUnsignedVarLong() {
+        return VarInt.readUnsignedVarLong(this);
+    }
+
+    public void putUnsignedVarLong(long v) {
+        VarInt.writeUnsignedVarLong(this, BigInteger.valueOf(v));
+    }
+
+    public void putUnsignedVarLong(BigInteger v) {
+        VarInt.writeUnsignedVarLong(this, v);
+    }
+
+    public long getEntityId() {
+        return this.getVarLong();
+    }
+
+    public void putEntityId(long v) {
+        this.putVarLong(v);
     }
 
     public boolean feof() {

@@ -15,7 +15,7 @@ public class NewPlayerListPacket extends BasePlayerListPacket {
         for (BasePlayerListPacket.Entry entry : this.entries) {
             if (type == TYPE_ADD) {
                 this.putUUID(entry.uuid);
-                this.putVarInt((int)entry.entityId);
+                this.putVarLong(entry.entityId);
                 this.putString(entry.name);
                 this.putSkin(entry.skin);
             } else {

@@ -151,6 +151,7 @@ public class Client {
                     GenericPacket genericPacket = new GenericPacket();
                     genericPacket.setBuffer(((RedirectPacket) packet).mcpeBuffer);
                     this.players.get(uuid).sendDataPacket(genericPacket, ((RedirectPacket) packet).direct);
+                    //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{((RedirectPacket) packet).mcpeBuffer[0]}) + "  len: " + ((RedirectPacket) packet).mcpeBuffer.length);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
 				}*/
