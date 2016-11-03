@@ -25,12 +25,12 @@ public class KickCommand extends VanillaCommand {
 
         String name = args[0];
 
-        String reason = "";
+        String reason = "Kicked by admin";
         for (int i = 1; i < args.length; i++) {
             reason += args[i] + " ";
         }
 
-        if (reason.length() > 0) {
+        if (reason.endsWith(" ")) {
             reason = reason.substring(0, reason.length() - 1);
         }
 
