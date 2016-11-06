@@ -233,7 +233,9 @@ public class Player {
         if(!this.closed){
             if(notify && reason.length() > 0){
                 DisconnectPacket pk = new DisconnectPacket();
+                pk.hideDisconnectionScreen = false;
                 pk.message = reason;
+                pk.isOld = this.getProtocol() <= 90;
                 this.sendDataPacket(pk, true);
             }
 

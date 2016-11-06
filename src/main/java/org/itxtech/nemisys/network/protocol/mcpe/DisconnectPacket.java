@@ -6,7 +6,9 @@ package org.itxtech.nemisys.network.protocol.mcpe;
 public class DisconnectPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.DISCONNECT_PACKET;
 
+    public boolean hideDisconnectionScreen = false;
     public String message;
+    public boolean isOld = false;
 
     @Override
     public byte pid() {
@@ -15,14 +17,14 @@ public class DisconnectPacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.getBoolean();
+        if (!this.isOld) this.hideDisconnectionScreen = this.getBoolean();
         this.message = this.getString();
     }
 
     @Override
     public void encode() {
         this.reset();
-        this.putBoolean(false);
+        if (!this.isOld) this.putBoolean(this.hideDisconnectionScreen);
         this.putString(this.message);
     }
 
