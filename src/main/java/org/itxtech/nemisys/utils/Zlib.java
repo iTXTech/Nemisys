@@ -1,10 +1,11 @@
 package org.itxtech.nemisys.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.zip.DataFormatException;
+import java.io.InputStream;
 import java.util.zip.Deflater;
-import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 
 public abstract class Zlib {
@@ -20,30 +21,41 @@ public abstract class Zlib {
         deflater.finish();
         ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
         byte[] buf = new byte[1024];
-        while (!deflater.finished()) {
-            int i = deflater.deflate(buf);
-            bos.write(buf, 0, i);
+        try {
+            while (!deflater.finished()) {
+                int i = deflater.deflate(buf);
+                bos.write(buf, 0, i);
+            }
+        } finally {
+            deflater.end();
         }
-        deflater.end();
         return bos.toByteArray();
     }
 
-    public static byte[] inflate(byte[] data) throws DataFormatException, IOException {
-        Inflater inflater = new Inflater();
-        inflater.setInput(data);
-        ByteArrayOutputStream o = new ByteArrayOutputStream(data.length);
-        byte[] buf = new byte[1024];
-        while (!inflater.finished()) {
-            int i = inflater.inflate(buf);
-            o.write(buf, 0, i);
+    public static byte[] inflate(InputStream stream) throws IOException {
+        InflaterInputStream inputStream = new InflaterInputStream(stream);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+
+        while ((length = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, length);
         }
-        inflater.end();
-        return o.toByteArray();
+
+        buffer = outputStream.toByteArray();
+        outputStream.flush();
+        outputStream.close();
+        inputStream.close();
+
+        return buffer;
     }
 
-    public static byte[] inflate(byte[] data, int maxSize) throws DataFormatException, IOException {
-        return Binary.subBytes(inflate(data), 0, maxSize);
+    public static byte[] inflate(byte[] data) throws IOException {
+        return inflate(new ByteArrayInputStream(data));
+    }
+
+    public static byte[] inflate(byte[] data, int maxSize) throws IOException {
+        return inflate(new ByteArrayInputStream(data, 0, maxSize));
     }
 
 }
-
