@@ -73,7 +73,7 @@ public interface ProtocolInfo {
     byte SET_DIFFICULTY_PACKET = 0x3c;
     byte CHANGE_DIMENSION_PACKET = 0x3d;
     byte SET_PLAYER_GAME_TYPE_PACKET = 0x3e;
-    byte PLAYER_LIST_PACKET = 0x3f;
+    byte OLD_PLAYER_LIST_PACKET = 0x3f;
     byte EVENT_PACKET = 0x40;
     byte SPAWN_EXPERIENCE_ORB_PACKET = 0x41;
     byte CLIENTBOUND_MAP_ITEM_DATA_PACKET = 0x42;
