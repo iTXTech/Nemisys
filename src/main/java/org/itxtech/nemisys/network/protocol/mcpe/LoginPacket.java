@@ -45,10 +45,10 @@ public class LoginPacket extends DataPacket {
         this.protocol = this.getInt();
         byte[] str;
         try {
-            if (this.protocol == 90) {
+            if (this.protocol == 100) {
                 this.gameEdition = 0;
                 str = Zlib.inflate(this.get(this.getShort()));
-            } else if (this.protocol > 90) {
+            } else if (this.protocol > 100) {
                 this.gameEdition = (byte) this.getByte();
                 str = Zlib.inflate(this.get((int) this.getUnsignedVarInt()));
             } else {
