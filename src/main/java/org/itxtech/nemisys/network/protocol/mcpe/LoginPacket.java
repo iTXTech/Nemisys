@@ -30,6 +30,7 @@ public class LoginPacket extends DataPacket {
     public long clientId;
     public String identityPublicKey;
     public String serverAddress;
+    public byte[] cacheBuffer;
 
     public Skin skin;
 
@@ -40,6 +41,7 @@ public class LoginPacket extends DataPacket {
 
     @Override
     public void decode() {
+        this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
         this.gameEdition = (byte) this.getByte();
         byte[] str;
