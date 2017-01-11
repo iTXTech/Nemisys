@@ -3,6 +3,7 @@ package org.itxtech.nemisys;
 import org.itxtech.nemisys.command.CommandReader;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.ServerKiller;
+import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
 
 public class Nemisys {
 
