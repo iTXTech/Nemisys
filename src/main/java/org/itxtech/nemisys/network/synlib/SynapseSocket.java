@@ -6,9 +6,6 @@ import java.net.*;
 import java.nio.channels.*;
 import java.io.*;
 
-/**
- * Created by boybook on 16/6/24.
- */
 public class SynapseSocket {
 
     private ServerSocketChannel socket;
@@ -42,6 +39,7 @@ public class SynapseSocket {
             this.selector = Selector.open();
             InetSocketAddress isa = new InetSocketAddress(this.interfaz, this.port);
             this.socket = ServerSocketChannel.open();
+            this.socket.socket().setReceiveBufferSize(1024 * 1024 * 3);
             this.socket.socket().setReuseAddress(true);
             this.socket.configureBlocking(false);
             this.socket.socket().bind(isa);
