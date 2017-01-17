@@ -1,7 +1,6 @@
 package org.itxtech.nemisys.network.synlib;
 
-import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
-import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
+import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.utils.Binary;
 
 import java.io.IOException;
@@ -14,9 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by boybook on 16/6/24.
- */
 public class Session {
 
     private byte[] receiveBuffer = new byte[0];
@@ -55,6 +51,7 @@ public class Session {
         List<byte[]> packets = this.readPacket();
         for (byte[] packet: packets) {
             if (packet != null && packet.length > 0) {
+                Server.getInstance().getLogger().debug("[SynapseInterface Got packet form SynLib] hash=" + this.getHash() + " pkLen=" + packet.length + " pkID=" + packet[0]);
                 byte[] buffer = Binary.appendBytes(
                         new byte[]{(byte) (this.getHash().length() & 0xff)},
                         this.getHash().getBytes(StandardCharsets.UTF_8),
@@ -112,10 +109,12 @@ public class Session {
         List<byte[]> packets = new ArrayList<>();
         if(this.receiveBuffer != null && this.receiveBuffer.length > 0) {
             int len = this.receiveBuffer.length;
+            Server.getInstance().getLogger().debug("readPacket >> this.receiveBuffer.length=" + len);
             int offset = 0;
             while (offset < len) {
                 if (offset > len - 4) break;
                 int pkLen = Binary.readInt(Binary.subBytes(this.receiveBuffer, offset, 4));
+                Server.getInstance().getLogger().debug("readPacket >> Next pkLen=" + pkLen);
                 offset += 4;
 
                 if(pkLen <= (len - offset)) {
@@ -125,6 +124,7 @@ public class Session {
                     packets.add(buf);
                 }else{
                     offset -= 4;
+                    Server.getInstance().getLogger().debug("readPacket >> The packet is cut off in offset=" + offset);
                     break;
                 }
             }

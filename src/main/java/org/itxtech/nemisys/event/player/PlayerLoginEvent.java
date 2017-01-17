@@ -37,4 +37,8 @@ public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
         return clientHash;
     }
 
+    @Override
+    public void setCancelled(boolean value) {
+        super.setCancelled(value);
+    }
 }

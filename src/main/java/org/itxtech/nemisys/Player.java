@@ -26,7 +26,7 @@ public class Player {
     private long clientId;
     private long randomClientId;
     private int protocol;
-    private UUID uuid;
+    protected UUID uuid;
     private SourceInterface interfaz;
     private Client client;
     private Server server;
@@ -278,4 +278,7 @@ public class Player {
         return this.skin;
     }
 
+    public Client getClient() {
+        return client;
+    }
 }

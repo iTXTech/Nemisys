@@ -104,7 +104,7 @@ public class SynapseServer extends Thread implements InterruptibleThread{
     }
 
     public void pushMainToThreadPacket(byte[] data) {
-        this.internalQueue.add(data);
+        this.internalQueue.offer(data);
     }
 
     public byte[] readMainToThreadPacket() {
@@ -112,7 +112,7 @@ public class SynapseServer extends Thread implements InterruptibleThread{
     }
 
     public void pushThreadToMainPacket(byte[] data) {
-        this.externalQueue.add(data);
+        this.externalQueue.offer(data);
     }
 
     public byte[] readThreadToMainPacket() {

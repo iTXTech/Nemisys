@@ -17,6 +17,7 @@ import org.itxtech.nemisys.plugin.Plugin;
 import org.itxtech.nemisys.plugin.PluginLoadOrder;
 import org.itxtech.nemisys.plugin.PluginManager;
 import org.itxtech.nemisys.scheduler.ServerScheduler;
+import org.itxtech.nemisys.synapse.Synapse;
 import org.itxtech.nemisys.utils.*;
 
 import java.io.*;
@@ -77,6 +78,8 @@ public class Server {
     private String clientDataJson = "";
     private Map<String, Client> mainClients = new HashMap<>();
 
+    private Synapse synapse;
+
     public int uptime = 0;
 
     public Server(MainLogger logger, final String filePath, String dataPath, String pluginPath) {
@@ -108,12 +111,13 @@ public class Server {
                 put("profile-report-trigger", 20);
                 put("server-ip", "0.0.0.0");
                 put("max-players", 20);
-		put("plus-one-max-count", false);
+                put("plus-one-max-count", false);
                 put("dynamic-player-count", false);
                 put("enable-query", true);
                 put("enable-rcon", false);
                 put("rcon.password", Base64.getEncoder().encodeToString(UUID.randomUUID().toString().replace("-", "").getBytes()).substring(3, 13));
                 put("debug", 1);
+                put("enable-synapse-client", false);
             }
         });
 
@@ -167,6 +171,15 @@ public class Server {
 
         this.pluginManager.loadPlugins(this.pluginPath);
         this.enablePlugins(PluginLoadOrder.STARTUP);
+
+        if (this.getPropertyBoolean("enable-synapse-client")) {
+            try {
+                this.synapse = new Synapse(this);
+            } catch (Exception e) {
+                this.logger.warning("Failed.");
+                this.logger.logException(e);
+            }
+        }
 
         this.properties.save(true);
 
@@ -745,4 +758,7 @@ public class Server {
         return instance;
     }
 
+    public Synapse getSynapse() {
+        return synapse;
+    }
 }
