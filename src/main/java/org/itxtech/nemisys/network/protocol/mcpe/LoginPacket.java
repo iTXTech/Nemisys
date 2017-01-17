@@ -45,12 +45,12 @@ public class LoginPacket extends DataPacket {
         this.protocol = this.getInt();
         byte[] str;
         try {
-            if (this.protocol == 90) {
-                this.gameEdition = 0;
-                str = Zlib.inflate(this.get(this.getShort()));
-            } else if (this.protocol > 90) {
+            if (this.protocol > 90) {
                 this.gameEdition = (byte) this.getByte();
                 str = Zlib.inflate(this.get((int) this.getUnsignedVarInt()));
+            } else if (this.protocol == 90) {
+                this.gameEdition = 0;
+                str = Zlib.inflate(this.get(this.getShort()));
             } else {
                 str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
             }
@@ -104,5 +104,10 @@ public class LoginPacket extends DataPacket {
         String[] base = token.split("\\.");
         if (base.length < 2) return null;
         return new Gson().fromJson(new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8), JsonObject.class);
+    }
+
+    @Override
+    public Skin getSkin() {
+        return skin;
     }
 }
