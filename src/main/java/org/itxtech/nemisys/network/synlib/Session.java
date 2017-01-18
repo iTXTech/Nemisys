@@ -84,7 +84,7 @@ public class Session {
                     this.selector.selectedKeys().remove(sk);
                     if (sk.isReadable()) {
                         SocketChannel sc = (SocketChannel) sk.channel();
-                        ByteBuffer buff = ByteBuffer.allocate(65535);
+                        ByteBuffer buff = ByteBuffer.allocate(1024 * 64);
                         int n = sc.read(buff);
                         buff.flip();
                         sk.interestOps(SelectionKey.OP_READ);

@@ -43,7 +43,7 @@ public class SynapseSocket {
             InetSocketAddress isa = new InetSocketAddress(this.interfaz, this.port);
             this.socket = SocketChannel.open(isa);
             this.socket.socket().setSendBufferSize(1024 * 1024 * 3);
-            this.socket.socket().setReceiveBufferSize(1024 * 1024 * 3);
+            this.socket.socket().setReceiveBufferSize(1024 * 64);
             this.socket.configureBlocking(false);
             this.socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE | SelectionKey.OP_CONNECT);
             this.logger.notice("SynapseAPI has connected to " + this.interfaz + ":" + this.port);
