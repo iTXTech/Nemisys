@@ -132,33 +132,36 @@ public class SynapseServer extends Thread implements InterruptibleThread{
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         try {
             this.sessionManager = new SessionManager(this);
-            new NettyThread().start();
-            this.sessionManager.run();
+            if (this.bind()) {
+                this.sessionManager.run();
+            } else {
+                Server.getInstance().shutdown();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void bind() {
+    public boolean bind() {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();  //服务引导程序，服务器端快速启动程序
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
                     .option(ChannelOption.SO_BACKLOG, 1024)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(new SynapseServerInitializer(this.sessionManager));
 
-            ChannelFuture future = b.bind(this.interfaz, this.port).sync();
+            b.bind(this.interfaz, this.port).get();
             // 等待服务端监听端口关闭，等待服务端链路关闭之后main函数才退出
-            future.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            Server.getInstance().getLogger().logException(e);
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+            //uture.channel().closeFuture().sync();
+            return true;
+        } catch (Exception e) {
+            Server.getInstance().getLogger().alert("Synapse Server can't bind to: " + this.interfaz + ":" + this.port);
+            Server.getInstance().getLogger().alert("Reason: " + e.getLocalizedMessage());
+            Server.getInstance().getLogger().warning("Server will shutdown.");
+            return false;
         }
     }
 
@@ -167,12 +170,6 @@ public class SynapseServer extends Thread implements InterruptibleThread{
             if (!shutdown) {
                 logger.emergency("SynLib crashed!");
             }
-        }
-    }
-
-    private class NettyThread extends Thread {
-        public void run() {
-            bind();
         }
     }
 

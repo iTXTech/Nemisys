@@ -20,6 +20,7 @@ import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by boybook on 16/6/24.
@@ -140,45 +141,37 @@ public class SynapseClient extends Thread {
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         try {
             this.session = new Session(this);
-            this.startNettyThread();
+            this.connect();
             this.session.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void connect() {
+    public boolean connect() {
         clientGroup = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();  //服务引导程序，服务器端快速启动程序
             b.group(clientGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .option(ChannelOption.SO_BACKLOG, 1024)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
                     .handler(new SynapseClientInitializer(this));
 
-            ChannelFuture future = b.connect(this.interfaz, this.port).sync();
+            b.connect(this.interfaz, this.port).get();
             // 等待服务端监听端口关闭，等待服务端链路关闭之后main函数才退出
-            future.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            Server.getInstance().getLogger().logException(e);
-        } finally {
-            clientGroup.shutdownGracefully();
+            //future.channel().closeFuture().sync();
+            return true;
+        } catch (Exception e) {
+            Server.getInstance().getLogger().alert("Synapse Client can't connect to server: " + this.interfaz + ":" + this.port);
+            Server.getInstance().getLogger().alert("Reason: " + e.getLocalizedMessage());
+            Server.getInstance().getLogger().warning("We will reconnect in 3 seconds");
+            this.reconnect();
+            return false;
         }
     }
 
     public EventLoopGroup getClientGroup() {
         return clientGroup;
-    }
-
-    public void startNettyThread() {
-        new NettyThread().start();
-    }
-
-    private class NettyThread extends Thread {
-        public void run() {
-            connect();
-        }
     }
 
     public class ShutdownHandler extends Thread {

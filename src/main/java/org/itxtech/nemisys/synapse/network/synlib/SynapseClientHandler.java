@@ -29,6 +29,7 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter{
         this.getSynapseClient().getSession().channel = ctx.channel();
         InetSocketAddress address = (InetSocketAddress)ctx.channel().remoteAddress();
         this.getSynapseClient().getSession().updateAddress(address);
+        this.getSynapseClient().getSession().setConnected(true);
         this.getSynapseClient().setConnected(true);
         Server.getInstance().getLogger().notice("Synapse Client has connected to " + address.getAddress().getHostAddress() + ":" + address.getPort());
     }

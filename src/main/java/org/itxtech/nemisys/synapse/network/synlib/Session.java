@@ -10,14 +10,14 @@ public class Session {
 
     private String ip;
     private int port;
-    private SynapseClient server;
+    private SynapseClient client;
     private long lastCheck;
     private boolean connected;
 
     public Channel channel;
 
-    public Session(SynapseClient server) {
-        this.server = server;
+    public Session(SynapseClient client) {
+        this.client = client;
         this.connected = true;
         this.lastCheck = System.currentTimeMillis();
     }
@@ -27,6 +27,10 @@ public class Session {
         this.port = address.getPort();
     }
 
+    public void setConnected(boolean connected) {
+        this.connected = connected;
+    }
+
     public void run() {
         this.tickProcessor();
     }
@@ -34,7 +38,7 @@ public class Session {
     private long tickUseTime = 0;
 
     private void tickProcessor() {
-        while (!this.server.isShutdown()) {
+        while (!this.client.isShutdown()) {
             long start = System.currentTimeMillis();
             try {
                 this.tick();
@@ -53,7 +57,7 @@ public class Session {
             }
         }
         if(this.connected){
-            this.server.getClientGroup().shutdownGracefully();
+            this.client.getClientGroup().shutdownGracefully();
         }
     }
 
@@ -72,7 +76,7 @@ public class Session {
     }
 
     private int sendPacket() throws Exception {
-        SynapseDataPacket packet = this.server.readMainToThreadPacket();
+        SynapseDataPacket packet = this.client.readMainToThreadPacket();
         if (packet != null) {
             this.writePacket(packet);
             return packet.getBuffer().length;
@@ -97,19 +101,20 @@ public class Session {
     }
 
     public boolean update() throws Exception {
-        if (this.server.needReconnect && this.connected) {
+        if (this.client.needReconnect && this.connected) {
             this.connected = false;
-            this.server.needReconnect = false;
+            this.client.needReconnect = false;
         }
-        if (!this.connected && !this.server.isShutdown()) {
+        if (!this.connected && !this.client.isShutdown()) {
             long time;
             if (((time = System.currentTimeMillis()) - this.lastCheck) >= 3000) {//re-connect
-                this.server.getLogger().notice("Trying to re-connect to Synapse Server");
-                this.server.getClientGroup().shutdownGracefully();
-                this.server.startNettyThread();
-                this.connected = true;
-                this.server.setConnected(true);
-                this.server.setNeedAuth(true);
+                this.client.getLogger().notice("Trying to re-connect to Synapse Server");
+                this.client.getClientGroup().shutdownGracefully();
+                if (this.client.connect()) {
+                    this.connected = true;
+                    this.client.setConnected(true);
+                    this.client.setNeedAuth(true);
+                }
                 this.lastCheck = time;
             }
             return false;
