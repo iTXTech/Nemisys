@@ -20,7 +20,7 @@ public class SynapseInterface {
     private String ip;
     private int port;
     private Map<String, Client> clients = new HashMap<>();
-    private Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
+    private static Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private SynapseServer interfaz;
 
     public SynapseInterface(Server server, String ip, int port) {
@@ -92,8 +92,8 @@ public class SynapseInterface {
         while(this.closeClients());
     }
 
-    public SynapseDataPacket getPacket(byte pid, byte[] buffer) {
-        SynapseDataPacket clazz = this.packetPool.get(pid);
+    public static SynapseDataPacket getPacket(byte pid, byte[] buffer) {
+        SynapseDataPacket clazz = packetPool.get(pid);
         if (clazz != null) {
             SynapseDataPacket pk = clazz.clone();
             pk.setBuffer(buffer, 0);
@@ -113,21 +113,21 @@ public class SynapseInterface {
         }
     }
 
-    public void registerPacket(byte id, SynapseDataPacket packet) {
-        this.packetPool.put(id, packet);
+    public static void registerPacket(byte id, SynapseDataPacket packet) {
+        packetPool.put(id, packet);
     }
 
     private void registerPackets() {
-        this.packetPool.clear();
-        this.registerPacket(SynapseInfo.HEARTBEAT_PACKET, new HeartbeatPacket());
-        this.registerPacket(SynapseInfo.CONNECT_PACKET, new ConnectPacket());
-        this.registerPacket(SynapseInfo.DISCONNECT_PACKET, new DisconnectPacket());
-        this.registerPacket(SynapseInfo.REDIRECT_PACKET, new RedirectPacket());
-        this.registerPacket(SynapseInfo.PLAYER_LOGIN_PACKET, new PlayerLoginPacket());
-        this.registerPacket(SynapseInfo.PLAYER_LOGOUT_PACKET, new PlayerLogoutPacket());
-        this.registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
-        this.registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
-        this.registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
-        this.registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
+        packetPool.clear();
+        registerPacket(SynapseInfo.HEARTBEAT_PACKET, new HeartbeatPacket());
+        registerPacket(SynapseInfo.CONNECT_PACKET, new ConnectPacket());
+        registerPacket(SynapseInfo.DISCONNECT_PACKET, new DisconnectPacket());
+        registerPacket(SynapseInfo.REDIRECT_PACKET, new RedirectPacket());
+        registerPacket(SynapseInfo.PLAYER_LOGIN_PACKET, new PlayerLoginPacket());
+        registerPacket(SynapseInfo.PLAYER_LOGOUT_PACKET, new PlayerLogoutPacket());
+        registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
+        registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
+        registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
+        registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
     }
 }

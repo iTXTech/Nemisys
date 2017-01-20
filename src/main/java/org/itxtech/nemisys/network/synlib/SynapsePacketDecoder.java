@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import org.itxtech.nemisys.Server;
+import org.itxtech.nemisys.network.SynapseInterface;
 
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class SynapsePacketDecoder extends ReplayingDecoder<SynapsePacketDecoder.
                 int bodyLength = checkBodyLength(header.bodyLength());
                 byte[] bytes = new byte[bodyLength];
                 in.readBytes(bytes);
-                out.add(Server.getInstance().getSynapseInterface().getPacket((byte)header.pid(), bytes));
+                out.add(SynapseInterface.getPacket((byte)header.pid(), bytes));
                 break;
             default:
                 break;
