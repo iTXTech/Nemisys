@@ -1,16 +1,37 @@
 package org.itxtech.nemisys.network.protocol.spp;
 
+import org.itxtech.nemisys.utils.BinaryStream;
 
-import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
+public abstract class SynapseDataPacket extends BinaryStream implements Cloneable {
 
-/**
- * Created by boybook on 16/6/25.
- */
-public abstract class SynapseDataPacket extends DataPacket {
+    public boolean isEncoded = false;
+
+    public abstract byte pid();
+
+    public abstract void decode();
+
+    public abstract void encode();
+
+    @Override
+    public void reset() {
+        super.reset();
+    }
+
+    public SynapseDataPacket clean() {
+        this.setBuffer(null);
+
+        this.isEncoded = false;
+        this.offset = 0;
+        return this;
+    }
 
     @Override
     public SynapseDataPacket clone() {
-        return (SynapseDataPacket) super.clone();
+        try {
+            return (SynapseDataPacket) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
     }
 
 }
