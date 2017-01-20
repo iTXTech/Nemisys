@@ -1,9 +1,5 @@
-plugins/*
 bin/*
 timings/*
 *.log
-*.jar
-server.properties
-*.txt
-
 .idea/*
+target/*

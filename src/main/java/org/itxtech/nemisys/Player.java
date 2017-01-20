@@ -83,7 +83,7 @@ public class Player {
                 this.name = loginPacket.username;
                 this.uuid = loginPacket.clientUUID;
                 if (this.uuid == null) {
-                    this.close(TextFormat.RED + "Please choose another name and try again!");
+                    this.close(TextFormat.RED + "Sorry, your version of MCPE is currently not supported by this server!");
                     break;
                 }
                 this.rawUUID = Binary.writeUUID(this.uuid);
@@ -131,7 +131,12 @@ public class Player {
                 if (this.client != null) this.redirectPacket(packet.getBuffer());
         }
     }
-
+    public void sendMessage(String message){
+    	TextPacket pk = new TextPacket();
+        pk.type = TextPacket.TYPE_RAW;
+        pk.message = message;
+        this.sendDataPacket(pk);
+    }
     public void redirectPacket(byte[] buffer){
         RedirectPacket pk = new RedirectPacket();
         pk.uuid = this.uuid;

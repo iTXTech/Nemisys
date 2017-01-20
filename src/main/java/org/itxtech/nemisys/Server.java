@@ -187,7 +187,12 @@ public class Server {
 
         this.start();
     }
-
+	public void broadcastMessage(String msg){
+    	for(Player p : new ArrayList<Player>(this.getOnlinePlayers().values())){
+    		p.sendMessage(msg);
+    	}
+    	MainLogger.getLogger().info(msg);
+    }
     public void addClient(Client client){
         this.clients.put(client.getHash(), client);
         if(client.isMainServer()){
@@ -223,7 +228,7 @@ public class Server {
             this.clientData = new ClientData();
             for (Client client: this.clients.values()){
                 ClientData.Entry entry = this.clientData.new Entry(client.getIp(), client.getPort(), client.getPlayers().size(),
-                        client.getMaxPlayers(), client.getDescription(), client.getTicksPerSecond(), client.getTickUsage(), client.getUpTime());
+                        client.getMaxPlayers(), client.getDescription(), client.getTicksPerSecond(), client.getTickUsage(), client.getUpTime(), client.isMainServer());
                 this.clientData.clientList.put(client.getHash(), entry);
             }
             this.clientDataJson = new Gson().toJson(this.clientData);

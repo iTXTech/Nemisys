@@ -256,7 +256,20 @@ public class Client {
             player.close("Server Closed" + (reason.equals("") ? "" : ": " + TextFormat.YELLOW + reason));
         }
     }
-
+	public void movePlayersIfPossible(String reason){
+		if(this.isMainServer) //If we are a main/lobby server dont move players
+			return;
+		Map<String, Client> c = this.server.getMainClients();
+		String clientHash;
+		if(c.size() > 0)
+			clientHash = new ArrayList<>(c.keySet()).get(new Random().nextInt(c.size()));
+		else
+			return; //This shouldnt happen at all
+		for (Player player : new ArrayList<>(this.players.values())) {
+			player.transfer(this.server.getClients().get(clientHash)); //horrible code i know
+			this.removePlayer(player);
+		}
+	}
     public void close() {
         this.close("Generic reason");
     }
@@ -280,6 +293,7 @@ public class Client {
             pk.message = reason;
             this.sendDataPacket(pk);
         }
+		this.movePlayersIfPossible(reason);
         this.closeAllPlayers(reason);
         this.interfaz.removeClient(this);
         this.server.removeClient(this);
