@@ -3,6 +3,7 @@ package org.itxtech.nemisys.network;
 import org.itxtech.nemisys.Client;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.network.synlib.SynapseClientPacket;
 import org.itxtech.nemisys.network.synlib.SynapseServer;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Utils;
@@ -19,7 +20,7 @@ public class SynapseInterface {
     private String ip;
     private int port;
     private Map<String, Client> clients = new HashMap<>();
-    private Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
+    private static Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private SynapseServer interfaz;
 
     public SynapseInterface(Server server, String ip, int port) {
@@ -43,7 +44,7 @@ public class SynapseInterface {
     }
 
     public void removeClient(Client client) {
-        this.interfaz.addExternalClientCloseRequest(Utils.writeClientHash(client.getHash()));
+        this.interfaz.addExternalClientCloseRequest(client.getHash());
         this.clients.remove(client.getHash());
     }
 
@@ -51,18 +52,13 @@ public class SynapseInterface {
         if (!pk.isEncoded) {
             pk.encode();
         }
-        this.interfaz.pushMainToThreadPacket(Binary.appendBytes(
-                new byte[]{(byte) (client.getHash().length() & 0xff)},
-                client.getHash().getBytes(StandardCharsets.UTF_8),
-                pk.getBuffer()
-        ));
+        this.interfaz.pushMainToThreadPacket(new SynapseClientPacket(client.getHash(), pk));
     }
 
     private boolean openClients(){
-        byte[] open = this.interfaz.getClientOpenRequest();
-        if(open != null && open.length > 0) {
-            String hash = Utils.readClientHash(open);
-            String[] arr = hash.split(":");
+        String open = this.interfaz.getClientOpenRequest();
+        if(open != null) {
+            String[] arr = open.split(":");
             this.addClient(arr[0], Integer.parseInt(arr[1]));
             return true;
         }
@@ -70,26 +66,20 @@ public class SynapseInterface {
     }
 
     private boolean processPackets(){
-        byte[] buffer = this.interfaz.readThreadToMainPacket();
-        if(buffer != null && buffer.length > 0) {
-            int offset = 0;
-            int len = buffer[offset++];
-            String hash = new String(Binary.subBytes(buffer, offset, len), StandardCharsets.UTF_8);
-            offset += len;
-            byte[] payload = Binary.subBytes(buffer, offset);
-            this.handlePacket(hash, payload);
+        SynapseClientPacket pk = this.interfaz.readThreadToMainPacket();
+        if(pk != null) {
+            this.handlePacket(pk.getHash(), pk.getPacket());
             return true;
         }
         return false;
     }
 
     private boolean closeClients(){
-        byte[] close = this.interfaz.getInternalClientCloseRequest();
-        if(close != null && close.length > 0) {
-            String hash = Utils.readClientHash(close);
-            if(this.clients.containsKey(hash)){
-                this.clients.get(hash).close();
-                this.clients.remove(hash);
+        String close = this.interfaz.getInternalClientCloseRequest();
+        if(close != null) {
+            if(this.clients.containsKey(close)){
+                this.clients.get(close).close();
+                this.clients.remove(close);
             }
             return true;
         }
@@ -102,44 +92,42 @@ public class SynapseInterface {
         while(this.closeClients());
     }
 
-    public SynapseDataPacket getPacket(byte[] buffer) {
-        byte pid = buffer[0];
-        SynapseDataPacket clazz = this.packetPool.get(pid);
+    public static SynapseDataPacket getPacket(byte pid, byte[] buffer) {
+        SynapseDataPacket clazz = packetPool.get(pid);
         if (clazz != null) {
             SynapseDataPacket pk = clazz.clone();
-            pk.setBuffer(buffer, 1);
+            pk.setBuffer(buffer, 0);
             return pk;
         }
         return null;
     }
 
-    public void handlePacket(String hash, byte[] buffer) {
+    public void handlePacket(String hash, SynapseDataPacket pk) {
         if (!this.clients.containsKey(hash)) return;
         Client client = this.clients.get(hash);
-        SynapseDataPacket pk;
-        if ((pk = this.getPacket(buffer)) != null) {
+        if (pk != null) {
             pk.decode();
             client.handleDataPacket(pk);
         } else {
-            this.server.getLogger().critical("Error packet: " + Binary.bytesToHexString(buffer));
+            this.server.getLogger().critical("Error packet");
         }
     }
 
-    public void registerPacket(byte id, SynapseDataPacket packet) {
-        this.packetPool.put(id, packet);
+    public static void registerPacket(byte id, SynapseDataPacket packet) {
+        packetPool.put(id, packet);
     }
 
     private void registerPackets() {
-        this.packetPool.clear();
-        this.registerPacket(SynapseInfo.HEARTBEAT_PACKET, new HeartbeatPacket());
-        this.registerPacket(SynapseInfo.CONNECT_PACKET, new ConnectPacket());
-        this.registerPacket(SynapseInfo.DISCONNECT_PACKET, new DisconnectPacket());
-        this.registerPacket(SynapseInfo.REDIRECT_PACKET, new RedirectPacket());
-        this.registerPacket(SynapseInfo.PLAYER_LOGIN_PACKET, new PlayerLoginPacket());
-        this.registerPacket(SynapseInfo.PLAYER_LOGOUT_PACKET, new PlayerLogoutPacket());
-        this.registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
-        this.registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
-        this.registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
-        this.registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
+        packetPool.clear();
+        registerPacket(SynapseInfo.HEARTBEAT_PACKET, new HeartbeatPacket());
+        registerPacket(SynapseInfo.CONNECT_PACKET, new ConnectPacket());
+        registerPacket(SynapseInfo.DISCONNECT_PACKET, new DisconnectPacket());
+        registerPacket(SynapseInfo.REDIRECT_PACKET, new RedirectPacket());
+        registerPacket(SynapseInfo.PLAYER_LOGIN_PACKET, new PlayerLoginPacket());
+        registerPacket(SynapseInfo.PLAYER_LOGOUT_PACKET, new PlayerLogoutPacket());
+        registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
+        registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
+        registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
+        registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
     }
 }

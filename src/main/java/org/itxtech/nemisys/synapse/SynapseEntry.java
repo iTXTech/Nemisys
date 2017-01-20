@@ -59,7 +59,7 @@ public class SynapseEntry {
         this.synLibInterface = new SynLibInterface(this.synapseInterface);
         this.lastUpdate = System.currentTimeMillis();
         this.lastRecvInfo = System.currentTimeMillis();
-        this.connect();
+        this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(new Ticker(), 5);
     }
 
     public boolean isEnable() {
@@ -165,7 +165,6 @@ public class SynapseEntry {
         ticker.setName("SynapseAPI Ticker");
         ticker.start();
         */
-        this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(new Ticker(), 5);
     }
 
     public class Ticker implements Runnable {
@@ -177,6 +176,7 @@ public class SynapseEntry {
 
     public void tick(){
         this.synapseInterface.process();
+        if (!this.getSynapseInterface().isConnected()) return;
         long time = System.currentTimeMillis();
         if((time - this.lastUpdate) >= 5000){//Heartbeat!
             this.lastUpdate = time;
@@ -188,12 +188,31 @@ public class SynapseEntry {
             this.getSynapse().getServer().getLogger().debug(time + " -> Sending Heartbeat Packet to " + this.getHash());
         }
 
+        /*
+        for (int i = 0; i < new Random().nextInt(10) + 1; i++) {
+            InformationPacket test = new InformationPacket();
+            test.type = InformationPacket.TYPE_PLUGIN_MESSAGE;
+            test.message = getRandomString(1024 * (new Random().nextInt(20) + 110));
+            this.sendDataPacket(test);
+        }*/
+
         long finalTime = System.currentTimeMillis();
         long usedTime = finalTime - time;
         //this.getSynapse().getServer().getLogger().warning(time + " -> tick 用时 " + usedTime + " 毫秒");
         if(((finalTime - this.lastUpdate) >= 30000) && this.synapseInterface.isConnected()){  //30 seconds timeout
             this.synapseInterface.reconnect();
         }
+    }
+
+    public static String getRandomString(int length) { //length表示生成字符串的长度
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < length; i++) {
+            int number = random.nextInt(base.length());
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
     }
 
     public void removePlayer(SynapsePlayer player){
@@ -209,7 +228,7 @@ public class SynapseEntry {
         }
     }
 
-    public void handleDataPacket(DataPacket pk){
+    public void handleDataPacket(SynapseDataPacket pk){
         //this.getSynapse().getLogger().warning("Received packet " + pk.pid() + "(" + pk.getClass().getSimpleName() + ") from " + this.serverIp + ":" + this.port);
         switch(pk.pid()){
             case SynapseInfo.DISCONNECT_PACKET:
@@ -264,10 +283,10 @@ public class SynapseEntry {
                 UUID uuid = redirectPacket.uuid;
                 if(this.players.containsKey(uuid)){
                     Player player = this.players.get(uuid);
-                    pk = this.getSynapseInterface().getPacket(redirectPacket.mcpeBuffer);
-                    if(pk != null) {
-                        pk.decode();
-                        player.handleDataPacket(pk);
+                    DataPacket pk0 = this.getSynapse().getPacket(redirectPacket.mcpeBuffer);
+                    if(pk0 != null) {
+                        pk0.decode();
+                        player.handleDataPacket(pk0);
                     } else {
                         if (player.getClient() != null) player.redirectPacket(redirectPacket.mcpeBuffer); //player.getClient().sendDataPacket(redirectPacket);
                     }

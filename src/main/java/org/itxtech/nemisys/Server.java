@@ -18,6 +18,7 @@ import org.itxtech.nemisys.plugin.PluginLoadOrder;
 import org.itxtech.nemisys.plugin.PluginManager;
 import org.itxtech.nemisys.scheduler.ServerScheduler;
 import org.itxtech.nemisys.synapse.Synapse;
+import org.itxtech.nemisys.synapse.SynapseEntry;
 import org.itxtech.nemisys.utils.*;
 
 import java.io.*;
@@ -102,14 +103,15 @@ public class Server {
         this.properties = new Config(this.dataPath + "server.properties", Config.PROPERTIES, new ConfigSection() {
             {
                 put("motd", "Nemisys Proxy");
+                put("server-ip", "0.0.0.0");
                 put("server-port", 19132);
+                put("synapse-ip", "0.0.0.0");
                 put("synapse-port", 10305);
                 put("password", "1234567890123456"/* TODO MD5 Password*/);
                 put("lang", "eng");
                 put("async-workers", "auto");
                 put("enable-profiling", false);
                 put("profile-report-trigger", 20);
-                put("server-ip", "0.0.0.0");
                 put("max-players", 20);
                 put("plus-one-max-count", false);
                 put("dynamic-player-count", false);
@@ -167,7 +169,7 @@ public class Server {
         this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5);
         this.network.registerInterface(new RakNetInterface(this));
 
-        this.synapseInterface = new SynapseInterface(this, this.getIp(), this.getSynapsePort());
+        this.synapseInterface = new SynapseInterface(this, this.getSynapseIp(), this.getSynapsePort());
 
         this.pluginManager.loadPlugins(this.pluginPath);
         this.enablePlugins(PluginLoadOrder.STARTUP);
@@ -226,10 +228,6 @@ public class Server {
             }
             this.clientDataJson = new Gson().toJson(this.clientData);
         }
-    }
-
-    public int getSynapsePort(){
-        return this.getPropertyInt("synapse-port", 10305);
     }
 
     public boolean comparePassword(String pass){
@@ -323,6 +321,11 @@ public class Server {
             for (SourceInterface interfaz : new ArrayList<>(this.network.getInterfaces())) {
                 interfaz.shutdown();
                 this.network.unregisterInterface(interfaz);
+            }
+            if (this.synapse != null) {
+                for (SynapseEntry entry: this.synapse.getSynapseEntries().values()) {
+                    entry.getSynapseInterface().shutdown();
+                }
             }
             this.synapseInterface.getInterface().shutdown();
 
@@ -539,6 +542,14 @@ public class Server {
 
     public String getIp() {
         return this.getPropertyString("server-ip", "0.0.0.0");
+    }
+
+    public int getSynapsePort(){
+        return this.getPropertyInt("synapse-port", 10305);
+    }
+
+    public String getSynapseIp() {
+        return this.getPropertyString("synapse-ip", "0.0.0.0");
     }
 
     public UUID getServerUniqueId() {

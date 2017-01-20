@@ -1,18 +1,13 @@
 package org.itxtech.nemisys.network.synlib;
 
+import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.math.NemisysMath;
-import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
-import org.itxtech.nemisys.utils.ThreadedLogger;
-import org.itxtech.nemisys.utils.Utils;
 
-import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 /**
@@ -21,20 +16,17 @@ import java.util.*;
  */
 public class SessionManager {
     private SynapseServer server;
-    private SynapseSocket socket;
-    private Map<String, Session> sessions = new HashMap<>();
+    private Map<String, Channel> sessions = new HashMap<>();
 
-    public SessionManager(SynapseServer server, SynapseSocket socket){
+    public SessionManager(SynapseServer server){
         this.server = server;
-        this.socket = socket;
     }
 
     public void run(){
         this.tickProcessor();
-        for(Session connection : this.sessions.values()) {
-            connection.close();
+        for(Channel channel: this.sessions.values()) {
+            channel.close();
         }
-        this.socket.close();
     }
 
     private long nextTick;
@@ -58,9 +50,11 @@ public class SessionManager {
                 Server.getInstance().getLogger().logException(e);
             }
         }
+        this.server.bossGroup.shutdownGracefully();
+        this.server.workerGroup.shutdownGracefully();
     }
 
-    public Map<String, Session> getSessions(){
+    public Map<String, Channel> getSessions(){
         return this.sessions;
     }
 
@@ -69,15 +63,12 @@ public class SessionManager {
     }
 
     private boolean sendPacket(){
-        byte[] data = this.server.readMainToThreadPacket();
-        if(data != null && data.length > 0){
-            int offset = 0;
-            int len = data[offset++];
-            String hash = new String(Binary.subBytes(data, offset, len), StandardCharsets.UTF_8);
+        SynapseClientPacket data = this.server.readMainToThreadPacket();
+        if(data != null){
+            String hash = data.getHash();
             if(this.sessions.containsKey(hash)){
-                offset += len;
-                byte[] payload = Binary.subBytes(data, offset);
-                this.sessions.get(hash).writePacket(payload);
+                this.sessions.get(hash).writeAndFlush(data.getPacket());
+                Server.getInstance().getLogger().debug("server-writeAndFlush: hash=" + hash);
             }
             return true;
         }
@@ -85,9 +76,8 @@ public class SessionManager {
     }
 
     private boolean closeSessions(){
-        byte[] data = this.server.getExternalClientCloseRequest();
-        if(data != null && data.length > 0){
-            String hash = Utils.readClientHash(data);
+        String hash = this.server.getExternalClientCloseRequest();
+        if(hash != null){
             if(this.sessions.containsKey(hash)){
                 this.sessions.get(hash).close();
                 this.sessions.remove(hash);
@@ -106,42 +96,9 @@ public class SessionManager {
 
         ++this.tickCounter;
         try {
-            while (this.socket.getSelector().selectNow() > 0) {
-                Set readyKeys = this.socket.getSelector().selectedKeys();
-                Iterator it = readyKeys.iterator();
-
-                while (it.hasNext()) {
-                    SelectionKey key = (SelectionKey) it.next();
-                    it.remove();
-                    if (key.isAcceptable()) {//Connect!
-                        ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
-                        SocketChannel socketChannel = ssc.accept();
-                        socketChannel.configureBlocking(false);
-                        Selector selector = Selector.open();
-                        socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE | SelectionKey.OP_CONNECT);
-                        Session session = new Session(this, socketChannel, selector);
-                        this.sessions.put(session.getHash(), session);
-                        this.server.addClientOpenRequest(Utils.writeClientHash(session.getHash()));
-                    }
-                }
-            }
-
-            while (this.sendPacket()) ;
-            for (Session ses : new ArrayList<>(this.sessions.values())) {
-                try {
-                    if (ses.process()) {
-
-                    } else {
-                        ses.close();
-                        this.server.addInternalClientCloseRequest(Utils.writeClientHash(ses.getHash()));
-                        this.sessions.remove(ses.getHash());
-                    }
-                } catch (Exception e) {
-
-                }
-            }
+            while (this.sendPacket());
             while (this.closeSessions()) ;
-        } catch (IOException e) {
+        } catch (Exception e) {
             MainLogger.getLogger().logException(e);
         }
 
@@ -207,6 +164,11 @@ public class SessionManager {
             sum += aUseAverage;
         }
         return ((float) Math.round(sum / count * 100)) / 100;
+    }
+
+    public static String getChannelHash(Channel channel) {
+        InetSocketAddress address = (InetSocketAddress)channel.remoteAddress();
+        return address.getAddress().getHostAddress() + ":" + address.getPort();
     }
 
 }

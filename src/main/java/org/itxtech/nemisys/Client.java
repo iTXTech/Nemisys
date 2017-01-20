@@ -79,7 +79,7 @@ public class Client {
         }
     }
 
-    public void handleDataPacket(DataPacket packet) {
+    public void handleDataPacket(SynapseDataPacket packet) {
         /*this.server.getPluginManager().callEvent(ev = new ClientRecvPacketEvent(this, packet));
 		if(ev.isCancelled()){
 			return;
