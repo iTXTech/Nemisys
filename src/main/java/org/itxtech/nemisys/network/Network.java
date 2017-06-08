@@ -5,6 +5,7 @@ import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.utils.Binary;
+import org.itxtech.nemisys.utils.BinaryStream;
 import org.itxtech.nemisys.utils.Zlib;
 
 import java.util.ArrayList;
@@ -116,37 +117,24 @@ public class Network {
         try {
             data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
         } catch (Exception e) {
-            Server.getInstance().getLogger().logException(e);
             return;
         }
 
         int len = data.length;
-        int offset = 0;
+        BinaryStream stream = new BinaryStream(data);
         try {
             List<DataPacket> packets = new ArrayList<>();
-            while (offset < len) {
-                int pkLen = Binary.readInt(Binary.subBytes(data, offset, 4));
-                offset += 4;
-
-                byte[] buf = Binary.subBytes(data, offset, pkLen);
-                offset += pkLen;
+            while (stream.offset < len) {
+                byte[] buf = stream.getByteArray();
 
                 DataPacket pk;
 
                 if ((pk = this.getPacket(buf[0])) != null) {
-                    if (pk.pid() == ProtocolInfo.BATCH_PACKET) {
-                        throw new IllegalStateException("Invalid BatchPacket inside BatchPacket");
-                    }
-
                     pk.setBuffer(buf, 1);
 
                     pk.decode();
 
                     packets.add(pk);
-
-                    if (pk.getOffset() <= 0) {
-                        return;
-                    }
                 }
             }
 
@@ -209,7 +197,6 @@ public class Network {
         this.registerPacket(ProtocolInfo.LOGIN_PACKET, LoginPacket.class);
         this.registerPacket(ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket.class);
         this.registerPacket(ProtocolInfo.BATCH_PACKET, BatchPacket.class);
-        this.registerPacket(ProtocolInfo.OLD_PLAYER_LIST_PACKET, OldPlayerListPacket.class);
-        this.registerPacket(ProtocolInfo.PLAYER_LIST_PACKET, NewPlayerListPacket.class);
+        this.registerPacket(ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket.class);
     }
 }

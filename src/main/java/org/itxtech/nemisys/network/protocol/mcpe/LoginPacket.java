@@ -1,11 +1,6 @@
 package org.itxtech.nemisys.network.protocol.mcpe;
 
-import org.itxtech.nemisys.Nemisys;
-import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.Skin;
-import org.itxtech.nemisys.utils.Utils;
-import org.itxtech.nemisys.utils.Zlib;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -28,8 +23,6 @@ public class LoginPacket extends DataPacket {
     public byte gameEdition;
     public UUID clientUUID;
     public long clientId;
-    public String identityPublicKey;
-    public String serverAddress;
     public byte[] cacheBuffer;
 
     public Skin skin;
@@ -43,22 +36,8 @@ public class LoginPacket extends DataPacket {
     public void decode() {
         this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
-        byte[] str;
-        try {
-            if (this.protocol > 90) {
-                this.gameEdition = (byte) this.getByte();
-                str = Zlib.inflate(this.get((int) this.getUnsignedVarInt()));
-            } else if (this.protocol == 90) {
-                this.gameEdition = 0;
-                str = Zlib.inflate(this.get(this.getShort()));
-            } else {
-                str = Zlib.inflate(this.get(this.getInt()), 1024 * 1024 * 64);
-            }
-        } catch (Exception e) {
-            if (Nemisys.DEBUG > 1) Server.getInstance().getLogger().logException(e);
-            return;
-        }
-        this.setBuffer(str, 0);
+        this.gameEdition = (byte) this.getByte();
+        this.setBuffer(this.getByteArray(), 0);
         decodeChainData();
         decodeSkinData();
     }
@@ -86,8 +65,6 @@ public class LoginPacket extends DataPacket {
                 if (extra.has("displayName")) this.username = extra.get("displayName").getAsString();
                 if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
             }
-            if (chainMap.has("identityPublicKey"))
-                this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
         }
     }
 
@@ -95,7 +72,6 @@ public class LoginPacket extends DataPacket {
         JsonObject skinToken = decodeToken(new String(this.get(this.getLInt())));
         String skinId = null;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
-        if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").getAsString();
         if (skinToken.has("SkinId")) skinId = skinToken.get("SkinId").getAsString();
         if (skinToken.has("SkinData")) this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
     }

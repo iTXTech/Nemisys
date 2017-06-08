@@ -26,6 +26,11 @@ public class SynLibInterface implements SourceInterface {
     }
 
     @Override
+    public int getNetworkLatency(Player player) {
+        return 0;
+    }
+
+    @Override
     public Integer putPacket(Player player, DataPacket packet) {
         return this.putPacket(player, packet, false);
     }

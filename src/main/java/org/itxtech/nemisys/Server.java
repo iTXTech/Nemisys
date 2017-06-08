@@ -10,6 +10,8 @@ import org.itxtech.nemisys.network.Network;
 import org.itxtech.nemisys.network.RakNetInterface;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.SynapseInterface;
+import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.query.QueryHandler;
 import org.itxtech.nemisys.network.rcon.RCON;
 import org.itxtech.nemisys.plugin.JavaPluginLoader;
@@ -772,4 +774,69 @@ public class Server {
     public Synapse getSynapse() {
         return synapse;
     }
+
+    public static void broadcastPacket(Collection<Player> players, DataPacket packet) {
+        broadcastPacket(players.stream().toArray(Player[]::new), packet);
+    }
+
+    public static void broadcastPacket(Player[] players, DataPacket packet) {
+        packet.encode();
+        packet.isEncoded = true;
+
+        for (Player player : players) {
+            player.sendDataPacket(packet);
+        }
+
+        if (packet.encapsulatedPacket != null) {
+            packet.encapsulatedPacket = null;
+        }
+    }
+
+    public void batchPackets(Player[] players, DataPacket[] packets) {
+        this.batchPackets(players, packets, false);
+    }
+
+    public void batchPackets(Player[] players, DataPacket[] packets, boolean forceSync) {
+        if (players == null || packets == null || players.length == 0 || packets.length == 0) {
+            return;
+        }
+
+        byte[][] payload = new byte[packets.length * 2][];
+        for (int i = 0; i < packets.length; i++) {
+            DataPacket p = packets[i];
+            if (!p.isEncoded) {
+                p.encode();
+            }
+            byte[] buf = p.getBuffer();
+            payload[i * 2] = Binary.writeUnsignedVarInt(buf.length);
+            payload[i * 2 + 1] = buf;
+        }
+        byte[] data;
+        data = Binary.appendBytes(payload);
+
+        List<String> targets = new ArrayList<>();
+        for (Player p : players) {
+            if (!p.closed) {
+                targets.add(this.identifier.get(p.rawHashCode()));
+            }
+        }
+
+        try {
+            this.broadcastPacketsCallback(Zlib.deflate(data, 8), targets);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void broadcastPacketsCallback(byte[] data, List<String> identifiers) {
+        BatchPacket pk = new BatchPacket();
+        pk.payload = data;
+
+        for (String i : identifiers) {
+            if (this.players.containsKey(i)) {
+                this.players.get(i).sendDataPacket(pk);
+            }
+        }
+    }
+
 }

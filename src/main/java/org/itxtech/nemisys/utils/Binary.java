@@ -1,9 +1,7 @@
 package org.itxtech.nemisys.utils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.math.BigInteger;
+import org.itxtech.nemisys.math.NemisysMath;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
@@ -147,7 +145,16 @@ public class Binary {
     }
 
     public static float readFloat(byte[] bytes) {
-        return Float.intBitsToFloat(readInt(bytes));
+        return readFloat(bytes, -1);
+    }
+
+    public static float readFloat(byte[] bytes, int accuracy) {
+        float val = Float.intBitsToFloat(readInt(bytes));
+        if (accuracy > -1) {
+            return (float) NemisysMath.round(val, accuracy);
+        } else {
+            return val;
+        }
     }
 
     public static byte[] writeFloat(float f) {
@@ -155,7 +162,16 @@ public class Binary {
     }
 
     public static float readLFloat(byte[] bytes) {
-        return Float.intBitsToFloat(readLInt(bytes));
+        return readLFloat(bytes, -1);
+    }
+
+    public static float readLFloat(byte[] bytes, int accuracy) {
+        float val = Float.intBitsToFloat(readLInt(bytes));
+        if (accuracy > -1) {
+            return (float) NemisysMath.round(val, accuracy);
+        } else {
+            return val;
+        }
     }
 
     public static byte[] writeLFloat(float f) {
@@ -224,6 +240,18 @@ public class Binary {
                 (byte) (l >>> 48),
                 (byte) (l >>> 56),
         };
+    }
+
+    public static byte[] writeVarInt(int v) {
+        BinaryStream stream = new BinaryStream();
+        stream.putVarInt(v);
+        return stream.getBuffer();
+    }
+
+    public static byte[] writeUnsignedVarInt(long v) {
+        BinaryStream stream = new BinaryStream();
+        stream.putUnsignedVarInt(v);
+        return stream.getBuffer();
     }
 
     public static byte[] reserveBytes(byte[] bytes) {

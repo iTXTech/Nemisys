@@ -8,7 +8,6 @@ public class DisconnectPacket extends DataPacket {
 
     public boolean hideDisconnectionScreen = false;
     public String message;
-    public boolean isOld = false;
 
     @Override
     public byte pid() {
@@ -17,16 +16,17 @@ public class DisconnectPacket extends DataPacket {
 
     @Override
     public void decode() {
-        if (!this.isOld) this.hideDisconnectionScreen = this.getBoolean();
+        this.hideDisconnectionScreen = this.getBoolean();
         this.message = this.getString();
     }
 
     @Override
     public void encode() {
         this.reset();
-        if (!this.isOld) this.putBoolean(this.hideDisconnectionScreen);
-        this.putString(this.message);
+        this.putBoolean(this.hideDisconnectionScreen);
+        if (!this.hideDisconnectionScreen) {
+            this.putString(this.message);
+        }
     }
-
 
 }

@@ -46,8 +46,10 @@ public class Synapse {
             }
         }
 
-        SynapseEntry entry = new SynapseEntry(this, ip, port, isMainServer, password, serverDescription);
-        this.addSynapseEntry(entry);
+        if (!ip.equals("0")) {
+            SynapseEntry entry = new SynapseEntry(this, ip, port, isMainServer, password, serverDescription);
+            this.addSynapseEntry(entry);
+        }
 
         this.server.getLogger().notice("Enabled Synapse Client");
     }

@@ -4,16 +4,24 @@ import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
+import org.itxtech.nemisys.event.synapse.player.SynapsePlayerCreationEvent;
+import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
 import org.itxtech.nemisys.raknet.RakNet;
 import org.itxtech.nemisys.raknet.protocol.EncapsulatedPacket;
+import org.itxtech.nemisys.raknet.protocol.packet.PING_DataPacket;
 import org.itxtech.nemisys.raknet.server.RakNetServer;
 import org.itxtech.nemisys.raknet.server.ServerHandler;
 import org.itxtech.nemisys.raknet.server.ServerInstance;
+import org.itxtech.nemisys.synapse.SynapsePlayer;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
+import org.itxtech.nemisys.utils.Utils;
+import org.itxtech.nemisys.utils.Zlib;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,23 +31,26 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RakNetInterface implements ServerInstance, AdvancedSourceInterface {
 
-    private Server server;
+    private final Server server;
 
     private Network network;
 
-    private RakNetServer raknet;
+    private final RakNetServer raknet;
 
-    private Map<String, Player> players = new ConcurrentHashMap<>();
+    private final Map<String, Player> players = new ConcurrentHashMap<>();
 
-    private Map<Integer, String> identifiers;
+    private final Map<String, Integer> networkLatency = new ConcurrentHashMap<>();
 
-    private Map<String, Integer> identifiersACK = new ConcurrentHashMap<>();
+    private final Map<Integer, String> identifiers = new ConcurrentHashMap<>();
 
-    private ServerHandler handler;
+    private final Map<String, Integer> identifiersACK = new ConcurrentHashMap<>();
+
+    private final ServerHandler handler;
+
+    private int[] channelCounts = new int[256];
 
     public RakNetInterface(Server server) {
         this.server = server;
-        this.identifiers = new ConcurrentHashMap<>();
 
         this.raknet = new RakNetServer(this.server.getLogger(), this.server.getPort(), this.server.getIp().equals("") ? "0.0.0.0" : this.server.getIp());
         this.handler = new ServerHandler(this.raknet, this);
@@ -69,9 +80,15 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
             Player player = this.players.get(identifier);
             this.identifiers.remove(player.rawHashCode());
             this.players.remove(identifier);
+            this.networkLatency.remove(identifier);
             this.identifiersACK.remove(identifier);
             player.close(reason);
         }
+    }
+
+    @Override
+    public int getNetworkLatency(Player player) {
+        return this.networkLatency.get(this.identifiers.get(player.rawHashCode()));
     }
 
     @Override
@@ -84,6 +101,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
         if (this.identifiers.containsKey(player.rawHashCode())) {
             String id = this.identifiers.get(player.rawHashCode());
             this.players.remove(id);
+            this.networkLatency.remove(id);
             this.identifiersACK.remove(id);
             this.closeSession(id, reason);
             this.identifiers.remove(player.rawHashCode());
@@ -104,6 +122,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
     public void openSession(String identifier, String address, int port, long clientID) {
         Player player = new Player(this, clientID, address, port);
         this.players.put(identifier, player);
+        this.networkLatency.put(identifier, 0);
         this.identifiersACK.put(identifier, 0);
         this.identifiers.put(player.rawHashCode(), identifier);
         this.server.addPlayer(identifier, player);
@@ -115,6 +134,15 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
             DataPacket pk = null;
             try {
                 if (packet.buffer.length > 0) {
+                    if (packet.buffer[0] == PING_DataPacket.ID) {
+                        PING_DataPacket pingPacket = new PING_DataPacket();
+                        pingPacket.buffer = packet.buffer;
+                        pingPacket.decode();
+
+                        this.networkLatency.put(identifier, (int) pingPacket.pingID);
+                        return;
+                    }
+
                     pk = this.getPacket(packet.buffer);
                     if (pk != null) {
                         pk.decode();
@@ -168,7 +196,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
         QueryRegenerateEvent info = this.server.getQueryInformation();
 
         this.handler.sendOption("name",
-                "MCPE;" + name.replace(";", "\\;") + ";" +
+                "MCPE;" + Utils.rtrim(name.replace(";", "\\;"), '\\') + ";" +
                         ProtocolInfo.CURRENT_PROTOCOL + ";" +
                         ProtocolInfo.MINECRAFT_VERSION_NETWORK + ";" +
                         info.getPlayerCount() + ";" +
@@ -200,13 +228,26 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
     @Override
     public Integer putPacket(Player player, DataPacket packet, boolean needACK, boolean immediate) {
         if (this.identifiers.containsKey(player.rawHashCode())) {
-            byte[] buffer = packet.getBuffer();
+            byte[] buffer;
+            if (packet.pid() == ProtocolInfo.BATCH_PACKET) {
+                buffer = ((BatchPacket) packet).payload;
+            } else {
+                if (!packet.isEncoded) {
+                    packet.encode();
+                    packet.isEncoded = true;
+                }
+                buffer = packet.getBuffer();
+                try {
+                    buffer = Zlib.deflate(
+                            Binary.appendBytes(Binary.writeUnsignedVarInt(buffer.length), buffer),
+                            /*Server.getInstance().networkCompressionLevel*/8);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
             String identifier = this.identifiers.get(player.rawHashCode());
             EncapsulatedPacket pk = null;
-            if (!packet.isEncoded) {
-                packet.encode();
-                buffer = packet.getBuffer();
-            } else if (!needACK) {
+            if (!needACK) {
                 if (packet.encapsulatedPacket == null) {
                     packet.encapsulatedPacket = new CacheEncapsulatedPacket();
                     packet.encapsulatedPacket.identifierACK = null;
@@ -220,6 +261,12 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     }
                 }
                 pk = packet.encapsulatedPacket;
+            }
+
+
+            if (!immediate && !needACK && packet.pid() != ProtocolInfo.BATCH_PACKET) {
+                this.server.batchPackets(new Player[]{player}, new DataPacket[]{packet}, true);
+                return null;
             }
 
             if (pk == null) {
@@ -247,18 +294,15 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
         }
 
         return null;
-
     }
 
     private DataPacket getPacket(byte[] buffer) {
-        byte pid = buffer[0];
-        int start = 1;
+        int start = 0;
 
-        if (pid == (byte) 0xfe) {
-            pid = buffer[1];
+        if (buffer[0] == (byte) 0xfe) {
             start++;
         }
-        DataPacket data = this.network.getPacket(pid);
+        DataPacket data = this.network.getPacket(ProtocolInfo.BATCH_PACKET);
 
         if (data == null) {
             return null;

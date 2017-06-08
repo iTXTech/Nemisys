@@ -90,6 +90,16 @@ public class BinaryStream {
         this.count += bytes.length;
     }
 
+
+    public byte[] getByteArray() {
+        return this.get((int) this.getUnsignedVarInt());
+    }
+
+    public void putByteArray(byte[] b) {
+        this.putUnsignedVarInt(b.length);
+        this.put(b);
+    }
+
     public long getLong() {
         return Binary.readLong(this.get(8));
     }

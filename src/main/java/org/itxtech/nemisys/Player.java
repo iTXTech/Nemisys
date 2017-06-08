@@ -1,5 +1,6 @@
 package org.itxtech.nemisys;
 
+import org.itxtech.nemisys.event.TranslationContainer;
 import org.itxtech.nemisys.event.player.PlayerLoginEvent;
 import org.itxtech.nemisys.event.player.PlayerLogoutEvent;
 import org.itxtech.nemisys.event.player.PlayerTransferEvent;
@@ -163,17 +164,17 @@ public class Player {
     }
 
     public void removeAllPlayers(){
-        BasePlayerListPacket pk = this.getProtocol() >= 90 ? new NewPlayerListPacket() : new OldPlayerListPacket();
-        pk.type = BasePlayerListPacket.TYPE_REMOVE;
-        List<BasePlayerListPacket.Entry> entries = new ArrayList<>();
+        PlayerListPacket pk = new PlayerListPacket();
+        pk.type = PlayerListPacket.TYPE_REMOVE;
+        List<PlayerListPacket.Entry> entries = new ArrayList<>();
         for (Player p : this.client.getPlayers().values()) {
             if (p == this) {
                 continue;
             }
-            entries.add(new BasePlayerListPacket.Entry(p.getUUID()));
+            entries.add(new PlayerListPacket.Entry(p.getUUID()));
         }
 
-        pk.entries = entries.stream().toArray(BasePlayerListPacket.Entry[]::new);
+        pk.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
         this.sendDataPacket(pk);
     }
 
@@ -221,6 +222,10 @@ public class Player {
         this.interfaz.putPacket(this, pk, needACK, direct);
     }
 
+    public int getPing() {
+        return this.interfaz.getNetworkLatency(this);
+    }
+
     public void close(){
         this.close("Generic Reason");
     }
@@ -235,7 +240,6 @@ public class Player {
                 DisconnectPacket pk = new DisconnectPacket();
                 pk.hideDisconnectionScreen = false;
                 pk.message = reason;
-                pk.isOld = this.getProtocol() <= 90;
                 this.sendDataPacket(pk, true);
             }
 
