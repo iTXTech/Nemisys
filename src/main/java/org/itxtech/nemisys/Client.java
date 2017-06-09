@@ -8,6 +8,7 @@ import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.network.protocol.spp.DisconnectPacket;
+import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.TextFormat;
 
 import java.util.*;
@@ -148,9 +149,18 @@ public class Client {
             case SynapseInfo.REDIRECT_PACKET:
                 UUID uuid = ((RedirectPacket) packet).uuid;
                 if (this.players.containsKey(uuid)) {
-                    GenericPacket genericPacket = new GenericPacket();
-                    genericPacket.setBuffer(((RedirectPacket) packet).mcpeBuffer);
-                    this.players.get(uuid).sendDataPacket(genericPacket, ((RedirectPacket) packet).direct);
+                    byte[] buffer = ((RedirectPacket) packet).mcpeBuffer;
+                    DataPacket send;
+                    if (buffer.length > 0 && buffer[0] == (byte)0xfe) {
+                        send = new BatchPacket();
+                        send.setBuffer(buffer, 1);
+                        send.decode();
+                    } else {
+                        send = new GenericPacket();
+                        send.setBuffer(((RedirectPacket) packet).mcpeBuffer);
+                    }
+
+                    this.players.get(uuid).sendDataPacket(send, ((RedirectPacket) packet).direct);
                     //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{((RedirectPacket) packet).mcpeBuffer[0]}) + "  len: " + ((RedirectPacket) packet).mcpeBuffer.length);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));

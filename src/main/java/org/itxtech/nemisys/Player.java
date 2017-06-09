@@ -1,6 +1,5 @@
 package org.itxtech.nemisys;
 
-import org.itxtech.nemisys.event.TranslationContainer;
 import org.itxtech.nemisys.event.player.PlayerLoginEvent;
 import org.itxtech.nemisys.event.player.PlayerLogoutEvent;
 import org.itxtech.nemisys.event.player.PlayerTransferEvent;
@@ -10,6 +9,7 @@ import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
 import org.itxtech.nemisys.utils.Binary;
+import org.itxtech.nemisys.utils.ClientChainData;
 import org.itxtech.nemisys.utils.Skin;
 import org.itxtech.nemisys.utils.TextFormat;
 
@@ -36,13 +36,14 @@ public class Player {
     private long lastUpdate;
     public boolean closed;
     private Skin skin;
+    private ClientChainData loginChainData;
 
     public Player(SourceInterface interfaz, long clientId, String ip, int port){
         this.interfaz = interfaz;
         this.clientId = clientId;
         this.ip = ip;
         this.port = port;
-        this.name = "null";
+        this.name = "";
         this.server = Server.getInstance();
         this.lastUpdate = System.currentTimeMillis();
     }
@@ -90,6 +91,7 @@ public class Player {
                 this.rawUUID = Binary.writeUUID(this.uuid);
                 this.randomClientId = loginPacket.clientId;
                 this.protocol = loginPacket.protocol;
+                this.loginChainData = ClientChainData.read(loginPacket);
 
                 this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logIn", new String[]{
                         TextFormat.AQUA + this.name + TextFormat.WHITE,
@@ -284,5 +286,9 @@ public class Player {
 
     public Client getClient() {
         return client;
+    }
+
+    public ClientChainData getLoginChainData() {
+        return loginChainData;
     }
 }
