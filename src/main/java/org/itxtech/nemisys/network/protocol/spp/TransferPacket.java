@@ -16,17 +16,20 @@ public class TransferPacket extends SynapseDataPacket {
 
     public UUID uuid;
     public String clientHash;
+    public byte[] afterLoginPacket;
 
     @Override
     public void encode(){
         this.reset();
         this.putUUID(this.uuid);
         this.putString(this.clientHash);
+        this.put(this.afterLoginPacket);
     }
     
     @Override
     public void decode(){
         this.uuid = this.getUUID();
         this.clientHash = this.getString();
+        this.afterLoginPacket = this.get();
     }
 }
