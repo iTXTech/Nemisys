@@ -21,14 +21,14 @@ import java.util.*;
 public class SessionManager {
     protected final Packet.PacketFactory[] packetPool = new Packet.PacketFactory[256];
 
-    protected RakNetServer server;
+    protected final RakNetServer server;
 
-    protected UDPServerSocket socket;
+    protected final UDPServerSocket socket;
 
     protected int receiveBytes = 0;
     protected int sendBytes = 0;
 
-    protected Map<String, Session> sessions = new HashMap<>();
+    protected final Map<String, Session> sessions = new HashMap<>();
 
     protected String name = "";
 
@@ -39,12 +39,12 @@ public class SessionManager {
     protected long ticks = 0;
     protected long lastMeasure;
 
-    protected Map<String, Long> block = new HashMap<>();
-    protected Map<String, Integer> ipSec = new HashMap<>();
+    protected final Map<String, Long> block = new HashMap<>();
+    protected final Map<String, Integer> ipSec = new HashMap<>();
 
     public boolean portChecking = true;
 
-    public long serverId;
+    public final long serverId;
 
     protected String currentSource = "";
 
@@ -82,7 +82,7 @@ public class SessionManager {
                     }
                     --max;
                 } catch (Exception e) {
-                    if (currentSource != "") {
+                    if (!"".equals(currentSource)) {
                         this.blockAddress(currentSource);
                     }
                     // else ignore
@@ -91,9 +91,9 @@ public class SessionManager {
             while (this.receiveStream()) ;
 
             long time = System.currentTimeMillis() - start;
-            if (time < 10) {
+            if (time < 50) {
                 try {
-                    Thread.sleep(10 - time);
+                    Thread.sleep(50 - time);
                 } catch (InterruptedException e) {
                     //ignore
                 }
@@ -143,16 +143,10 @@ public class SessionManager {
     private boolean receivePacket() throws Exception {
         DatagramPacket datagramPacket = this.socket.readPacket();
         if (datagramPacket != null) {
-            ByteBuf byteBuf = datagramPacket.content();
-            byte[] buffer = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(buffer);
-            byteBuf.release();
-            int len = buffer.length;
-            String source = datagramPacket.sender().getHostString();
-            currentSource = source; //in order to block address
-            int port = datagramPacket.sender().getPort();
-            if (len > 0) {
-                this.receiveBytes += len;
+            // Check this early
+            try {
+                String source = datagramPacket.sender().getHostString();
+                currentSource = source; //in order to block address
                 if (this.block.containsKey(source)) {
                     return true;
                 }
@@ -162,6 +156,18 @@ public class SessionManager {
                 } else {
                     this.ipSec.put(source, 1);
                 }
+
+                ByteBuf byteBuf = datagramPacket.content();
+                if (byteBuf.readableBytes() == 0) {
+                    // Exit early to process another packet
+                    return true;
+                }
+                byte[] buffer = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(buffer);
+                int len = buffer.length;
+                int port = datagramPacket.sender().getPort();
+
+                this.receiveBytes += len;
 
                 byte pid = buffer[0];
 
@@ -184,12 +190,15 @@ public class SessionManager {
                     pk.pingID = ((UNCONNECTED_PING) packet).pingID;
                     pk.serverName = this.getName();
                     this.sendPacket(pk, source, port);
+                    return true;
                 } else if (buffer.length != 0) {
                     this.streamRAW(source, port, buffer);
                     return true;
                 } else {
                     return false;
                 }
+            } finally {
+                datagramPacket.release();
             }
         }
 
@@ -464,13 +473,7 @@ public class SessionManager {
 
     private void registerPackets() {
         // fill with dummy returning null
-        Arrays.fill(this.packetPool, new Packet.PacketFactory() {
-
-            @Override
-            public Packet create() {
-                return null;
-            }
-        });
+        Arrays.fill(this.packetPool, (Packet.PacketFactory) () -> null);
 
         //this.registerPacket(UNCONNECTED_PING.ID, UNCONNECTED_PING.class);
         this.registerPacket(UNCONNECTED_PING_OPEN_CONNECTIONS.ID, new UNCONNECTED_PING_OPEN_CONNECTIONS.Factory());
