@@ -170,7 +170,15 @@ public class Client {
                 Map<String, Client> clients = this.server.getClients();
                 UUID uuid0 = ((TransferPacket)packet).uuid;
                 if (this.players.containsKey(uuid0) && clients.containsKey(((TransferPacket)packet).clientHash)){
-                    this.players.get(uuid0).transfer(clients.get(((TransferPacket)packet).clientHash), true);
+                    Client targetClient = clients.get(((TransferPacket)packet).clientHash);
+                    byte[] afterLoginPacket = ((TransferPacket)packet).afterLoginPacket;
+                    this.players.get(uuid0).transfer(targetClient, true);
+                    if (afterLoginPacket != null && afterLoginPacket.length != 0) {
+                        RedirectPacket redirectPacket = new RedirectPacket();
+                        redirectPacket.uuid = uuid0;
+                        redirectPacket.mcpeBuffer = ((TransferPacket)packet).afterLoginPacket;
+                        targetClient.sendDataPacket(redirectPacket);
+                    }
                 }
                 break;
             case SynapseInfo.FAST_PLAYER_LIST_PACKET:
