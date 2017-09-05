@@ -10,18 +10,16 @@ import java.net.InetSocketAddress;
  */
 public class CLIENT_HANDSHAKE_DataPacket extends Packet {
     public static byte ID = (byte) 0x13;
+    public String address;
+    public int port;
+    public InetSocketAddress[] systemAddresses = new InetSocketAddress[10];
+    public long sendPing;
+    public long sendPong;
 
     @Override
     public byte getID() {
         return ID;
     }
-
-    public String address;
-    public int port;
-    public InetSocketAddress[] systemAddresses = new InetSocketAddress[10];
-
-    public long sendPing;
-    public long sendPong;
 
     @Override
     public void encode() {

@@ -89,13 +89,13 @@ public class Network {
         this.advancedInterfaces.remove(interfaz);
     }
 
+    public String getName() {
+        return name;
+    }
+
     public void setName(String name) {
         this.name = name;
         this.updateName();
-    }
-
-    public String getName() {
-        return name;
     }
 
     public void updateName() {
@@ -154,10 +154,10 @@ public class Network {
      *
      * @param packets
      */
-    public void processPackets (Player player, List<DataPacket> packets) {
+    public void processPackets(Player player, List<DataPacket> packets) {
         if (packets.isEmpty()) return;
         List<Byte> filter = new ArrayList<>();
-        for (DataPacket packet : packets){
+        for (DataPacket packet : packets) {
             player.handleDataPacket(packet);
         }
     }

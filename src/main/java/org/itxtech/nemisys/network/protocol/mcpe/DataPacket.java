@@ -10,12 +10,11 @@ import org.itxtech.nemisys.utils.BinaryStream;
 public abstract class DataPacket extends BinaryStream implements Cloneable {
 
     public boolean isEncoded = false;
-    private int channel = 0;
-
     public EncapsulatedPacket encapsulatedPacket;
     public byte reliability;
     public Integer orderIndex = null;
     public Integer orderChannel = null;
+    private int channel = 0;
 
     public abstract byte pid();
 
@@ -29,12 +28,12 @@ public abstract class DataPacket extends BinaryStream implements Cloneable {
         this.putByte(this.pid());
     }
 
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
     public int getChannel() {
         return channel;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
     }
 
     public DataPacket clean() {

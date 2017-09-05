@@ -6,19 +6,16 @@ import org.itxtech.nemisys.event.HandlerList;
 
 public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     protected String kickMessage;
     private String clientHash;
-
-
     public PlayerLoginEvent(Player player, String kickMessage, String clientHash) {
         super(player);
         this.kickMessage = kickMessage;
         this.clientHash = clientHash;
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public String getKickMessage() {
@@ -29,12 +26,12 @@ public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
         this.kickMessage = kickMessage;
     }
 
-    public void setClientHash(String clientHash) {
-        this.clientHash = clientHash;
-    }
-
     public String getClientHash() {
         return clientHash;
+    }
+
+    public void setClientHash(String clientHash) {
+        this.clientHash = clientHash;
     }
 
     @Override

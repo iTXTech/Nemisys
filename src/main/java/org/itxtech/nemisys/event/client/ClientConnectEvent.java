@@ -10,12 +10,12 @@ public class ClientConnectEvent extends ClientEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     public ClientConnectEvent(Client client) {
         super(client);
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
 }

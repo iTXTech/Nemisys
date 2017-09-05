@@ -6,12 +6,6 @@ package org.itxtech.nemisys.network.protocol.spp;
 public class ConnectPacket extends SynapseDataPacket {
 
     public static final byte NETWORK_ID = SynapseInfo.CONNECT_PACKET;
-
-    @Override
-    public byte pid() {
-        return NETWORK_ID;
-    }
-
     public int protocol = SynapseInfo.CURRENT_PROTOCOL;
     public int maxPlayers;
     public boolean isMainServer;
@@ -19,17 +13,22 @@ public class ConnectPacket extends SynapseDataPacket {
     public String password;
 
     @Override
-    public void encode(){
+    public byte pid() {
+        return NETWORK_ID;
+    }
+
+    @Override
+    public void encode() {
         this.reset();
         this.putInt(this.protocol);
         this.putInt(this.maxPlayers);
-        this.putByte(this.isMainServer ? (byte)1 : (byte)0);
+        this.putByte(this.isMainServer ? (byte) 1 : (byte) 0);
         this.putString(this.description);
         this.putString(this.password);
     }
-    
+
     @Override
-    public void decode(){
+    public void decode() {
         this.protocol = this.getInt();
         this.maxPlayers = this.getInt();
         this.isMainServer = this.getByte() == 1;

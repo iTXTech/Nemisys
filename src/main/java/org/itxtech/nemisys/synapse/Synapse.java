@@ -37,9 +37,9 @@ public class Synapse {
         String password = this.getConfig().getString("password");
         String serverDescription = this.getConfig().getString("description");
 
-        for(SourceInterface interfaz : this.getServer().getNetwork().getInterfaces()){
-            if(interfaz instanceof RakNetInterface){
-                if(this.getConfig().getBoolean("disable-rak")){
+        for (SourceInterface interfaz : this.getServer().getNetwork().getInterfaces()) {
+            if (interfaz instanceof RakNetInterface) {
+                if (this.getConfig().getBoolean("disable-rak")) {
                     interfaz.shutdown();
                     break;
                 }
@@ -78,15 +78,15 @@ public class Synapse {
         return this.synapseEntries.get(hash);
     }
 
-    public DataPacket getPacket(byte[] buffer){
+    public DataPacket getPacket(byte[] buffer) {
         byte pid = buffer[0];
         byte start = 1;
-        if(pid == (byte) 0xfe){
+        if (pid == (byte) 0xfe) {
             pid = buffer[1];
             start++;
         }
         DataPacket data = this.getServer().getNetwork().getPacket(pid);
-        if(data == null){
+        if (data == null) {
             return null;
         }
         data.setBuffer(buffer, start);

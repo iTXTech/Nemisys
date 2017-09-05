@@ -1,7 +1,6 @@
 package org.itxtech.nemisys.command.defaults;
 
 import org.itxtech.nemisys.Player;
-import org.itxtech.nemisys.command.Command;
 import org.itxtech.nemisys.command.CommandSender;
 import org.itxtech.nemisys.event.TranslationContainer;
 import org.itxtech.nemisys.utils.TextFormat;

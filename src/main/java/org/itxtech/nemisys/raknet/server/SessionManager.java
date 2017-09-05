@@ -20,32 +20,20 @@ import java.util.*;
  */
 public class SessionManager {
     protected final Packet.PacketFactory[] packetPool = new Packet.PacketFactory[256];
-
+    public boolean portChecking = true;
+    public long serverId;
     protected RakNetServer server;
-
     protected UDPServerSocket socket;
-
     protected int receiveBytes = 0;
     protected int sendBytes = 0;
-
     protected Map<String, Session> sessions = new HashMap<>();
-
     protected String name = "";
-
     protected int packetLimit = 1000;
-
     protected boolean shutdown = false;
-
     protected long ticks = 0;
     protected long lastMeasure;
-
     protected Map<String, Long> block = new HashMap<>();
     protected Map<String, Integer> ipSec = new HashMap<>();
-
-    public boolean portChecking = true;
-
-    public long serverId;
-
     protected String currentSource = "";
 
     public SessionManager(RakNetServer server, UDPServerSocket socket) throws Exception {

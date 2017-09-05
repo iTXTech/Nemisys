@@ -2,16 +2,13 @@ package org.itxtech.nemisys.network.synlib;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.network.protocol.spp.SynapseDataPacket;
 
 /**
  * Handles a server-side channel.
  */
-public class SynapseServerHandler extends ChannelInboundHandlerAdapter{
+public class SynapseServerHandler extends ChannelInboundHandlerAdapter {
 
     //static final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private SessionManager sessionManager;

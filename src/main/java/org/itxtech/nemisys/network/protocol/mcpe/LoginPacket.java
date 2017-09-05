@@ -1,9 +1,9 @@
 package org.itxtech.nemisys.network.protocol.mcpe;
 
-import org.itxtech.nemisys.utils.Skin;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.itxtech.nemisys.utils.Skin;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

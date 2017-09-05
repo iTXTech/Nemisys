@@ -9,16 +9,15 @@ import org.itxtech.nemisys.event.HandlerList;
 public class ClientAuthEvent extends ClientEvent {
 
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private String password;
 
     public ClientAuthEvent(Client client, String password) {
         super(client);
         this.password = password;
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public String getPassword() {

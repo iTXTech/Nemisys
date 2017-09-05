@@ -1,29 +1,27 @@
 package org.itxtech.nemisys.utils;
 
-import org.itxtech.nemisys.Nemisys;
-import org.itxtech.nemisys.command.CommandReader;
-import org.itxtech.nemisys.Server;
 import org.fusesource.jansi.AnsiConsole;
+import org.itxtech.nemisys.Nemisys;
+import org.itxtech.nemisys.Server;
+import org.itxtech.nemisys.command.CommandReader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 /**
  * author: MagicDroidX
  * Nukkit
  */
 public class MainLogger extends ThreadedLogger {
 
+    protected static MainLogger logger;
     protected File logFile;
     protected String logStream = "";
     protected boolean shutdown;
     protected boolean logDebug = false;
-
-    protected static MainLogger logger;
-
     private Server server;
 
     public MainLogger(String logFile) {
@@ -173,7 +171,7 @@ public class MainLogger extends ThreadedLogger {
                     FileWriter writer = new FileWriter(this.logFile, true);
                     writer.write(chunk);
                     writer.close();
-                } catch(IOException e) {
+                } catch (IOException e) {
                     //Ignore
                 }
             }
@@ -194,7 +192,7 @@ public class MainLogger extends ThreadedLogger {
                 FileWriter writer = new FileWriter(this.logFile, true);
                 writer.write(chunk);
                 writer.close();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 //Ignore
             }
         }

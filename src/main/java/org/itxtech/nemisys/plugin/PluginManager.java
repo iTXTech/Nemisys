@@ -21,15 +21,11 @@ import java.util.regex.Pattern;
  */
 public class PluginManager {
 
-    private Server server;
-
-    private SimpleCommandMap commandMap;
-
-    protected Map<String, Plugin> plugins = new LinkedHashMap<>();
-
-    protected Map<String, PluginLoader> fileAssociations = new HashMap<>();
-
     public static boolean useTimings = false;
+    protected Map<String, Plugin> plugins = new LinkedHashMap<>();
+    protected Map<String, PluginLoader> fileAssociations = new HashMap<>();
+    private Server server;
+    private SimpleCommandMap commandMap;
 
     public PluginManager(Server server, SimpleCommandMap commandMap) {
         this.server = server;
@@ -510,11 +506,11 @@ public class PluginManager {
         }
     }
 
-    public boolean useTimings(){
+    public boolean useTimings() {
         return useTimings;
     }
 
-    public void setUseTimings(boolean use){
+    public void setUseTimings(boolean use) {
         useTimings = use;
     }
 

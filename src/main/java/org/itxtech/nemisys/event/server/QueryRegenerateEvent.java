@@ -18,19 +18,12 @@ import java.util.*;
 public class QueryRegenerateEvent extends ServerEvent {
 
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private static final String GAME_ID = "MINECRAFTPE";
-
     private int timeout;
     private String serverName;
     private boolean listPlugins;
     private Plugin[] plugins;
     private Player[] players;
-
     private String gameType;
     private String version;
     private String server_engine;
@@ -40,7 +33,6 @@ public class QueryRegenerateEvent extends ServerEvent {
     private String whitelist;
     private int port;
     private String ip;
-
     private Map<String, String> extraData = new HashMap<>();
 
     public QueryRegenerateEvent(Server server) {
@@ -63,14 +55,18 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.server_engine = server.getName() + " " + server.getNemisysVersion();
         this.map = "Nemisys";
         this.numPlayers = this.players.length;
-        if(server.getPropertyBoolean("plus-one-max-count",false)){
+        if (server.getPropertyBoolean("plus-one-max-count", false)) {
             this.maxPlayers = this.numPlayers + 1;
-        }else{
+        } else {
             this.maxPlayers = server.getMaxPlayers();
         }
         this.whitelist = "off";
         this.ip = server.getIp();
         this.port = server.getPort();
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public int getTimeout() {

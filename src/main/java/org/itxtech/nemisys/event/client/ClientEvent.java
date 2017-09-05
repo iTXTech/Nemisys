@@ -1,7 +1,6 @@
 package org.itxtech.nemisys.event.client;
 
 import org.itxtech.nemisys.Client;
-import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.event.Event;
 
 /**

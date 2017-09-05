@@ -10,10 +10,14 @@ package org.itxtech.nemisys.network.synlib;
  */
 public class SynapseProtocolHeader {
 
-    /** Head Length */
+    /**
+     * Head Length
+     */
     public static final int HEAD_LENGTH = 7;
 
-    /** Magic */
+    /**
+     * Magic
+     */
     public static final short MAGIC = (short) 0xbabe;
 
     private int pid;

@@ -1,10 +1,10 @@
 package org.itxtech.nemisys.command;
 
+import jline.console.ConsoleReader;
+import jline.console.CursorBuffer;
 import org.itxtech.nemisys.InterruptibleThread;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.event.server.ServerCommandEvent;
-import jline.console.ConsoleReader;
-import jline.console.CursorBuffer;
 
 import java.io.IOException;
 
@@ -14,17 +14,11 @@ import java.io.IOException;
  */
 public class CommandReader extends Thread implements InterruptibleThread {
 
-    private ConsoleReader reader;
-
     public static CommandReader instance;
-
+    private ConsoleReader reader;
     private CursorBuffer stashed;
 
     private boolean running = true;
-
-    public static CommandReader getInstance() {
-        return instance;
-    }
 
     public CommandReader() {
         if (instance != null) {
@@ -38,6 +32,10 @@ public class CommandReader extends Thread implements InterruptibleThread {
             Server.getInstance().getLogger().error("Unable to start Console Reader", e);
         }
         this.setName("Console");
+    }
+
+    public static CommandReader getInstance() {
+        return instance;
     }
 
     public String readLine() {

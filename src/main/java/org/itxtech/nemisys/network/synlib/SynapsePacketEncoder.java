@@ -19,9 +19,9 @@ public class SynapsePacketEncoder extends MessageToByteEncoder<SynapseDataPacket
         if (!packet.isEncoded) packet.encode();
         byte[] body = packet.getBuffer();
         out.writeShort(SynapseProtocolHeader.MAGIC)  //header
-        .writeByte(packet.pid())  //pid
-        .writeInt(body.length)  //length
-        .writeBytes(body);
+                .writeByte(packet.pid())  //pid
+                .writeInt(body.length)  //length
+                .writeBytes(body);
     }
 
 }

@@ -9,14 +9,13 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  */
 public class OPEN_CONNECTION_REPLY_1 extends Packet {
     public static byte ID = (byte) 0x06;
+    public long serverID;
+    public short mtuSize;
 
     @Override
     public byte getID() {
         return ID;
     }
-
-    public long serverID;
-    public short mtuSize;
 
     @Override
     public void encode() {

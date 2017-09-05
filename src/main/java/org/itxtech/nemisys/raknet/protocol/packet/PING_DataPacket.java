@@ -8,13 +8,12 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  */
 public class PING_DataPacket extends Packet {
     public static byte ID = (byte) 0x00;
+    public long pingID;
 
     @Override
     public byte getID() {
         return ID;
     }
-
-    public long pingID;
 
     @Override
     public void encode() {

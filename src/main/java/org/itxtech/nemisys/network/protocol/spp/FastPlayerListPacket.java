@@ -19,7 +19,7 @@ public class FastPlayerListPacket extends SynapseDataPacket {
     @Override
     public void decode() {
         this.sendTo = this.getUUID();
-        this.type = (byte)this.getByte();
+        this.type = (byte) this.getByte();
         int len = this.getInt();
         this.entries = new FastPlayerListPacket.Entry[len];
         for (int i = 0; i < len; i++) {

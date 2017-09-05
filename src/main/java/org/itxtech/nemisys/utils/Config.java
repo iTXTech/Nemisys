@@ -1,10 +1,10 @@
 package org.itxtech.nemisys.utils;
 
-import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.scheduler.FileWriteTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import org.itxtech.nemisys.Server;
+import org.itxtech.nemisys.scheduler.FileWriteTask;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -30,14 +30,6 @@ public class Config {
     //public static final int SERIALIZED = 4; // .sl
     public static final int ENUM = 5; // .txt, .list, .enum
     public static final int ENUMERATION = Config.ENUM;
-
-    //private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
-    private ConfigSection config = new ConfigSection();
-    private Map<String, Object> nestedCache = new HashMap<>();
-    private File file;
-    private boolean correct = false;
-    private int type = Config.DETECT;
-
     public static Map<String, Integer> format = new TreeMap<>();
 
     static {
@@ -55,6 +47,13 @@ public class Config {
         format.put("list", Config.ENUM);
         format.put("enum", Config.ENUM);
     }
+
+    //private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
+    private ConfigSection config = new ConfigSection();
+    private Map<String, Object> nestedCache = new HashMap<>();
+    private File file;
+    private boolean correct = false;
+    private int type = Config.DETECT;
 
     /**
      * Constructor for Config instance with undefined file object
@@ -395,10 +394,6 @@ public class Config {
         this.config = new ConfigSection(map);
     }
 
-    public void setAll(ConfigSection section) {
-        this.config = section;
-    }
-
     public boolean exists(String key) {
         return config.exists(key);
     }
@@ -415,11 +410,16 @@ public class Config {
         return this.config.getAllMap();
     }
 
+    public void setAll(ConfigSection section) {
+        this.config = section;
+    }
+
     /**
      * Get root (main) config section of the Config
+     *
      * @return
      */
-    public ConfigSection getRootSection(){
+    public ConfigSection getRootSection() {
         return config;
     }
 

@@ -1,26 +1,15 @@
 package org.itxtech.nemisys.synapse.network.synlib;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import org.itxtech.nemisys.Server;
-import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.network.protocol.spp.SynapseDataPacket;
-import org.itxtech.nemisys.network.synlib.SynapseClientPacket;
-import org.itxtech.nemisys.network.synlib.SynapseServerInitializer;
-import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by boybook on 16/6/24.
@@ -28,17 +17,15 @@ import java.util.concurrent.ExecutionException;
 public class SynapseClient extends Thread {
 
     public static final String VERSION = "0.3.0";
-
+    public boolean needReconnect = false;
+    protected ConcurrentLinkedQueue<SynapseDataPacket> externalQueue;
+    protected ConcurrentLinkedQueue<SynapseDataPacket> internalQueue;
     private ThreadedLogger logger;
     private String interfaz;
     private int port;
     private boolean shutdown = false;
-    protected ConcurrentLinkedQueue<SynapseDataPacket> externalQueue;
-    protected ConcurrentLinkedQueue<SynapseDataPacket> internalQueue;
     private boolean needAuth = true;
     private boolean connected = false;
-    public boolean needReconnect = false;
-
     private EventLoopGroup clientGroup;
     private Session session;
 

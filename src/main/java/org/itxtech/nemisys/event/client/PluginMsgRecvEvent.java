@@ -1,26 +1,31 @@
 package org.itxtech.nemisys.event.client;
 
 import org.itxtech.nemisys.Client;
+import org.itxtech.nemisys.event.Cancellable;
 import org.itxtech.nemisys.event.HandlerList;
 
 /**
  * @author PeratX
  */
-public class PluginMsgRecvEvent extends ClientEvent {
+public class PluginMsgRecvEvent extends ClientEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
+    private String channel;
+    private byte[] data;
+    public PluginMsgRecvEvent(Client client, String channel, byte[] data) {
+        super(client);
+        this.channel = channel;
+        this.data = data;
+    }
 
     public static HandlerList getHandlers() {
         return handlers;
     }
 
-    private String message;
-
-    public PluginMsgRecvEvent(Client client, String message) {
-        super(client);
-        this.message = message;
+    public String getChannel() {
+        return channel;
     }
 
-    public String getMessage(){
-        return message;
+    public byte[] getData() {
+        return data;
     }
 }

@@ -17,6 +17,12 @@ public abstract class AsyncTask implements Runnable {
     private int taskId;
     private boolean finished = false;
 
+    public static void collectTask() {
+        while (!FINISHED_LIST.isEmpty()) {
+            FINISHED_LIST.poll().onCompletion(Server.getInstance());
+        }
+    }
+
     public void run() {
         this.result = null;
         this.onRun();
@@ -32,20 +38,20 @@ public abstract class AsyncTask implements Runnable {
         return this.result;
     }
 
-    public boolean hasResult() {
-        return this.result != null;
-    }
-
     public void setResult(Object result) {
         this.result = result;
     }
 
-    public void setTaskId(int taskId) {
-        this.taskId = taskId;
+    public boolean hasResult() {
+        return this.result != null;
     }
 
     public int getTaskId() {
         return this.taskId;
+    }
+
+    public void setTaskId(int taskId) {
+        this.taskId = taskId;
     }
 
     public Object getFromThreadStore(String identifier) {
@@ -72,12 +78,6 @@ public abstract class AsyncTask implements Runnable {
         this.result = null;
         this.taskId = 0;
         this.finished = false;
-    }
-
-    public static void collectTask() {
-        while (!FINISHED_LIST.isEmpty()) {
-            FINISHED_LIST.poll().onCompletion(Server.getInstance());
-        }
     }
 
 }

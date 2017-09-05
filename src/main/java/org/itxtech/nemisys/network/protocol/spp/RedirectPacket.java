@@ -8,29 +8,28 @@ import java.util.UUID;
 public class RedirectPacket extends SynapseDataPacket {
 
     public static final byte NETWORK_ID = SynapseInfo.REDIRECT_PACKET;
+    public UUID uuid;
+    public boolean direct;
+    public byte[] mcpeBuffer;
 
     @Override
     public byte pid() {
         return NETWORK_ID;
     }
 
-    public UUID uuid;
-    public boolean direct;
-    public byte[] mcpeBuffer;
-
     @Override
-    public void encode(){
+    public void encode() {
         this.reset();
         this.putUUID(this.uuid);
-        this.putByte(this.direct ? (byte)1 : (byte)0);
+        this.putByte(this.direct ? (byte) 1 : (byte) 0);
         this.putUnsignedVarInt(this.mcpeBuffer.length);
         this.put(this.mcpeBuffer);
     }
-    
+
     @Override
-    public void decode(){
+    public void decode() {
         this.uuid = this.getUUID();
         this.direct = this.getByte() == 1;
-        this.mcpeBuffer = this.get((int)this.getUnsignedVarInt());
+        this.mcpeBuffer = this.get((int) this.getUnsignedVarInt());
     }
 }

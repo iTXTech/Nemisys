@@ -18,10 +18,8 @@ package org.itxtech.nemisys.synapse.network.synlib;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import org.itxtech.nemisys.network.synlib.SessionManager;
 import org.itxtech.nemisys.network.synlib.SynapsePacketDecoder;
 import org.itxtech.nemisys.network.synlib.SynapsePacketEncoder;
-import org.itxtech.nemisys.network.synlib.SynapseServerHandler;
 
 /**
  * Creates a newly configured {@link ChannelPipeline} for a new channel.

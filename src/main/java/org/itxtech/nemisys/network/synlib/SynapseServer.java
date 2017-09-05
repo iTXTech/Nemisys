@@ -1,13 +1,10 @@
 package org.itxtech.nemisys.network.synlib;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import org.itxtech.nemisys.InterruptibleThread;
 import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Server;
@@ -16,25 +13,22 @@ import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class SynapseServer extends Thread implements InterruptibleThread{
+public class SynapseServer extends Thread implements InterruptibleThread {
 
     public static final String VERSION = "0.3.0";
-
-    private ThreadedLogger logger;
-    private String interfaz;
-    private int port;
-    private boolean shutdown = false;
+    public EventLoopGroup bossGroup = new NioEventLoopGroup();
+    public EventLoopGroup workerGroup = new NioEventLoopGroup();
     protected ConcurrentLinkedQueue<SynapseClientPacket> externalQueue;
     protected ConcurrentLinkedQueue<SynapseClientPacket> internalQueue;
     protected ConcurrentLinkedQueue<String> clientOpenQueue;
     protected ConcurrentLinkedQueue<String> internalClientCloseQueue;
     protected ConcurrentLinkedQueue<String> externalClientCloseQueue;
+    private ThreadedLogger logger;
+    private String interfaz;
+    private int port;
+    private boolean shutdown = false;
     private String mainPath;
     private SynapseInterface server;
-
-    public EventLoopGroup bossGroup = new NioEventLoopGroup();
-    public EventLoopGroup workerGroup = new NioEventLoopGroup();
-
     private SessionManager sessionManager;
 
     public SynapseServer(ThreadedLogger logger, SynapseInterface server, int port) {
@@ -67,27 +61,27 @@ public class SynapseServer extends Thread implements InterruptibleThread{
         return internalQueue;
     }
 
-    public String getInternalClientCloseRequest(){
+    public String getInternalClientCloseRequest() {
         return this.internalClientCloseQueue.poll();
     }
 
-    public void addInternalClientCloseRequest(String hash){
+    public void addInternalClientCloseRequest(String hash) {
         this.internalClientCloseQueue.add(hash);
     }
 
-    public String getExternalClientCloseRequest(){
+    public String getExternalClientCloseRequest() {
         return this.externalClientCloseQueue.poll();
     }
 
-    public void addExternalClientCloseRequest(String hash){
+    public void addExternalClientCloseRequest(String hash) {
         this.externalClientCloseQueue.add(hash);
     }
 
-    public String getClientOpenRequest(){
+    public String getClientOpenRequest() {
         return this.clientOpenQueue.poll();
     }
 
-    public void addClientOpenRequest(String hash){
+    public void addClientOpenRequest(String hash) {
         this.clientOpenQueue.add(hash);
     }
 
@@ -165,15 +159,15 @@ public class SynapseServer extends Thread implements InterruptibleThread{
         }
     }
 
+    public SessionManager getSessionManager() {
+        return sessionManager;
+    }
+
     private class ShutdownHandler extends Thread {
         public void run() {
             if (!shutdown) {
                 logger.emergency("SynLib crashed!");
             }
         }
-    }
-
-    public SessionManager getSessionManager() {
-        return sessionManager;
     }
 }

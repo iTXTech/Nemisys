@@ -8,13 +8,13 @@ import java.net.InetSocketAddress;
 
 public class Session {
 
+    public Channel channel;
     private String ip;
     private int port;
     private SynapseClient client;
     private long lastCheck;
     private boolean connected;
-
-    public Channel channel;
+    private long tickUseTime = 0;
 
     public Session(SynapseClient client) {
         this.client = client;
@@ -35,8 +35,6 @@ public class Session {
         this.tickProcessor();
     }
 
-    private long tickUseTime = 0;
-
     private void tickProcessor() {
         while (!this.client.isShutdown()) {
             long start = System.currentTimeMillis();
@@ -48,7 +46,7 @@ public class Session {
             }
             long time = System.currentTimeMillis() - start;
             this.tickUseTime = time;
-            if(time < 10){
+            if (time < 10) {
                 try {
                     Thread.sleep(10 - time);
                 } catch (InterruptedException e) {
@@ -56,7 +54,7 @@ public class Session {
                 }
             }
         }
-        if(this.connected){
+        if (this.connected) {
             this.client.getClientGroup().shutdownGracefully();
         }
     }
@@ -132,7 +130,7 @@ public class Session {
     public float getTicksPerSecond() {
         long more = this.tickUseTime - 10;
         if (more < 0) return 100;
-        return Math.round(10f / (float)this.tickUseTime) * 100;
+        return Math.round(10f / (float) this.tickUseTime) * 100;
     }
 
 }

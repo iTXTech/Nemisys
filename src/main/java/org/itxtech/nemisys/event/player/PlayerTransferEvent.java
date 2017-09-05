@@ -7,18 +7,16 @@ import org.itxtech.nemisys.event.HandlerList;
 
 public class PlayerTransferEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private Client targetClient;
     private boolean needDisconnect;
-
     public PlayerTransferEvent(Player player, Client targetClient, boolean needDisconnect) {
         super(player);
         this.targetClient = targetClient;
         this.needDisconnect = needDisconnect;
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public boolean isNeedDisconnect() {
