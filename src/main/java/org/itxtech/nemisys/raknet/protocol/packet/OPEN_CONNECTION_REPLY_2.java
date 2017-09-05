@@ -10,16 +10,17 @@ import java.net.InetSocketAddress;
  * Nukkit Project
  */
 public class OPEN_CONNECTION_REPLY_2 extends Packet {
-    public static byte ID = (byte) 0x08;
-    public long serverID;
-    public String clientAddress;
-    public int clientPort;
-    public short mtuSize;
+    public static final byte ID = (byte) 0x08;
 
     @Override
     public byte getID() {
         return ID;
     }
+
+    public long serverID;
+    public String clientAddress;
+    public int clientPort;
+    public short mtuSize;
 
     @Override
     public void encode() {

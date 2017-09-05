@@ -8,15 +8,16 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  * Nukkit Project
  */
 public class UNCONNECTED_PONG extends Packet {
-    public static byte ID = (byte) 0x1c;
-    public long pingID;
-    public long serverID;
-    public String serverName;
+    public static final byte ID = (byte) 0x1c;
 
     @Override
     public byte getID() {
         return ID;
     }
+
+    public long pingID;
+    public long serverID;
+    public String serverName;
 
     @Override
     public void encode() {

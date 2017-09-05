@@ -8,14 +8,15 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  * Nukkit Project
  */
 public class OPEN_CONNECTION_REQUEST_1 extends Packet {
-    public static byte ID = (byte) 0x05;
-    public byte protocol = RakNet.PROTOCOL;
-    public short mtuSize;
+    public static final byte ID = (byte) 0x05;
 
     @Override
     public byte getID() {
         return ID;
     }
+
+    public byte protocol = RakNet.PROTOCOL;
+    public short mtuSize;
 
     @Override
     public void encode() {
@@ -30,7 +31,7 @@ public class OPEN_CONNECTION_REQUEST_1 extends Packet {
         super.decode();
         this.offset += 16; //skip magic bytes
         this.protocol = this.getByte();
-        this.mtuSize = (short) (this.get().length + 18);
+        this.mtuSize = (short) this.buffer.length;
     }
 
     public static final class Factory implements Packet.PacketFactory {

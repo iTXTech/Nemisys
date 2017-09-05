@@ -7,13 +7,14 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  * Nukkit Project
  */
 public class PING_DataPacket extends Packet {
-    public static byte ID = (byte) 0x00;
-    public long pingID;
+    public static final byte ID = (byte) 0x00;
 
     @Override
     public byte getID() {
         return ID;
     }
+
+    public long pingID;
 
     @Override
     public void encode() {
