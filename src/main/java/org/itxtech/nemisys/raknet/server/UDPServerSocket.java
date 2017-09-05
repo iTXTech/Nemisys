@@ -7,17 +7,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.itxtech.nemisys.utils.ThreadedLogger;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -31,7 +26,7 @@ public class UDPServerSocket extends ChannelInboundHandlerAdapter {
     protected EventLoopGroup group;
     protected Channel channel;
 
-    protected ConcurrentLinkedQueue<io.netty.channel.socket.DatagramPacket> packets = new ConcurrentLinkedQueue<>();
+    protected ConcurrentLinkedQueue<DatagramPacket> packets = new ConcurrentLinkedQueue<>();
 
     public UDPServerSocket(ThreadedLogger logger) {
         this(logger, 19132, "0.0.0.0");
@@ -67,7 +62,11 @@ public class UDPServerSocket extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public io.netty.channel.socket.DatagramPacket readPacket() throws IOException {
+    public void clearPacketQueue() {
+        this.packets.clear();
+    }
+
+    public DatagramPacket readPacket() throws IOException {
         return this.packets.poll();
     }
 
@@ -76,18 +75,17 @@ public class UDPServerSocket extends ChannelInboundHandlerAdapter {
     }
 
     public int writePacket(byte[] data, InetSocketAddress dest) throws IOException {
-        channel.writeAndFlush(new io.netty.channel.socket.DatagramPacket(Unpooled.wrappedBuffer(data), dest));
+        channel.writeAndFlush(new DatagramPacket(Unpooled.wrappedBuffer(data), dest));
         return data.length;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.packets.add((io.netty.channel.socket.DatagramPacket) msg);
+        this.packets.add((DatagramPacket) msg);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         this.logger.warning(cause.getMessage(), cause);
-        ctx.close();
     }
 }
