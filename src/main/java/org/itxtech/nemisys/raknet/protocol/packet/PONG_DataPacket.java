@@ -7,7 +7,7 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
  * Nukkit Project
  */
 public class PONG_DataPacket extends Packet {
-    public static final byte ID = (byte) 0x03;
+    public static byte ID = (byte) 0x03;
 
     @Override
     public byte getID() {

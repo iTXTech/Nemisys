@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
  * Nukkit Project
  */
 public class SERVER_HANDSHAKE_DataPacket extends Packet {
-    public static final byte ID = (byte) 0x10;
+    public static byte ID = (byte) 0x10;
 
     @Override
     public byte getID() {
@@ -18,7 +18,7 @@ public class SERVER_HANDSHAKE_DataPacket extends Packet {
 
     public String address;
     public int port;
-    public final InetSocketAddress[] systemAddresses = new InetSocketAddress[]{
+    public InetSocketAddress[] systemAddresses = new InetSocketAddress[]{
             new InetSocketAddress("127.0.0.1", 0),
             new InetSocketAddress("0.0.0.0", 0),
             new InetSocketAddress("0.0.0.0", 0),
@@ -45,6 +45,11 @@ public class SERVER_HANDSHAKE_DataPacket extends Packet {
 
         this.putLong(this.sendPing);
         this.putLong(this.sendPong);
+    }
+
+    @Override
+    public void decode() {
+        super.decode();
     }
 
     public static final class Factory implements Packet.PacketFactory {
