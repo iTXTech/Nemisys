@@ -97,7 +97,7 @@ public class Player {
                         TextFormat.AQUA + this.name + TextFormat.WHITE,
                         this.ip,
                         String.valueOf(this.port),
-                        TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
+                        ""+TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
                 }));
 
                 Map<String, Client> c = this.server.getMainClients();

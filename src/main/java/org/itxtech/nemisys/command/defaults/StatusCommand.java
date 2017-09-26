@@ -27,26 +27,26 @@ public class StatusCommand extends VanillaCommand {
         int minutes = NemisysMath.floorDouble((time % 3600) / 60);
         int hours = NemisysMath.floorDouble(time % (3600 * 24) / 3600);
         int days = NemisysMath.floorDouble(time / (3600 * 24));
-        String upTimeString = TextFormat.RED + days + TextFormat.GOLD + " days " +
+        String upTimeString = ""+TextFormat.RED + days + TextFormat.GOLD + " days " +
                 TextFormat.RED + hours + TextFormat.GOLD + " hours " +
                 TextFormat.RED + minutes + TextFormat.GOLD + " minutes " +
                 TextFormat.RED + seconds + TextFormat.GOLD + " seconds";
         sender.sendMessage(TextFormat.GOLD + "Uptime: " + upTimeString);
 
-        String tpsColor = TextFormat.GREEN;
+        String tpsColor = ""+TextFormat.GREEN;
         float tps = server.getTicksPerSecond();
         if (tps < 17) {
-            tpsColor = TextFormat.GOLD;
+            tpsColor = ""+TextFormat.GOLD;
         } else if (tps < 12) {
-            tpsColor = TextFormat.RED;
+            tpsColor = ""+TextFormat.RED;
         }
 
-        String synTpsColor = TextFormat.GREEN;
+        String synTpsColor = ""+TextFormat.GREEN;
         float synTps = server.getSynapseInterface().getInterface().getSessionManager().getTicksPerSecond();
         if (tps < 17) {
-            synTpsColor = TextFormat.GOLD;
+            synTpsColor = ""+TextFormat.GOLD;
         } else if (tps < 12) {
-            synTpsColor = TextFormat.RED;
+            synTpsColor = ""+TextFormat.RED;
         }
 
         sender.sendMessage(TextFormat.GOLD + "Current TPS: " + tpsColor + NemisysMath.round(tps, 2));
@@ -69,10 +69,10 @@ public class StatusCommand extends VanillaCommand {
         double usedMB = NemisysMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
         double maxMB = NemisysMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         double usage = usedMB / maxMB * 100;
-        String usageColor = TextFormat.GREEN;
+        String usageColor = ""+TextFormat.GREEN;
 
         if (usage > 85) {
-            usageColor = TextFormat.GOLD;
+            usageColor = ""+TextFormat.GOLD;
         }
 
         sender.sendMessage(TextFormat.GOLD + "Used memory: " + usageColor + usedMB + " MB. (" + NemisysMath.round(usage, 2) + "%)");
@@ -84,9 +84,9 @@ public class StatusCommand extends VanillaCommand {
         sender.sendMessage(TextFormat.GOLD + "Available processors: " + TextFormat.GREEN + runtime.availableProcessors());
 
 
-        String playerColor = TextFormat.GREEN;
+        String playerColor = ""+TextFormat.GREEN;
         if (((float) server.getOnlinePlayers().size() / (float) server.getMaxPlayers()) > 0.85) {
-            playerColor = TextFormat.GOLD;
+            playerColor = ""+TextFormat.GOLD;
         }
 
         sender.sendMessage(TextFormat.GOLD + "Players: " + playerColor + server.getOnlinePlayers().size() + TextFormat.GREEN + " online, " +
