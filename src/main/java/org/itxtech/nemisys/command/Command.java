@@ -6,21 +6,14 @@ package org.itxtech.nemisys.command;
  */
 public abstract class Command {
 
-    private String name;
-
-    private String nextLabel;
-
-    private String label;
-
-    private String[] aliases = new String[0];
-
-    private String[] activeAliases = new String[0];
-
-    private CommandMap commandMap = null;
-
     protected String description = "";
-
     protected String usageMessage = "";
+    private String name;
+    private String nextLabel;
+    private String label;
+    private String[] aliases = new String[0];
+    private String[] activeAliases = new String[0];
+    private CommandMap commandMap = null;
 
     public Command(String name) {
         this(name, "", null, new String[0]);
@@ -93,14 +86,6 @@ public abstract class Command {
         return this.activeAliases;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public String getUsage() {
-        return usageMessage;
-    }
-
     public void setAliases(String[] aliases) {
         this.aliases = aliases;
         if (!this.isRegistered()) {
@@ -108,8 +93,16 @@ public abstract class Command {
         }
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getUsage() {
+        return usageMessage;
     }
 
     public void setUsage(String usageMessage) {

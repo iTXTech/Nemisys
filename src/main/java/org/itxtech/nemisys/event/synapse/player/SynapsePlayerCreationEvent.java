@@ -10,21 +10,11 @@ import org.itxtech.nemisys.synapse.SynapsePlayer;
 public class SynapsePlayerCreationEvent extends SynapseEvent {
 
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private SourceInterface interfaz;
-
     private Long clientId;
-
     private String address;
-
     private int port;
-
     private Class<? extends SynapsePlayer> baseClass;
-
     private Class<? extends SynapsePlayer> playerClass;
 
     public SynapsePlayerCreationEvent(SourceInterface interfaz, Class<? extends SynapsePlayer> baseClass, Class<? extends SynapsePlayer> playerClass, Long clientId, String address, int port) {
@@ -35,6 +25,10 @@ public class SynapsePlayerCreationEvent extends SynapseEvent {
 
         this.baseClass = baseClass;
         this.playerClass = playerClass;
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public SourceInterface getInterface() {

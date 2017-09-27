@@ -8,7 +8,7 @@ import java.util.UUID;
  * Author: PeratX
  * Nemisys Project
  */
-public class BroadcastPacket extends SynapseDataPacket{
+public class BroadcastPacket extends SynapseDataPacket {
     public static final byte NETWORK_ID = SynapseInfo.BROADCAST_PACKET;
 
     public List<UUID> entries;
@@ -25,7 +25,7 @@ public class BroadcastPacket extends SynapseDataPacket{
         this.reset();
         this.putBoolean(this.direct);
         this.putShort(this.entries.size());
-        for(UUID uniqueId : this.entries){
+        for (UUID uniqueId : this.entries) {
             this.putUUID(uniqueId);
         }
         this.putShort(this.payload.length);
@@ -37,7 +37,7 @@ public class BroadcastPacket extends SynapseDataPacket{
         this.direct = this.getBoolean();
         int len = this.getShort();
         this.entries = new ArrayList<>();
-        for(int i = 0; i < len; i++){
+        for (int i = 0; i < len; i++) {
             this.entries.add(this.getUUID());
         }
         this.payload = this.get(this.getShort());

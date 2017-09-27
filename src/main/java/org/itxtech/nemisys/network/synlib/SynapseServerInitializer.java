@@ -18,11 +18,6 @@ package org.itxtech.nemisys.network.synlib;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.ssl.SslContext;
 
 /**
  * Creates a newly configured {@link ChannelPipeline} for a new channel.

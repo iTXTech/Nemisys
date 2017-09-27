@@ -5,16 +5,16 @@ import org.itxtech.nemisys.event.server.DataPacketSendEvent;
 import org.itxtech.nemisys.event.synapse.player.SynapsePlayerConnectEvent;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
-import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.nemisys.network.protocol.spp.TransferPacket;
 import org.itxtech.nemisys.utils.ClientData;
 
 import java.util.UUID;
 
 public class SynapsePlayer extends Player {
 
-    private boolean isFirstTimeLogin = false;
-
     protected SynapseEntry synapseEntry;
+    private boolean isFirstTimeLogin = false;
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
         super(interfaz, clientID, ip, port);
@@ -51,7 +51,7 @@ public class SynapsePlayer extends Player {
     }
 
     @Override
-    public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK){
+    public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK) {
         DataPacketSendEvent ev = new DataPacketSendEvent(this, pk);
         this.getServer().getPluginManager().callEvent(ev);
         if (!ev.isCancelled()) {

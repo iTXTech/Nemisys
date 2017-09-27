@@ -18,7 +18,27 @@ public class BlockVector3 implements Cloneable {
         this.z = z;
     }
 
-    public BlockVector3() {}
+    public BlockVector3() {
+    }
+
+    public static int getOppositeSide(int side) {
+        switch (side) {
+            case BlockVector3.SIDE_DOWN:
+                return BlockVector3.SIDE_UP;
+            case BlockVector3.SIDE_UP:
+                return BlockVector3.SIDE_DOWN;
+            case BlockVector3.SIDE_NORTH:
+                return BlockVector3.SIDE_SOUTH;
+            case BlockVector3.SIDE_SOUTH:
+                return BlockVector3.SIDE_NORTH;
+            case BlockVector3.SIDE_WEST:
+                return BlockVector3.SIDE_EAST;
+            case BlockVector3.SIDE_EAST:
+                return BlockVector3.SIDE_WEST;
+            default:
+                return -1;
+        }
+    }
 
     public BlockVector3 setComponents(int x, int y, int z) {
         this.x = x;
@@ -38,6 +58,7 @@ public class BlockVector3 implements Cloneable {
     public int getZ() {
         return this.z;
     }
+
     public Vector3 add(double x) {
         return this.add(x, 0, 0);
     }
@@ -137,25 +158,6 @@ public class BlockVector3 implements Cloneable {
         }
     }
 
-    public static int getOppositeSide(int side) {
-        switch (side) {
-            case BlockVector3.SIDE_DOWN:
-                return BlockVector3.SIDE_UP;
-            case BlockVector3.SIDE_UP:
-                return BlockVector3.SIDE_DOWN;
-            case BlockVector3.SIDE_NORTH:
-                return BlockVector3.SIDE_SOUTH;
-            case BlockVector3.SIDE_SOUTH:
-                return BlockVector3.SIDE_NORTH;
-            case BlockVector3.SIDE_WEST:
-                return BlockVector3.SIDE_EAST;
-            case BlockVector3.SIDE_EAST:
-                return BlockVector3.SIDE_WEST;
-            default:
-                return -1;
-        }
-    }
-
     public double distance(Vector3 pos) {
         return Math.sqrt(this.distanceSquared(pos));
     }
@@ -183,7 +185,7 @@ public class BlockVector3 implements Cloneable {
 
         if (!(ob instanceof BlockVector3)) return false;
 
-        return this.x == ((BlockVector3)ob).x && this.z == ((BlockVector3)ob).z;
+        return this.x == ((BlockVector3) ob).x && this.z == ((BlockVector3) ob).z;
     }
 
     @Override

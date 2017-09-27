@@ -2,7 +2,8 @@ package org.itxtech.nemisys;
 
 import com.google.gson.Gson;
 import org.itxtech.nemisys.command.*;
-import org.itxtech.nemisys.event.*;
+import org.itxtech.nemisys.event.HandlerList;
+import org.itxtech.nemisys.event.TranslationContainer;
 import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
 import org.itxtech.nemisys.lang.BaseLang;
 import org.itxtech.nemisys.math.NemisysMath;
@@ -23,8 +24,7 @@ import org.itxtech.nemisys.synapse.Synapse;
 import org.itxtech.nemisys.synapse.SynapseEntry;
 import org.itxtech.nemisys.utils.*;
 
-import java.io.*;
-import java.lang.reflect.Array;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -34,10 +34,9 @@ import java.util.*;
 public class Server {
 
     private static Server instance = null;
-
+    public int uptime = 0;
     private boolean isRunning = true;
     private boolean hasStopped = false;
-
     private PluginManager pluginManager = null;
     private ServerScheduler scheduler = null;
     private int tickCounter;
@@ -46,44 +45,30 @@ public class Server {
     private float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     private float maxTick = 100;
     private float maxUse = 0;
-
     private MainLogger logger;
-
     private CommandReader console;
     private SimpleCommandMap commandMap;
     private ConsoleCommandSender consoleSender;
-
     private int maxPlayers;
     private RCON rcon;
     private Network network;
     private BaseLang baseLang;
-
     private boolean forceLanguage = false;
-
     private UUID serverID;
-
     private String filePath;
     private String dataPath;
     private String pluginPath;
-
     private QueryHandler queryHandler;
-
     private QueryRegenerateEvent queryRegenerateEvent;
-
     private Config properties;
-
     private Map<String, Player> players = new HashMap<>();
     private Map<Integer, String> identifier = new HashMap<>();
-
     private SynapseInterface synapseInterface;
     private Map<String, Client> clients = new HashMap<>();
     private ClientData clientData = new ClientData();
     private String clientDataJson = "";
     private Map<String, Client> mainClients = new HashMap<>();
-
     private Synapse synapse;
-
-    public int uptime = 0;
 
     public Server(MainLogger logger, final String filePath, String dataPath, String pluginPath) {
         instance = this;
@@ -190,25 +175,50 @@ public class Server {
         this.start();
     }
 
-    public void addClient(Client client){
+    public static Server getInstance() {
+        return instance;
+    }
+
+    public static void broadcastPacket(Collection<Player> players, DataPacket packet) {
+        broadcastPacket(players.stream().toArray(Player[]::new), packet);
+    }
+
+    public static void broadcastPacket(Player[] players, DataPacket packet) {
+        packet.encode();
+        packet.isEncoded = true;
+
+        for (Player player : players) {
+            player.sendDataPacket(packet);
+        }
+
+        if (packet.encapsulatedPacket != null) {
+            packet.encapsulatedPacket = null;
+        }
+    }
+
+    public void addClient(Client client) {
         this.clients.put(client.getHash(), client);
-        if(client.isMainServer()){
+        if (client.isMainServer()) {
             this.mainClients.put(client.getHash(), client);
         }
     }
 
-    public Map<String, Client> getMainClients(){
+    public Client getClient(String hash) {
+        return this.clients.get(hash);
+    }
+
+    public Map<String, Client> getMainClients() {
         return this.mainClients;
     }
 
-    public void removeClient(Client client){
-        if(this.clients.containsKey(client.getHash())){
+    public void removeClient(Client client) {
+        if (this.clients.containsKey(client.getHash())) {
             this.mainClients.remove(client.getHash());
             this.clients.remove(client.getHash());
         }
     }
 
-    public Map<String, Client> getClients(){
+    public Map<String, Client> getClients() {
         return this.clients;
     }
 
@@ -220,10 +230,10 @@ public class Server {
         return clientDataJson;
     }
 
-    public void updateClientData(){
-        if(this.clients.size() > 0){
+    public void updateClientData() {
+        if (this.clients.size() > 0) {
             this.clientData = new ClientData();
-            for (Client client: this.clients.values()){
+            for (Client client : this.clients.values()) {
                 ClientData.Entry entry = this.clientData.new Entry(client.getIp(), client.getPort(), client.getPlayers().size(),
                         client.getMaxPlayers(), client.getDescription(), client.getTicksPerSecond(), client.getTickUsage(), client.getUpTime());
                 this.clientData.clientList.put(client.getHash(), entry);
@@ -232,7 +242,7 @@ public class Server {
         }
     }
 
-    public boolean comparePassword(String pass){
+    public boolean comparePassword(String pass) {
         String truePass = this.getPropertyString("password", "1234567890123456");
         return (truePass.equals(pass));
     }
@@ -295,7 +305,7 @@ public class Server {
             this.shutdown();
 
 
-            for(Client client : new ArrayList<>(this.clients.values())){
+            for (Client client : new ArrayList<>(this.clients.values())) {
                 for (Player player : new ArrayList<>(client.getPlayers().values())) {
                     player.close((String) this.getConfig("settings.shutdown-message", "Server closed"));
                 }
@@ -325,7 +335,7 @@ public class Server {
                 this.network.unregisterInterface(interfaz);
             }
             if (this.synapse != null) {
-                for (SynapseEntry entry: this.synapse.getSynapseEntries().values()) {
+                for (SynapseEntry entry : this.synapse.getSynapseEntries().values()) {
                     entry.getSynapseInterface().shutdown();
                 }
             }
@@ -546,7 +556,7 @@ public class Server {
         return this.getPropertyString("server-ip", "0.0.0.0");
     }
 
-    public int getSynapsePort(){
+    public int getSynapsePort() {
         return this.getPropertyInt("synapse-port", 10305);
     }
 
@@ -767,29 +777,8 @@ public class Server {
         return synapseInterface;
     }
 
-    public static Server getInstance() {
-        return instance;
-    }
-
     public Synapse getSynapse() {
         return synapse;
-    }
-
-    public static void broadcastPacket(Collection<Player> players, DataPacket packet) {
-        broadcastPacket(players.stream().toArray(Player[]::new), packet);
-    }
-
-    public static void broadcastPacket(Player[] players, DataPacket packet) {
-        packet.encode();
-        packet.isEncoded = true;
-
-        for (Player player : players) {
-            player.sendDataPacket(packet);
-        }
-
-        if (packet.encapsulatedPacket != null) {
-            packet.encapsulatedPacket = null;
-        }
     }
 
     public void batchPackets(Player[] players, DataPacket[] packets) {

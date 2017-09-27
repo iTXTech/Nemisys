@@ -9,7 +9,7 @@ package org.itxtech.nemisys.network.synlib;
  */
 public class SynapseContextException extends Exception {
 
-    public SynapseContextException(){
+    public SynapseContextException() {
         super();
     }
 
@@ -24,5 +24,5 @@ public class SynapseContextException extends Exception {
     public SynapseContextException(Throwable cause) {
         super(cause);
     }
-    
+
 }

@@ -17,6 +17,7 @@ import java.util.*;
 
 /**
  * Thread that performs all RCON network work. A server.
+ *
  * @author Tee7even
  */
 public class RCONServer extends Thread {
@@ -24,17 +25,13 @@ public class RCONServer extends Thread {
     private static final int SERVERDATA_AUTH_RESPONSE = 2;
     private static final int SERVERDATA_EXECCOMMAND = 2;
     private static final int SERVERDATA_RESPONSE_VALUE = 0;
-
-    private volatile boolean running;
-
-    private ServerSocketChannel serverChannel;
-    private Selector selector;
-
-    private String password;
-    private Set<SocketChannel> rconSessions = new HashSet<>();
-
     private final List<RCONCommand> receiveQueue = new ArrayList<>();
     private final Map<SocketChannel, List<RCONPacket>> sendQueues = new HashMap<>();
+    private volatile boolean running;
+    private ServerSocketChannel serverChannel;
+    private Selector selector;
+    private String password;
+    private Set<SocketChannel> rconSessions = new HashSet<>();
 
     public RCONServer(String address, int port, String password) throws IOException {
         this.setName("RCON");
@@ -72,7 +69,7 @@ public class RCONServer extends Thread {
     }
 
     public void run() {
-        while(this.running) {
+        while (this.running) {
             try {
                 synchronized (this.sendQueues) {
                     for (SocketChannel channel : this.sendQueues.keySet()) {
@@ -100,8 +97,8 @@ public class RCONServer extends Thread {
                         this.write(key);
                     }
                 }
-			} catch (BufferUnderflowException exception) {
-				 //Corrupted packet, ignore
+            } catch (BufferUnderflowException exception) {
+                //Corrupted packet, ignore
             } catch (Exception exception) {
                 Server.getInstance().getLogger().logException(exception);
             }

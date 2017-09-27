@@ -42,7 +42,7 @@ public class SynLibInterface implements SourceInterface {
 
     @Override
     public Integer putPacket(Player player, DataPacket packet, boolean needACK, boolean immediate) {
-        if(!player.closed) {
+        if (!player.closed) {
             packet.encode();
             RedirectPacket pk = new RedirectPacket();
             pk.uuid = player.getUniqueId();

@@ -10,11 +10,11 @@ import org.itxtech.nemisys.event.Event;
 public abstract class PlayerEvent extends Event {
     protected Player player;
 
-    public Player getPlayer() {
-        return player;
-    }
-
     public PlayerEvent(Player player) {
         this.player = player;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 }

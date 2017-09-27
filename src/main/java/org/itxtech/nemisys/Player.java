@@ -20,6 +20,8 @@ import java.util.*;
  * Nemisys Project
  */
 public class Player {
+    public boolean closed;
+    protected UUID uuid;
     private byte[] cachedLoginPacket = new byte[0];
     private String name;
     private String ip;
@@ -27,18 +29,16 @@ public class Player {
     private long clientId;
     private long randomClientId;
     private int protocol;
-    protected UUID uuid;
     private SourceInterface interfaz;
     private Client client;
     private Server server;
     private byte[] rawUUID;
     private boolean isFirstTimeLogin = true;
     private long lastUpdate;
-    public boolean closed;
     private Skin skin;
     private ClientChainData loginChainData;
 
-    public Player(SourceInterface interfaz, long clientId, String ip, int port){
+    public Player(SourceInterface interfaz, long clientId, String ip, int port) {
         this.interfaz = interfaz;
         this.clientId = clientId;
         this.ip = ip;
@@ -48,38 +48,38 @@ public class Player {
         this.lastUpdate = System.currentTimeMillis();
     }
 
-    public long getClientId(){
+    public long getClientId() {
         return this.clientId;
     }
 
-    public UUID getUniqueId(){
+    public UUID getUniqueId() {
         return this.uuid;
     }
 
-    public byte[] getRawUUID(){
+    public byte[] getRawUUID() {
         return this.rawUUID;
     }
 
-    public Server getServer(){
+    public Server getServer() {
         return this.server;
     }
 
-    public void handleDataPacket(DataPacket packet){
-        if(this.closed){
+    public void handleDataPacket(DataPacket packet) {
+        if (this.closed) {
             return;
         }
         this.lastUpdate = System.currentTimeMillis();
 
-        switch (packet.pid()){
+        switch (packet.pid()) {
             case ProtocolInfo.BATCH_PACKET:
-                if(this.cachedLoginPacket.length == 0){
-                    this.getServer().getNetwork().processBatch((BatchPacket)packet, this);
-                }else{
+                if (this.cachedLoginPacket.length == 0) {
+                    this.getServer().getNetwork().processBatch((BatchPacket) packet, this);
+                } else {
                     this.redirectPacket(packet.getBuffer());
                 }
                 break;
             case ProtocolInfo.LOGIN_PACKET:
-                LoginPacket loginPacket = (LoginPacket)packet; 
+                LoginPacket loginPacket = (LoginPacket) packet;
                 this.cachedLoginPacket = loginPacket.cacheBuffer;
                 this.skin = loginPacket.skin;
                 this.name = loginPacket.username;
@@ -97,25 +97,25 @@ public class Player {
                         TextFormat.AQUA + this.name + TextFormat.WHITE,
                         this.ip,
                         String.valueOf(this.port),
-                        TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
+                        ""+TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
                 }));
 
                 Map<String, Client> c = this.server.getMainClients();
 
                 String clientHash;
-                if(c.size() > 0){
+                if (c.size() > 0) {
                     clientHash = new ArrayList<>(c.keySet()).get(new Random().nextInt(c.size()));
-                }else{
+                } else {
                     clientHash = "";
                 }
 
                 PlayerLoginEvent ev;
                 this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin Reason", clientHash));
-                if(ev.isCancelled()){
+                if (ev.isCancelled()) {
                     this.close(ev.getKickMessage());
                     break;
                 }
-                if(this.server.getMaxPlayers() <= this.server.getOnlinePlayers().size()){
+                if (this.server.getMaxPlayers() <= this.server.getOnlinePlayers().size()) {
                     this.close("Synapse Server: " + TextFormat.RED + "Synapse server is full!");
                     break;
                 }
@@ -123,7 +123,7 @@ public class Player {
                     this.close("Synapse Server: " + TextFormat.RED + "No target server!");
                     break;
                 }
-                if(!this.server.getClients().containsKey(ev.getClientHash())){
+                if (!this.server.getClients().containsKey(ev.getClientHash())) {
                     this.close("Synapse Server: " + TextFormat.RED + "Target server is not online!");
                     break;
                 }
@@ -135,7 +135,7 @@ public class Player {
         }
     }
 
-    public void redirectPacket(byte[] buffer){
+    public void redirectPacket(byte[] buffer) {
         RedirectPacket pk = new RedirectPacket();
         pk.uuid = this.uuid;
         pk.direct = false;
@@ -143,29 +143,29 @@ public class Player {
         this.client.sendDataPacket(pk);
     }
 
-    public String getIp(){
+    public String getIp() {
         return this.ip;
     }
 
-    public int getPort(){
+    public int getPort() {
         return this.port;
     }
 
-    public UUID getUUID(){
+    public UUID getUUID() {
         return this.uuid;
     }
 
-    public String getName(){
+    public String getName() {
         return this.name;
     }
 
-    public void onUpdate(long currentTick){
+    public void onUpdate(long currentTick) {
         /*if((System.currentTimeMillis() - this.lastUpdate) > 5 * 60 * 1000){//timeout
             this.close("timeout");
         }*/
     }
 
-    public void removeAllPlayers(){
+    public void removeAllPlayers() {
         PlayerListPacket pk = new PlayerListPacket();
         pk.type = PlayerListPacket.TYPE_REMOVE;
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
@@ -184,11 +184,11 @@ public class Player {
         this.transfer(client, false);
     }
 
-    public void transfer(Client client, boolean needDisconnect){
+    public void transfer(Client client, boolean needDisconnect) {
         PlayerTransferEvent ev;
         this.server.getPluginManager().callEvent(ev = new PlayerTransferEvent(this, client, needDisconnect));
-        if(!ev.isCancelled()){
-            if(this.client != null && needDisconnect){
+        if (!ev.isCancelled()) {
+            if (this.client != null && needDisconnect) {
                 PlayerLogoutPacket pk = new PlayerLogoutPacket();
                 pk.uuid = this.uuid;
                 pk.reason = "Player has been transferred";
@@ -212,15 +212,15 @@ public class Player {
         }
     }
 
-    public void sendDataPacket(DataPacket pk){
+    public void sendDataPacket(DataPacket pk) {
         this.sendDataPacket(pk, false);
     }
 
-    public void sendDataPacket(DataPacket pk, boolean direct){
+    public void sendDataPacket(DataPacket pk, boolean direct) {
         this.sendDataPacket(pk, direct, false);
     }
 
-    public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK){
+    public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK) {
         this.interfaz.putPacket(this, pk, needACK, direct);
     }
 
@@ -228,17 +228,17 @@ public class Player {
         return this.interfaz.getNetworkLatency(this);
     }
 
-    public void close(){
+    public void close() {
         this.close("Generic Reason");
     }
 
-    public void close(String reason){
+    public void close(String reason) {
         this.close(reason, true);
     }
 
-    public void close(String reason, boolean notify){
-        if(!this.closed){
-            if(notify && reason.length() > 0){
+    public void close(String reason, boolean notify) {
+        if (!this.closed) {
+            if (notify && reason.length() > 0) {
                 DisconnectPacket pk = new DisconnectPacket();
                 pk.hideDisconnectionScreen = false;
                 pk.message = reason;
@@ -248,7 +248,7 @@ public class Player {
             this.server.getPluginManager().callEvent(new PlayerLogoutEvent(this));
             this.closed = true;
 
-            if(this.client != null){
+            if (this.client != null) {
                 PlayerLogoutPacket pk = new PlayerLogoutPacket();
                 pk.uuid = this.uuid;
                 pk.reason = reason;
@@ -257,15 +257,23 @@ public class Player {
             }
 
             this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logOut", new String[]{
-                TextFormat.AQUA + this.getName() + TextFormat.WHITE,
-                this.ip,
-                String.valueOf(this.port),
-                this.getServer().getLanguage().translateString(reason)
+                    TextFormat.AQUA + this.getName() + TextFormat.WHITE,
+                    this.ip,
+                    String.valueOf(this.port),
+                    this.getServer().getLanguage().translateString(reason)
             }));
 
             this.interfaz.close(this, notify ? reason : "");
             this.getServer().removePlayer(this);
         }
+    }
+
+    public void sendMessage(String message) {
+        TextPacket pk = new TextPacket();
+        pk.type = TextPacket.TYPE_RAW;
+        pk.message = message;
+
+        this.sendDataPacket(pk);
     }
 
     public int rawHashCode() {

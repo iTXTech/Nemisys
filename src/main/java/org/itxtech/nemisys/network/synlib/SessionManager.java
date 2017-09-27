@@ -1,14 +1,13 @@
 package org.itxtech.nemisys.network.synlib;
 
 import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.utils.MainLogger;
 
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Author: PeratX
@@ -17,26 +16,29 @@ import java.util.*;
 public class SessionManager {
     private SynapseServer server;
     private Map<String, Channel> sessions = new HashMap<>();
-
-    public SessionManager(SynapseServer server){
-        this.server = server;
-    }
-
-    public void run(){
-        this.tickProcessor();
-        for(Channel channel: this.sessions.values()) {
-            channel.close();
-        }
-    }
-
     private long nextTick;
     private int tickCounter;
     private float[] tickAverage = {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
     private float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     private float maxTick = 100;
     private float maxUse = 0;
+    public SessionManager(SynapseServer server) {
+        this.server = server;
+    }
 
-    public void tickProcessor(){
+    public static String getChannelHash(Channel channel) {
+        InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
+        return address.getAddress().getHostAddress() + ":" + address.getPort();
+    }
+
+    public void run() {
+        this.tickProcessor();
+        for (Channel channel : this.sessions.values()) {
+            channel.close();
+        }
+    }
+
+    public void tickProcessor() {
         this.nextTick = System.currentTimeMillis();
         while (!this.server.isShutdown()) {
             try {
@@ -54,19 +56,19 @@ public class SessionManager {
         this.server.workerGroup.shutdownGracefully();
     }
 
-    public Map<String, Channel> getSessions(){
+    public Map<String, Channel> getSessions() {
         return this.sessions;
     }
 
-    public SynapseServer getServer(){
+    public SynapseServer getServer() {
         return this.server;
     }
 
-    private boolean sendPacket(){
+    private boolean sendPacket() {
         SynapseClientPacket data = this.server.readMainToThreadPacket();
-        if(data != null){
+        if (data != null) {
             String hash = data.getHash();
-            if(this.sessions.containsKey(hash)){
+            if (this.sessions.containsKey(hash)) {
                 this.sessions.get(hash).writeAndFlush(data.getPacket());
                 Server.getInstance().getLogger().debug("server-writeAndFlush: hash=" + hash);
             }
@@ -75,10 +77,10 @@ public class SessionManager {
         return false;
     }
 
-    private boolean closeSessions(){
+    private boolean closeSessions() {
         String hash = this.server.getExternalClientCloseRequest();
-        if(hash != null){
-            if(this.sessions.containsKey(hash)){
+        if (hash != null) {
+            if (this.sessions.containsKey(hash)) {
                 this.sessions.get(hash).close();
                 this.sessions.remove(hash);
             }
@@ -96,7 +98,7 @@ public class SessionManager {
 
         ++this.tickCounter;
         try {
-            while (this.sendPacket());
+            while (this.sendPacket()) ;
             while (this.closeSessions()) ;
         } catch (Exception e) {
             MainLogger.getLogger().logException(e);
@@ -164,11 +166,6 @@ public class SessionManager {
             sum += aUseAverage;
         }
         return ((float) Math.round(sum / count * 100)) / 100;
-    }
-
-    public static String getChannelHash(Channel channel) {
-        InetSocketAddress address = (InetSocketAddress)channel.remoteAddress();
-        return address.getAddress().getHostAddress() + ":" + address.getPort();
     }
 
 }

@@ -5,22 +5,20 @@ import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.network.synlib.SynapseClientPacket;
 import org.itxtech.nemisys.network.synlib.SynapseServer;
-import org.itxtech.nemisys.utils.Binary;
-import org.itxtech.nemisys.utils.Utils;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by boybook on 16/6/24.
  */
 public class SynapseInterface {
 
+    private static Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private Server server;
     private String ip;
     private int port;
     private Map<String, Client> clients = new HashMap<>();
-    private static Map<Byte, SynapseDataPacket> packetPool = new HashMap<>();
     private SynapseServer interfaz;
 
     public SynapseInterface(Server server, String ip, int port) {
@@ -31,7 +29,21 @@ public class SynapseInterface {
         this.interfaz = new SynapseServer(server.getLogger(), this, port, ip);
     }
 
-    public SynapseServer getInterface(){
+    public static SynapseDataPacket getPacket(byte pid, byte[] buffer) {
+        SynapseDataPacket clazz = packetPool.get(pid);
+        if (clazz != null) {
+            SynapseDataPacket pk = clazz.clone();
+            pk.setBuffer(buffer, 0);
+            return pk;
+        }
+        return null;
+    }
+
+    public static void registerPacket(byte id, SynapseDataPacket packet) {
+        packetPool.put(id, packet);
+    }
+
+    public SynapseServer getInterface() {
         return this.interfaz;
     }
 
@@ -55,9 +67,9 @@ public class SynapseInterface {
         this.interfaz.pushMainToThreadPacket(new SynapseClientPacket(client.getHash(), pk));
     }
 
-    private boolean openClients(){
+    private boolean openClients() {
         String open = this.interfaz.getClientOpenRequest();
-        if(open != null) {
+        if (open != null) {
             String[] arr = open.split(":");
             this.addClient(arr[0], Integer.parseInt(arr[1]));
             return true;
@@ -65,19 +77,19 @@ public class SynapseInterface {
         return false;
     }
 
-    private boolean processPackets(){
+    private boolean processPackets() {
         SynapseClientPacket pk = this.interfaz.readThreadToMainPacket();
-        if(pk != null) {
+        if (pk != null) {
             this.handlePacket(pk.getHash(), pk.getPacket());
             return true;
         }
         return false;
     }
 
-    private boolean closeClients(){
+    private boolean closeClients() {
         String close = this.interfaz.getInternalClientCloseRequest();
-        if(close != null) {
-            if(this.clients.containsKey(close)){
+        if (close != null) {
+            if (this.clients.containsKey(close)) {
                 this.clients.get(close).close();
                 this.clients.remove(close);
             }
@@ -87,19 +99,9 @@ public class SynapseInterface {
     }
 
     public void process() {
-        while(this.openClients());
-        while(this.processPackets());
-        while(this.closeClients());
-    }
-
-    public static SynapseDataPacket getPacket(byte pid, byte[] buffer) {
-        SynapseDataPacket clazz = packetPool.get(pid);
-        if (clazz != null) {
-            SynapseDataPacket pk = clazz.clone();
-            pk.setBuffer(buffer, 0);
-            return pk;
-        }
-        return null;
+        while (this.openClients()) ;
+        while (this.processPackets()) ;
+        while (this.closeClients()) ;
     }
 
     public void handlePacket(String hash, SynapseDataPacket pk) {
@@ -111,10 +113,6 @@ public class SynapseInterface {
         } else {
             this.server.getLogger().critical("Error packet");
         }
-    }
-
-    public static void registerPacket(byte id, SynapseDataPacket packet) {
-        packetPool.put(id, packet);
     }
 
     private void registerPackets() {
@@ -129,5 +127,6 @@ public class SynapseInterface {
         registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
         registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
         registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
+        registerPacket(SynapseInfo.PLUGIN_MESSAGE_PACKET, new PluginMessagePacket());
     }
 }

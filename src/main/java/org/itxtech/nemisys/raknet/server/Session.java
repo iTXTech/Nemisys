@@ -27,14 +27,14 @@ public class Session {
     public final static int MAX_SPLIT_SIZE = 128;
     public final static int MAX_SPLIT_COUNT = 4;
 
-    public static final int WINDOW_SIZE = 2048;
+    public static int WINDOW_SIZE = 2048;
 
     private int messageIndex = 0;
-    private final Map<Integer, Integer> channelIndex = new ConcurrentHashMap<>();
+    private Map<Integer, Integer> channelIndex = new ConcurrentHashMap<>();
 
     private SessionManager sessionManager;
-    private final String address;
-    private final int port;
+    private String address;
+    private int port;
     private int state = STATE_UNCONNECTED;
     //private List<EncapsulatedPacket> preJoinQueue = new ArrayList<>();
     private int mtuSize = 548; //Min size
@@ -45,32 +45,32 @@ public class Session {
     private int lastSeqNumber = -1;
 
     private long lastUpdate;
-    private final long startTime;
+    private long startTime;
 
     private boolean isTemporal = true;
 
-    private final List<DataPacket> packetToSend = new ArrayList<>();
+    private List<DataPacket> packetToSend = new ArrayList<>();
 
     private boolean isActive;
 
     private Map<Integer, Integer> ACKQueue = new HashMap<>();
     private Map<Integer, Integer> NACKQueue = new HashMap<>();
 
-    private final Map<Integer, DataPacket> recoveryQueue = new TreeMap<>();
+    private Map<Integer, DataPacket> recoveryQueue = new TreeMap<>();
 
-    private final Map<Integer, Map<Integer, EncapsulatedPacket>> splitPackets = new HashMap<>();
+    private Map<Integer, Map<Integer, EncapsulatedPacket>> splitPackets = new HashMap<>();
 
-    private final Map<Integer, Map<Integer, Integer>> needACK = new TreeMap<>();
+    private Map<Integer, Map<Integer, Integer>> needACK = new TreeMap<>();
 
     private DataPacket sendQueue;
 
     private int windowStart;
-    private final Map<Integer, Integer> receivedWindow = new TreeMap<>();
+    private Map<Integer, Integer> receivedWindow = new TreeMap<>();
     private int windowEnd;
 
     private int reliableWindowStart;
     private int reliableWindowEnd;
-    private final Map<Integer, EncapsulatedPacket> reliableWindow = new TreeMap<>();
+    private Map<Integer, EncapsulatedPacket> reliableWindow = new TreeMap<>();
     private int lastReliableIndex = -1;
 
     public Session(SessionManager sessionManager, String address, int port) {
@@ -265,27 +265,31 @@ public class Session {
         }
 
         if (packet.getTotalLength() + 4 > this.mtuSize) {
-            byte[][] buffers = Binary.splitBytes(packet.buffer, this.mtuSize - 34);
-            int splitID = ++this.splitID % 65536;
-            for (int count = 0; count < buffers.length; count++) {
-                byte[] buffer = buffers[count];
-                EncapsulatedPacket pk = new EncapsulatedPacket();
-                pk.splitID = splitID;
-                pk.hasSplit = true;
-                pk.splitCount = buffers.length;
-                pk.reliability = packet.reliability;
-                pk.splitIndex = count;
-                pk.buffer = buffer;
-                if (count > 0) {
-                    pk.messageIndex = this.messageIndex++;
-                } else {
-                    pk.messageIndex = packet.messageIndex;
+            try {
+                byte[][] buffers = Binary.splitBytes(packet.buffer, this.mtuSize - 34);
+                int splitID = ++this.splitID % 65536;
+                for (int count = 0; count < buffers.length; count++) {
+                    byte[] buffer = buffers[count];
+                    EncapsulatedPacket pk = new EncapsulatedPacket();
+                    pk.splitID = splitID;
+                    pk.hasSplit = true;
+                    pk.splitCount = buffers.length;
+                    pk.reliability = packet.reliability;
+                    pk.splitIndex = count;
+                    pk.buffer = buffer;
+                    if (count > 0) {
+                        pk.messageIndex = this.messageIndex++;
+                    } else {
+                        pk.messageIndex = packet.messageIndex;
+                    }
+                    if (pk.reliability == 3) {
+                        pk.orderChannel = packet.orderChannel;
+                        pk.orderIndex = packet.orderIndex;
+                    }
+                    this.addToQueue(pk, flags | RakNet.PRIORITY_IMMEDIATE);
                 }
-                if (pk.reliability == 3) {
-                    pk.orderChannel = packet.orderChannel;
-                    pk.orderIndex = packet.orderIndex;
-                }
-                this.addToQueue(pk, flags | RakNet.PRIORITY_IMMEDIATE);
+            } catch (Exception e) {
+                this.sessionManager.getLogger().alert(Utils.getExceptionMessage(e));
             }
         } else {
             this.addToQueue(packet, flags);
@@ -424,33 +428,11 @@ public class Session {
                 sendPacket.reliability = 0;
                 sendPacket.buffer = pk.buffer;
                 this.addToQueue(sendPacket);
-
-                //Latency measurement
-                PING_DataPacket pingPacket = new PING_DataPacket();
-                pingPacket.pingID = System.currentTimeMillis();
-                pingPacket.encode();
-
-                sendPacket = new EncapsulatedPacket();
-                sendPacket.reliability = 0;
-                sendPacket.buffer = pingPacket.buffer;
-                this.addToQueue(sendPacket);
-            } else if (id == PONG_DataPacket.ID) {
-                if (state == STATE_CONNECTED) {
-                    PONG_DataPacket dataPacket = new PONG_DataPacket();
-                    dataPacket.buffer = packet.buffer;
-                    dataPacket.decode();
-
-                    if (state == STATE_CONNECTED) {
-                        PING_DataPacket pingPacket = new PING_DataPacket();
-                        pingPacket.pingID = (System.currentTimeMillis() - dataPacket.pingID) / 10;
-                        pingPacket.encode();
-                        packet.buffer = pingPacket.buffer;
-                        this.sessionManager.streamEncapsulated(this, packet);
-                    }
-                }
+                //TODO: add PING/PONG (0x00/0x03) automatic latency measure
             }
         } else if (state == STATE_CONNECTED) {
             this.sessionManager.streamEncapsulated(this, packet);
+            //TODO: stream channels
         } else {
             //this.sessionManager.getLogger().notice("Received packet before connection: "+Binary.bytesToHexString(packet.buffer));
         }
@@ -546,8 +528,8 @@ public class Session {
     }
 
     public void close() throws Exception {
-        byte[] data = new byte[]{0x60, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15}; //CLIENT_DISCONNECT packet 0x15
-        this.addEncapsulatedToQueue(EncapsulatedPacket.fromBinary(data));
+        byte[] data = new byte[]{0x00, 0x00, 0x08, 0x15}; //CLIENT_DISCONNECT packet 0x15
+        this.addEncapsulatedToQueue(EncapsulatedPacket.fromBinary(data), RakNet.PRIORITY_IMMEDIATE);
         this.sessionManager = null;
     }
 }

@@ -7,14 +7,9 @@ import org.itxtech.nemisys.synapse.SynapsePlayer;
 /**
  * Created by boybook on 16/6/25.
  */
-public class SynapsePlayerConnectEvent extends SynapsePlayerEvent implements Cancellable{
+public class SynapsePlayerConnectEvent extends SynapsePlayerEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private boolean firstTime;
 
     public SynapsePlayerConnectEvent(SynapsePlayer player) {
@@ -24,6 +19,10 @@ public class SynapsePlayerConnectEvent extends SynapsePlayerEvent implements Can
     public SynapsePlayerConnectEvent(SynapsePlayer player, boolean firstTime) {
         super(player);
         this.firstTime = firstTime;
+    }
+
+    public static HandlerList getHandlers() {
+        return handlers;
     }
 
     public boolean isFirstTime() {

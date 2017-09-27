@@ -3,8 +3,8 @@ package org.itxtech.nemisys.network;
 import org.itxtech.nemisys.Nemisys;
 import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
+import org.itxtech.nemisys.event.player.PlayerCreationEvent;
 import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
-import org.itxtech.nemisys.event.synapse.player.SynapsePlayerCreationEvent;
 import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
@@ -14,7 +14,6 @@ import org.itxtech.nemisys.raknet.protocol.packet.PING_DataPacket;
 import org.itxtech.nemisys.raknet.server.RakNetServer;
 import org.itxtech.nemisys.raknet.server.ServerHandler;
 import org.itxtech.nemisys.raknet.server.ServerInstance;
-import org.itxtech.nemisys.synapse.SynapsePlayer;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.Utils;
@@ -32,21 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RakNetInterface implements ServerInstance, AdvancedSourceInterface {
 
     private final Server server;
-
-    private Network network;
-
     private final RakNetServer raknet;
-
     private final Map<String, Player> players = new ConcurrentHashMap<>();
-
     private final Map<String, Integer> networkLatency = new ConcurrentHashMap<>();
-
     private final Map<Integer, String> identifiers = new ConcurrentHashMap<>();
-
     private final Map<String, Integer> identifiersACK = new ConcurrentHashMap<>();
-
     private final ServerHandler handler;
-
+    private Network network;
     private int[] channelCounts = new int[256];
 
     public RakNetInterface(Server server) {
@@ -120,12 +111,21 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
 
     @Override
     public void openSession(String identifier, String address, int port, long clientID) {
-        Player player = new Player(this, clientID, address, port);
-        this.players.put(identifier, player);
-        this.networkLatency.put(identifier, 0);
-        this.identifiersACK.put(identifier, 0);
-        this.identifiers.put(player.rawHashCode(), identifier);
-        this.server.addPlayer(identifier, player);
+        PlayerCreationEvent ev = new PlayerCreationEvent(this, Player.class, Player.class, null, address, port);
+        this.server.getPluginManager().callEvent(ev);
+        Class<? extends Player> clazz = ev.getPlayerClass();
+
+        try {
+            Constructor constructor = clazz.getConstructor(SourceInterface.class, Long.class, String.class, int.class);
+            Player player = (Player) constructor.newInstance(this, ev.getClientId(), ev.getAddress(), ev.getPort());
+            this.players.put(identifier, player);
+            this.networkLatency.put(identifier, 0);
+            this.identifiersACK.put(identifier, 0);
+            this.identifiers.put(player.rawHashCode(), identifier);
+            this.server.addPlayer(identifier, player);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            Server.getInstance().getLogger().logException(e);
+        }
     }
 
     @Override
