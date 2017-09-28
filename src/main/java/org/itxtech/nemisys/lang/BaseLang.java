@@ -177,6 +177,7 @@ public class BaseLang {
     }
 
     protected String parseTranslation(String text, String onlyPrefix) {
+        if (text == null) return "";
         String newString = "";
 
         String replaceString = null;

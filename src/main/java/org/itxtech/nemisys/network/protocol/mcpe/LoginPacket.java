@@ -24,6 +24,7 @@ public class LoginPacket extends DataPacket {
     public long clientId;
 
     public Skin skin;
+    public byte[] cacheBuffer;
 
     @Override
     public byte pid() {
@@ -32,6 +33,7 @@ public class LoginPacket extends DataPacket {
 
     @Override
     public void decode() {
+        this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
         this.setBuffer(this.getByteArray(), 0);
         decodeChainData();

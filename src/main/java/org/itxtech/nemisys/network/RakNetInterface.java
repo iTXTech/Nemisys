@@ -111,12 +111,12 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
 
     @Override
     public void openSession(String identifier, String address, int port, long clientID) {
-        PlayerCreationEvent ev = new PlayerCreationEvent(this, Player.class, Player.class, null, address, port);
+        PlayerCreationEvent ev = new PlayerCreationEvent(this, Player.class, Player.class, clientID, address, port);
         this.server.getPluginManager().callEvent(ev);
         Class<? extends Player> clazz = ev.getPlayerClass();
 
         try {
-            Constructor constructor = clazz.getConstructor(SourceInterface.class, Long.class, String.class, int.class);
+            Constructor constructor = clazz.getConstructor(SourceInterface.class, long.class, String.class, int.class);
             Player player = (Player) constructor.newInstance(this, ev.getClientId(), ev.getAddress(), ev.getPort());
             this.players.put(identifier, player);
             this.networkLatency.put(identifier, 0);
