@@ -2,7 +2,9 @@ package org.itxtech.nemisys.utils;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -11,10 +13,11 @@ import java.util.UUID;
  */
 public class BinaryStream {
 
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     public int offset;
     private byte[] buffer = new byte[32];
     private int count;
+
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     public BinaryStream() {
         this.buffer = new byte[32];
@@ -32,19 +35,15 @@ public class BinaryStream {
         this.count = buffer.length;
     }
 
-    private static int hugeCapacity(int minCapacity) {
-        if (minCapacity < 0) { // overflow
-            throw new OutOfMemoryError();
-        }
-        return (minCapacity > MAX_ARRAY_SIZE) ?
-                Integer.MAX_VALUE :
-                MAX_ARRAY_SIZE;
-    }
-
     public void reset() {
         this.buffer = new byte[32];
         this.offset = 0;
         this.count = 0;
+    }
+
+    public void setBuffer(byte[] buffer) {
+        this.buffer = buffer;
+        this.count = buffer == null ? -1 : buffer.length;
     }
 
     public void setBuffer(byte[] buffer, int offset) {
@@ -62,11 +61,6 @@ public class BinaryStream {
 
     public byte[] getBuffer() {
         return Arrays.copyOf(buffer, count);
-    }
-
-    public void setBuffer(byte[] buffer) {
-        this.buffer = buffer;
-        this.count = buffer == null ? -1 : buffer.length;
     }
 
     public int getCount() {
@@ -96,15 +90,6 @@ public class BinaryStream {
 
         System.arraycopy(bytes, 0, this.buffer, this.count, bytes.length);
         this.count += bytes.length;
-    }
-
-    public byte[] getByteArray() {
-        return this.get((int) this.getUnsignedVarInt());
-    }
-
-    public void putByteArray(byte[] b) {
-        this.putUnsignedVarInt(b.length);
-        this.put(b);
     }
 
     public long getLong() {
@@ -147,14 +132,6 @@ public class BinaryStream {
         this.put(Binary.writeShort(s));
     }
 
-    public short getSignedShort() {
-        return Binary.readSignedShort(this.get(2));
-    }
-
-    public void putSignedShort(short s) {
-        this.put(Binary.writeShort(s));
-    }
-
     public int getLShort() {
         return Binary.readLShort(this.get(2));
     }
@@ -163,16 +140,12 @@ public class BinaryStream {
         this.put(Binary.writeLShort(s));
     }
 
-    public short getSignedLShort() {
-        return Binary.readSignedLShort(this.get(2));
-    }
-
-    public void putSignedLShort(short s) {
-        this.put(Binary.writeLShort(s));
-    }
-
     public float getFloat() {
-        return Binary.readFloat(this.get(4));
+        return getFloat(-1);
+    }
+
+    public float getFloat(int accuracy) {
+        return Binary.readFloat(this.get(4), accuracy);
     }
 
     public void putFloat(float v) {
@@ -180,7 +153,11 @@ public class BinaryStream {
     }
 
     public float getLFloat() {
-        return Binary.readLFloat(this.get(4));
+        return getLFloat(-1);
+    }
+
+    public float getLFloat(int accuracy) {
+        return Binary.readLFloat(this.get(4), accuracy);
     }
 
     public void putLFloat(float v) {
@@ -203,10 +180,6 @@ public class BinaryStream {
         this.put(Binary.writeLTriad(triad));
     }
 
-    public byte getSignedByte() {
-        return this.buffer[this.offset++];
-    }
-
     public boolean getBoolean() {
         return this.getByte() == 0x01;
     }
@@ -223,25 +196,6 @@ public class BinaryStream {
         this.put(new byte[]{b});
     }
 
-    public byte[][] getDataArray() {
-        return this.getDataArray(10);
-    }
-
-    public byte[][] getDataArray(int len) {
-        byte[][] data = new byte[len][];
-        for (int i = 0; i < len && !this.feof(); ++i) {
-            data[i] = this.get(this.getTriad());
-        }
-        return data;
-    }
-
-    public void putDataArray(byte[][] data) {
-        for (byte[] v : data) {
-            this.putTriad(v.length);
-            this.put(v);
-        }
-    }
-
     public void putUUID(UUID uuid) {
         this.put(Binary.writeUUID(uuid));
     }
@@ -252,24 +206,31 @@ public class BinaryStream {
 
     public void putSkin(Skin skin) {
         this.putString(skin.getModel());
-        this.putUnsignedVarInt(skin.getData().length);
-        this.put(skin.getData());
+        this.putByteArray(skin.getData());
     }
 
     public Skin getSkin() {
         String modelId = this.getString();
-        byte[] skinData = this.get((int) this.getUnsignedVarInt());
+        byte[] skinData = this.getByteArray();
         return new Skin(skinData, modelId);
     }
 
+    public byte[] getByteArray() {
+        return this.get((int) this.getUnsignedVarInt());
+    }
+
+    public void putByteArray(byte[] b) {
+        this.putUnsignedVarInt(b.length);
+        this.put(b);
+    }
+
     public String getString() {
-        return new String(this.get((int) this.getUnsignedVarInt()), StandardCharsets.UTF_8);
+        return new String(this.getByteArray(), StandardCharsets.UTF_8);
     }
 
     public void putString(String string) {
         byte[] b = string.getBytes(StandardCharsets.UTF_8);
-        this.putUnsignedVarInt(b.length);
-        this.put(b);
+        this.putByteArray(b);
     }
 
     public long getUnsignedVarInt() {
@@ -296,24 +257,42 @@ public class BinaryStream {
         VarInt.writeVarLong(this, v);
     }
 
-    public BigInteger getUnsignedVarLong() {
+    public long getUnsignedVarLong() {
         return VarInt.readUnsignedVarLong(this);
     }
 
     public void putUnsignedVarLong(long v) {
-        VarInt.writeUnsignedVarLong(this, BigInteger.valueOf(v));
-    }
-
-    public void putUnsignedVarLong(BigInteger v) {
         VarInt.writeUnsignedVarLong(this, v);
     }
 
-    public long getEntityId() {
+    /**
+     * Reads and returns an EntityUniqueID
+     *
+     * @return int
+     */
+    public long getEntityUniqueId() {
         return this.getVarLong();
     }
 
-    public void putEntityId(long v) {
-        this.putVarLong(v);
+    /**
+     * Writes an EntityUniqueID
+     */
+    public void putEntityUniqueId(long eid) {
+        this.putVarLong(eid);
+    }
+
+    /**
+     * Reads and returns an EntityRuntimeID
+     */
+    public long getEntityRuntimeId() {
+        return this.getUnsignedVarLong();
+    }
+
+    /**
+     * Writes an EntityUniqueID
+     */
+    public void putEntityRuntimeId(long eid) {
+        this.putUnsignedVarLong(eid);
     }
 
     public boolean feof() {
@@ -340,5 +319,14 @@ public class BinaryStream {
             newCapacity = hugeCapacity(minCapacity);
         }
         this.buffer = Arrays.copyOf(buffer, newCapacity);
+    }
+
+    private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0) { // overflow
+            throw new OutOfMemoryError();
+        }
+        return (minCapacity > MAX_ARRAY_SIZE) ?
+                Integer.MAX_VALUE :
+                MAX_ARRAY_SIZE;
     }
 }

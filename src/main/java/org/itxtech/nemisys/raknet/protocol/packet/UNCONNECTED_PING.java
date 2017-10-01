@@ -16,6 +16,7 @@ public class UNCONNECTED_PING extends Packet {
     }
 
     public long pingID;
+    public byte[] magic;
 
     @Override
     public void encode() {
@@ -28,6 +29,7 @@ public class UNCONNECTED_PING extends Packet {
     public void decode() {
         super.decode();
         this.pingID = this.getLong();
+        this.magic = this.get();
     }
 
     public static final class Factory implements Packet.PacketFactory {

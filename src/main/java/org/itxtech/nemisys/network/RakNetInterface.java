@@ -8,16 +8,13 @@ import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
 import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
-import org.itxtech.nemisys.raknet.RakNet;
 import org.itxtech.nemisys.raknet.protocol.EncapsulatedPacket;
 import org.itxtech.nemisys.raknet.protocol.packet.PING_DataPacket;
 import org.itxtech.nemisys.raknet.server.RakNetServer;
 import org.itxtech.nemisys.raknet.server.ServerHandler;
 import org.itxtech.nemisys.raknet.server.ServerInstance;
-import org.itxtech.nemisys.utils.Binary;
-import org.itxtech.nemisys.utils.MainLogger;
-import org.itxtech.nemisys.utils.Utils;
-import org.itxtech.nemisys.utils.Zlib;
+import org.itxtech.nemisys.raknet.RakNet;
+import org.itxtech.nemisys.utils.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -43,7 +40,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
     public RakNetInterface(Server server) {
         this.server = server;
 
-        this.raknet = new RakNetServer(this.server.getLogger(), this.server.getPort(), this.server.getIp().equals("") ? "0.0.0.0" : this.server.getIp());
+        this.raknet = new RakNetServer(server.getLogger(), this.server.getPort(), this.server.getIp().equals("") ? "0.0.0.0" : this.server.getIp());
         this.handler = new ServerHandler(this.raknet, this);
     }
 
@@ -111,12 +108,12 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
 
     @Override
     public void openSession(String identifier, String address, int port, long clientID) {
-        PlayerCreationEvent ev = new PlayerCreationEvent(this, Player.class, Player.class, null, address, port);
+        PlayerCreationEvent ev = new PlayerCreationEvent(this, Player.class, Player.class, clientID, address, port);
         this.server.getPluginManager().callEvent(ev);
         Class<? extends Player> clazz = ev.getPlayerClass();
 
         try {
-            Constructor constructor = clazz.getConstructor(SourceInterface.class, Long.class, String.class, int.class);
+            Constructor constructor = clazz.getConstructor(SourceInterface.class, long.class, String.class, int.class);
             Player player = (Player) constructor.newInstance(this, ev.getClientId(), ev.getAddress(), ev.getPort());
             this.players.put(identifier, player);
             this.networkLatency.put(identifier, 0);
@@ -240,7 +237,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                 try {
                     buffer = Zlib.deflate(
                             Binary.appendBytes(Binary.writeUnsignedVarInt(buffer.length), buffer),
-                            /*Server.getInstance().networkCompressionLevel*/8);
+                            /*Server.getInstance().networkCompressionLevel*/7);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

@@ -130,7 +130,7 @@ public class Network {
                 DataPacket pk;
 
                 if ((pk = this.getPacket(buf[0])) != null) {
-                    pk.setBuffer(buf, 1);
+                    pk.setBuffer(buf, 3); //skip 2 more bytes
 
                     pk.decode();
 
@@ -156,10 +156,7 @@ public class Network {
      */
     public void processPackets(Player player, List<DataPacket> packets) {
         if (packets.isEmpty()) return;
-        List<Byte> filter = new ArrayList<>();
-        for (DataPacket packet : packets) {
-            player.handleDataPacket(packet);
-        }
+        packets.forEach(player::handleDataPacket);
     }
 
 
