@@ -16,7 +16,7 @@ public class SynapsePlayer extends Player {
     protected SynapseEntry synapseEntry;
     private boolean isFirstTimeLogin = false;
 
-    public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
+    public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, long clientID, String ip, int port) {
         super(interfaz, clientID, ip, port);
         this.synapseEntry = synapseEntry;
     }

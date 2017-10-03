@@ -221,6 +221,7 @@ public class Player {
     }
 
     public void sendDataPacket(DataPacket pk, boolean direct, boolean needACK) {
+        System.out.println("Sending data packet to player with id "+pk.pid());
         this.interfaz.putPacket(this, pk, needACK, direct);
     }
 

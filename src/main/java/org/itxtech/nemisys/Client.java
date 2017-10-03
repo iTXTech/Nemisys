@@ -158,7 +158,7 @@ public class Client {
                     DataPacket send;
                     if (buffer.length > 0 && buffer[0] == (byte) 0xfe) {
                         send = new BatchPacket();
-                        send.setBuffer(buffer, 1);
+                        send.setBuffer(buffer, 3);
                         send.decode();
                     } else {
                         send = new GenericPacket();

@@ -28,7 +28,7 @@ public class PlayerCreationEvent extends Event {
 
     private Class<? extends Player> playerClass;
 
-    public PlayerCreationEvent(SourceInterface interfaz, Class<? extends Player> baseClass, Class<? extends Player> playerClass, Long clientId, String address, int port) {
+    public PlayerCreationEvent(SourceInterface interfaz, Class<? extends Player> baseClass, Class<? extends Player> playerClass, long clientId, String address, int port) {
         this.interfaz = interfaz;
         this.clientId = clientId;
         this.address = address;
@@ -50,7 +50,7 @@ public class PlayerCreationEvent extends Event {
         return port;
     }
 
-    public Long getClientId() {
+    public long getClientId() {
         return clientId;
     }
 

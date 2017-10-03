@@ -20,12 +20,11 @@ public class LoginPacket extends DataPacket {
 
     public String username;
     public int protocol;
-    public byte gameEdition;
     public UUID clientUUID;
     public long clientId;
-    public byte[] cacheBuffer;
 
     public Skin skin;
+    public byte[] cacheBuffer;
 
     @Override
     public byte pid() {
@@ -36,7 +35,6 @@ public class LoginPacket extends DataPacket {
     public void decode() {
         this.cacheBuffer = this.getBuffer();
         this.protocol = this.getInt();
-        this.gameEdition = (byte) this.getByte();
         this.setBuffer(this.getByteArray(), 0);
         decodeChainData();
         decodeSkinData();
