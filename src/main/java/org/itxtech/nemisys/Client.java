@@ -10,6 +10,7 @@ import org.itxtech.nemisys.network.SynapseInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.*;
 import org.itxtech.nemisys.network.protocol.spp.DisconnectPacket;
+import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.TextFormat;
 
@@ -166,7 +167,7 @@ public class Client {
                     }
 
                     this.players.get(uuid).sendDataPacket(send, ((RedirectPacket) packet).direct);
-                    //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{((RedirectPacket) packet).mcpeBuffer[0]}) + "  len: " + ((RedirectPacket) packet).mcpeBuffer.length);
+                    this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(send.getBuffer()) + "  len: " + send.getBuffer().length);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
 				}*/
