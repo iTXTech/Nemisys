@@ -6,10 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import org.itxtech.nemisys.utils.Skin;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by on 15-10-13.
@@ -34,6 +31,7 @@ public class LoginPacket extends DataPacket {
     @Override
     public void decode() {
         this.cacheBuffer = this.getBuffer();
+
         this.protocol = this.getInt();
         this.setBuffer(this.getByteArray(), 0);
         decodeChainData();

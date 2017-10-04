@@ -3,7 +3,9 @@ package org.itxtech.nemisys.utils;
 import org.itxtech.nemisys.math.NemisysMath;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -11,6 +13,30 @@ import java.util.UUID;
  * Nukkit Project
  */
 public class Binary {
+
+    public static int signByte(int value) {
+        return value << 56 >> 56;
+    }
+
+    public static int unsignByte(int value) {
+        return value & 0xff;
+    }
+
+    public static int signShort(int value) {
+        return value << 48 >> 48;
+    }
+
+    public int unsignShort(int value) {
+        return value & 0xffff;
+    }
+
+    public static int signInt(int value) {
+        return value << 32 >> 32;
+    }
+
+    public static int unsignInt(int value) {
+        return value;
+    }
 
     //Triad: {0x00,0x00,0x01}<=>1
     public static int readTriad(byte[] bytes) {
@@ -364,6 +390,4 @@ public class Binary {
         }
         return buffer.array();
     }
-
-
 }

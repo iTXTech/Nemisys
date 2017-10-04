@@ -156,10 +156,7 @@ public class Network {
      */
     public void processPackets(Player player, List<DataPacket> packets) {
         if (packets.isEmpty()) return;
-        List<Byte> filter = new ArrayList<>();
-        for (DataPacket packet : packets) {
-            player.handleDataPacket(packet);
-        }
+        packets.forEach(player::handleDataPacket);
     }
 
 
