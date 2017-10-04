@@ -381,7 +381,6 @@ public class Client {
     }
 
     public void close(String reason, boolean needPk, byte type) {
-        Thread.dumpStack();
         ClientDisconnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new ClientDisconnectEvent(this, reason, type));
         reason = ev.getReason();
