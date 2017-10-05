@@ -27,6 +27,7 @@ public class SynapsePlayer extends Player {
         this.getServer().getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
         if (!ev.isCancelled()) {
             DataPacket pk = this.getSynapseEntry().getSynapse().getPacket(packet.cachedLoginPacket);
+            pk.setOffset(3);
             pk.decode();
             this.handleDataPacket(pk);
         }
