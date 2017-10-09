@@ -249,7 +249,6 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     packet.encapsulatedPacket = new CacheEncapsulatedPacket();
                     packet.encapsulatedPacket.identifierACK = null;
                     packet.encapsulatedPacket.buffer = Binary.appendBytes((byte) 0xfe, buffer);
-                    this.server.getLogger().notice("EncapsulatedPacket: " + Binary.bytesToHexString(packet.encapsulatedPacket.buffer) + "  len: " + packet.encapsulatedPacket.buffer.length);
                     if (packet.getChannel() != 0) {
                         packet.encapsulatedPacket.reliability = 3;
                         packet.encapsulatedPacket.orderChannel = packet.getChannel();
@@ -270,7 +269,6 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
             if (pk == null) {
                 pk = new EncapsulatedPacket();
                 pk.buffer = Binary.appendBytes((byte) 0xfe, buffer);
-                this.server.getLogger().notice("EncapsulatedPacket: " + Binary.bytesToHexString(pk.buffer) + "  len: " + pk.buffer.length);
                 if (packet.getChannel() != 0) {
                     packet.reliability = 3;
                     packet.orderChannel = packet.getChannel();

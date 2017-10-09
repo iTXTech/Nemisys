@@ -167,7 +167,7 @@ public class Client {
                     }
 
                     this.players.get(uuid).sendDataPacket(send, ((RedirectPacket) packet).direct);
-                    this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(send.getBuffer()) + "  len: " + send.getBuffer().length);
+                    //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(send.getBuffer()) + "  len: " + send.getBuffer().length);
                 }/*else{
 					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
 				}*/
