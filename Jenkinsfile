@@ -14,7 +14,6 @@ pipeline {
             }
             post {
                 success {
-                    junit 'target/surefire-reports/**/*.xml'
                     archiveArtifacts artifacts: 'target/nemisys-*-SNAPSHOT.jar', fingerprint: true
                     step([
                         $class: 'JavadocArchiver',
