@@ -206,6 +206,7 @@ public class Player {
             this.isFirstTimeLogin = false;
 
             this.server.getLogger().info(this.name + " has been transferred to " + this.client.getDescription());
+            this.server.updateClientData();
         }
     }
 
