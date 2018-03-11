@@ -159,7 +159,7 @@ public class Server {
         this.synapseInterface = new SynapseInterface(this, this.getSynapseIp(), this.getSynapsePort());
 
         this.pluginManager.loadPlugins(this.pluginPath);
-        this.enablePlugins(PluginLoadOrder.STARTUP);
+        this.enablePlugins();
 
         if (this.getPropertyBoolean("enable-synapse-client")) {
             try {
@@ -247,12 +247,12 @@ public class Server {
         return (truePass.equals(pass));
     }
 
-    public void enablePlugins(PluginLoadOrder type) {
-        for (Plugin plugin : this.pluginManager.getPlugins().values()) {
-            if (!plugin.isEnabled() && type == plugin.getDescription().getOrder()) {
-                this.enablePlugin(plugin);
+    public void enablePlugins() {
+        this.pluginManager.getPlugins().values().forEach((p) -> {
+            if(!p.isEnabled()) {
+                enablePlugin(p);
             }
-        }
+        });
     }
 
     public void enablePlugin(Plugin plugin) {
