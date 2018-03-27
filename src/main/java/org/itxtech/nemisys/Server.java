@@ -17,7 +17,6 @@ import org.itxtech.nemisys.network.query.QueryHandler;
 import org.itxtech.nemisys.network.rcon.RCON;
 import org.itxtech.nemisys.plugin.JavaPluginLoader;
 import org.itxtech.nemisys.plugin.Plugin;
-import org.itxtech.nemisys.plugin.PluginLoadOrder;
 import org.itxtech.nemisys.plugin.PluginManager;
 import org.itxtech.nemisys.scheduler.ServerScheduler;
 import org.itxtech.nemisys.synapse.Synapse;
@@ -249,7 +248,7 @@ public class Server {
 
     public void enablePlugins() {
         this.pluginManager.getPlugins().values().forEach((p) -> {
-            if(!p.isEnabled()) {
+            if (!p.isEnabled()) {
                 enablePlugin(p);
             }
         });
