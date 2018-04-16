@@ -72,6 +72,7 @@ public class Server {
     private QueryRegenerateEvent queryRegenerateEvent;
     private Config properties;
     private Map<String, Player> players = new ConcurrentHashMap<>();
+    private Map<UUID, Player> playersUUIDs = new ConcurrentHashMap<>();
     private Map<Integer, String> identifier = new ConcurrentHashMap<>();
     private SynapseInterface synapseInterface;
     private Map<String, Client> clients = new ConcurrentHashMap<>();
@@ -432,6 +433,7 @@ public class Server {
 
     public void addPlayer(String identifier, Player player) {
         this.players.put(identifier, player);
+        this.playersUUIDs.put(player.getUuid(), player);
         this.identifier.put(player.rawHashCode(), identifier);
         adjustPoolSize();
     }
@@ -665,6 +667,10 @@ public class Server {
         return this.players;
     }
 
+    public Player getPlayer(UUID uuid) {
+        return playersUUIDs.get(uuid);
+    }
+
     public Player getPlayer(String name) {
         Player found = null;
         name = name.toLowerCase();
@@ -711,6 +717,8 @@ public class Server {
     }
 
     public void removePlayer(Player player) {
+        this.playersUUIDs.remove(player.getUuid());
+
         if (this.identifier.containsKey(player.rawHashCode())) {
             String identifier = this.identifier.get(player.rawHashCode());
             this.players.remove(identifier);
