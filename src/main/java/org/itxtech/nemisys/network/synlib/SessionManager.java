@@ -22,6 +22,7 @@ public class SessionManager {
     private float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     private float maxTick = 100;
     private float maxUse = 0;
+
     public SessionManager(SynapseServer server) {
         this.server = server;
     }

@@ -6,7 +6,10 @@ import com.google.gson.reflect.TypeToken;
 import org.itxtech.nemisys.utils.Skin;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by on 15-10-13.
@@ -21,6 +24,11 @@ public class LoginPacket extends DataPacket {
     public long clientId;
 
     public Skin skin;
+    public String skinGeometryName;
+    public byte[] skinGeometry;
+
+    public byte[] capeData;
+
     public byte[] cacheBuffer;
 
     @Override
@@ -38,7 +46,9 @@ public class LoginPacket extends DataPacket {
             this.protocol = this.getInt();
             this.offset += 1;
         }
+
         this.setBuffer(this.getByteArray(), 0);
+
         decodeChainData();
         decodeSkinData();
     }
@@ -70,21 +80,34 @@ public class LoginPacket extends DataPacket {
     }
 
     private void decodeSkinData() {
-        JsonObject skinToken = decodeToken(new String(this.get(this.getLInt())));
+        String data = new String(this.get(this.getLInt()));
+
+        JsonObject skinToken = decodeToken(data);
         String skinId = null;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
         if (skinToken.has("SkinId")) skinId = skinToken.get("SkinId").getAsString();
-        if (skinToken.has("SkinData")) this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
+        if (skinToken.has("SkinData")) {
+            this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
+
+            if (skinToken.has("CapeData"))
+                this.skin.setCape(this.skin.new Cape(Base64.getDecoder().decode(skinToken.get("CapeData").getAsString())));
+        }
+
+        if (skinToken.has("SkinGeometryName")) this.skinGeometryName = skinToken.get("SkinGeometryName").getAsString();
+        if (skinToken.has("SkinGeometry"))
+            this.skinGeometry = Base64.getDecoder().decode(skinToken.get("SkinGeometry").getAsString());
     }
 
     private JsonObject decodeToken(String token) {
         String[] base = token.split("\\.");
         if (base.length < 2) return null;
-        return new Gson().fromJson(new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8), JsonObject.class);
+
+
+        return new Gson().fromJson(new String(Base64.getDecoder().decode(base[1].replaceAll("-", "+").replaceAll("_", "/")), StandardCharsets.UTF_8), JsonObject.class);
     }
 
     @Override
     public Skin getSkin() {
-        return skin;
+        return this.skin;
     }
 }

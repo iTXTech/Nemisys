@@ -7,7 +7,7 @@ import org.itxtech.nemisys.utils.ServerKiller;
 
 public class Nemisys {
 
-    public final static String VERSION = "1.0dev";
+    public final static String VERSION = "2.0dev";
     public final static String API_VERSION = "1.0.6";//majorVersion.minorVersion.sppVersion
     public final static String CODENAME = "Aegis";
 

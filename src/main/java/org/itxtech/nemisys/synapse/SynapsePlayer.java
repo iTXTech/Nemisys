@@ -41,7 +41,7 @@ public class SynapsePlayer extends Player {
         ClientData clients = this.getSynapseEntry().getClientData();
         if (clients.clientList.containsKey(hash)) {
             TransferPacket pk = new TransferPacket();
-            pk.uuid = this.getUniqueId();
+            pk.uuid = this.getUuid();
             pk.clientHash = hash;
             this.getSynapseEntry().sendDataPacket(pk);
         }

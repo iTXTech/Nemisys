@@ -7,7 +7,6 @@ import org.itxtech.nemisys.raknet.protocol.Packet;
 import org.itxtech.nemisys.raknet.protocol.packet.*;
 import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.BinaryStream;
-import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.Utils;
 
 import java.io.IOException;

@@ -13,6 +13,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>nukkitx-repo</id>
+            <url>https://repo.nukkitx.com/main/</url>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <repository>
             <id>central</id>
@@ -62,6 +69,17 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>23.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.nukkit</groupId>
+            <artifactId>nukkit-natives</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

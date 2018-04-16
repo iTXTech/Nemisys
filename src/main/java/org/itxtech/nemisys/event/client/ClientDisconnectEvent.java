@@ -11,6 +11,7 @@ public class ClientDisconnectEvent extends ClientEvent {
     private static final HandlerList handlers = new HandlerList();
     private String reason;
     private int type;
+
     public ClientDisconnectEvent(Client client, String reason, int type) {
         super(client);
         this.reason = reason;

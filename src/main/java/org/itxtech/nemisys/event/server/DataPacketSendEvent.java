@@ -14,6 +14,7 @@ public class DataPacketSendEvent extends ServerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private DataPacket packet;
     private Player player;
+
     public DataPacketSendEvent(Player player, DataPacket packet) {
         this.packet = packet;
         this.player = player;

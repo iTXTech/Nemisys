@@ -144,7 +144,7 @@ public class SynapseEntry {
         broadcastPacket.payload = packet.getBuffer();
         broadcastPacket.entries = new ArrayList<>();
         for (SynapsePlayer player : players) {
-            broadcastPacket.entries.add(player.getUniqueId());
+            broadcastPacket.entries.add(player.getUuid());
         }
         this.sendDataPacket(broadcastPacket);
     }
@@ -209,16 +209,12 @@ public class SynapseEntry {
     }
 
     public void removePlayer(SynapsePlayer player) {
-        UUID uuid = player.getUniqueId();
-        if (this.players.containsKey(uuid)) {
-            this.players.remove(uuid);
-        }
+        UUID uuid = player.getUuid();
+        this.players.remove(uuid);
     }
 
     public void removePlayer(UUID uuid) {
-        if (this.players.containsKey(uuid)) {
-            this.players.remove(uuid);
-        }
+        this.players.remove(uuid);
     }
 
     public void handleDataPacket(SynapseDataPacket pk) {

@@ -1,5 +1,6 @@
 package org.itxtech.nemisys.command;
 
+import org.itxtech.nemisys.Player;
 import org.itxtech.nemisys.Server;
 import org.itxtech.nemisys.command.defaults.*;
 import org.itxtech.nemisys.event.TranslationContainer;
@@ -8,13 +9,14 @@ import org.itxtech.nemisys.utils.TextFormat;
 import org.itxtech.nemisys.utils.Utils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 public class SimpleCommandMap implements CommandMap {
-    protected Map<String, Command> knownCommands = new HashMap<>();
+    protected Map<String, Command> knownCommands = new ConcurrentHashMap<>();
 
     private Server server;
 
@@ -32,6 +34,7 @@ public class SimpleCommandMap implements CommandMap {
         this.register("nukkit", new KickCommand("kick"));
         this.register("nukkit", new StatusCommand("status"));
         this.register("nukkit", new GarbageCollectorCommand("gc"));
+        this.register("nukkit", new ServerCommand("server"));
     }
 
     @Override
@@ -120,7 +123,7 @@ public class SimpleCommandMap implements CommandMap {
         args = newargs;
         Command target = this.getCommand(sentCommandLabel);
 
-        if (target == null) {
+        if (target == null || (sender instanceof Player && !target.isGlobal())) {
             return false;
         }
 
@@ -149,10 +152,7 @@ public class SimpleCommandMap implements CommandMap {
 
     @Override
     public Command getCommand(String name) {
-        if (this.knownCommands.containsKey(name)) {
-            return this.knownCommands.get(name);
-        }
-        return null;
+        return this.knownCommands.get(name);
     }
 
     public Map<String, Command> getCommands() {

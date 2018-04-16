@@ -1,6 +1,9 @@
 package org.itxtech.nemisys;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
+import lombok.Getter;
+import lombok.Setter;
 import org.itxtech.nemisys.command.*;
 import org.itxtech.nemisys.event.HandlerList;
 import org.itxtech.nemisys.event.TranslationContainer;
@@ -15,6 +18,7 @@ import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.query.QueryHandler;
 import org.itxtech.nemisys.network.rcon.RCON;
+import org.itxtech.nemisys.permission.DefaultPermissions;
 import org.itxtech.nemisys.plugin.JavaPluginLoader;
 import org.itxtech.nemisys.plugin.Plugin;
 import org.itxtech.nemisys.plugin.PluginManager;
@@ -25,12 +29,19 @@ import org.itxtech.nemisys.utils.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * author: MagicDroidX & Box
  * Nukkit
  */
 public class Server {
+
+    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "nukkit.broadcast.admin";
+    public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
 
     private static Server instance = null;
     public int uptime = 0;
@@ -60,14 +71,22 @@ public class Server {
     private QueryHandler queryHandler;
     private QueryRegenerateEvent queryRegenerateEvent;
     private Config properties;
-    private Map<String, Player> players = new HashMap<>();
-    private Map<Integer, String> identifier = new HashMap<>();
+    private Map<String, Player> players = new ConcurrentHashMap<>();
+    private Map<Integer, String> identifier = new ConcurrentHashMap<>();
     private SynapseInterface synapseInterface;
-    private Map<String, Client> clients = new HashMap<>();
+    private Map<String, Client> clients = new ConcurrentHashMap<>();
     private ClientData clientData = new ClientData();
     private String clientDataJson = "";
-    private Map<String, Client> mainClients = new HashMap<>();
+    private Map<String, Client> mainClients = new ConcurrentHashMap<>();
+    private Map<String, Client> lobbyClients = new ConcurrentHashMap<>();
     private Synapse synapse;
+
+    @Getter
+    @Setter
+    private int playersPerThread;
+
+    private final ThreadPoolExecutor playerTicker = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors(),
+            1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("Player Ticker - #%d").setDaemon(true).build());
 
     public Server(MainLogger logger, final String filePath, String dataPath, String pluginPath) {
         instance = this;
@@ -101,6 +120,7 @@ public class Server {
                 put("max-players", 20);
                 put("plus-one-max-count", false);
                 put("dynamic-player-count", false);
+                put("players-per-thread", 50);
                 put("enable-query", true);
                 put("enable-rcon", false);
                 put("rcon.password", Base64.getEncoder().encodeToString(UUID.randomUUID().toString().replace("-", "").getBytes()).substring(3, 13));
@@ -169,6 +189,8 @@ public class Server {
             }
         }
 
+        this.playersPerThread = this.getPropertyInt("players-per-thread");
+
         this.properties.save(true);
 
         this.start();
@@ -206,8 +228,19 @@ public class Server {
         return this.clients.get(hash);
     }
 
+    public Client getClientByDesc(String desc) {
+        String hash = clientData.getHashByDescription(desc);
+        if (hash == null)
+            return null;
+        return getClient(hash);
+    }
+
     public Map<String, Client> getMainClients() {
         return this.mainClients;
+    }
+
+    public Map<String, Client> getLobbyClients() {
+        return this.lobbyClients;
     }
 
     public void removeClient(Client client) {
@@ -234,7 +267,7 @@ public class Server {
             this.clientData = new ClientData();
             for (Client client : this.clients.values()) {
                 ClientData.Entry entry = this.clientData.new Entry(client.getIp(), client.getPort(), client.getPlayers().size(),
-                        client.getMaxPlayers(), client.getDescription(), client.getTicksPerSecond(), client.getTickUsage(), client.getUpTime());
+                        client.getMaxPlayers(), client.getDescription(), client.getTps(), client.getLoad(), client.getUpTime());
                 this.clientData.clientList.put(client.getHash(), entry);
             }
             this.clientDataJson = new Gson().toJson(this.clientData);
@@ -252,6 +285,8 @@ public class Server {
                 enablePlugin(p);
             }
         });
+
+        DefaultPermissions.registerCorePermissions();
     }
 
     public void enablePlugin(Plugin plugin) {
@@ -263,6 +298,10 @@ public class Server {
     }
 
     public boolean dispatchCommand(CommandSender sender, String commandLine) throws ServerException {
+        return dispatchCommand(sender, commandLine, true);
+    }
+
+    public boolean dispatchCommand(CommandSender sender, String commandLine, boolean notify) throws ServerException {
         if (sender == null) {
             throw new ServerException("CommandSender is not valid");
         }
@@ -271,7 +310,8 @@ public class Server {
             return true;
         }
 
-        sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.notFound"));
+        if (notify)
+            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.notFound"));
 
         return false;
     }
@@ -393,6 +433,7 @@ public class Server {
     public void addPlayer(String identifier, Player player) {
         this.players.put(identifier, player);
         this.identifier.put(player.rawHashCode(), identifier);
+        adjustPoolSize();
     }
 
     private boolean tick() {
@@ -414,7 +455,10 @@ public class Server {
         this.scheduler.mainThreadHeartbeat(this.tickCounter);
 
         for (Player player : new ArrayList<>(this.players.values())) {
-            player.onUpdate(this.tickCounter);
+            playerTicker.execute(() -> {
+                if (player.canTick())
+                    player.onUpdate(this.tickCounter);
+            });
         }
 
         for (Client client : new ArrayList<>(this.clients.values())) {
@@ -682,6 +726,8 @@ public class Server {
                 break;
             }
         }
+
+        adjustPoolSize();
     }
 
     public BaseLang getLanguage() {
@@ -827,4 +873,20 @@ public class Server {
         }
     }
 
+    public Client getFallbackClient() {
+        for (Client c : clients.values()) {
+            if (c.isLobbyServer()) {
+                return c;
+            }
+        }
+
+        return null;
+    }
+
+    private void adjustPoolSize() {
+        int threads = Math.min(Math.max(1, players.size() / this.playersPerThread), Runtime.getRuntime().availableProcessors() - 1);
+        if (playerTicker.getMaximumPoolSize() != threads) {
+            playerTicker.setMaximumPoolSize(threads);
+        }
+    }
 }
