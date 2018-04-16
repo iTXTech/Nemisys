@@ -2,15 +2,18 @@ package org.itxtech.nemisys;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import lombok.Getter;
+import lombok.Setter;
 import org.itxtech.nemisys.event.client.ClientAuthEvent;
 import org.itxtech.nemisys.event.client.ClientConnectEvent;
 import org.itxtech.nemisys.event.client.ClientDisconnectEvent;
 import org.itxtech.nemisys.event.client.PluginMsgRecvEvent;
 import org.itxtech.nemisys.network.SynapseInterface;
-import org.itxtech.nemisys.network.protocol.mcpe.*;
+import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
+import org.itxtech.nemisys.network.protocol.mcpe.TextPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
-import org.itxtech.nemisys.network.protocol.spp.DisconnectPacket;
-import org.itxtech.nemisys.utils.Binary;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.TextFormat;
 
@@ -18,24 +21,50 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Author: PeratX
  * Nemisys Project
  */
 public class Client {
+
+    @Getter
     private Server server;
+
     private SynapseInterface interfaz;
+
+    @Getter
     private String ip;
+    @Getter
     private int port;
-    private Map<UUID, Player> players = new HashMap<>();
+
+    private Map<UUID, Player> players = new ConcurrentHashMap<>();
+
+    @Getter
     private boolean verified = false;
-    private boolean isMainServer = false;
+
+    @Getter
+    private boolean lobbyServer = false;
+    @Getter
+    private boolean transferOnShutdown = true;
+
+    @Getter
+    private boolean mainServer = false;
+
+    @Getter
     private int maxPlayers;
+
     private long lastUpdate;
+
+    @Getter
+    @Setter
     private String description;
+    @Getter
     private float tps;
+    @Getter
     private float load;
+    @Getter
     private long upTime;
 
     public Client(SynapseInterface interfaz, String ip, int port) {
@@ -48,36 +77,9 @@ public class Client {
         this.server.getPluginManager().callEvent(new ClientConnectEvent(this));
     }
 
-    public boolean isMainServer() {
-        return this.isMainServer;
-    }
-
-    public int getMaxPlayers() {
-        return this.maxPlayers;
-    }
 
     public String getHash() {
         return this.ip + ':' + this.port;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public float getTicksPerSecond() {
-        return this.tps;
-    }
-
-    public float getTickUsage() {
-        return this.load;
-    }
-
-    public long getUpTime() {
-        return this.upTime;
     }
 
     public void onUpdate(int currentTick) {
@@ -131,12 +133,12 @@ public class Client {
                 if (this.server.comparePassword(connectPacket.password)) {
                     this.setVerified();
                     pk.message = InformationPacket.INFO_LOGIN_SUCCESS;
-                    this.isMainServer = connectPacket.isMainServer;
+                    this.mainServer = connectPacket.isMainServer;
                     this.description = connectPacket.description;
                     this.maxPlayers = connectPacket.maxPlayers;
                     this.server.addClient(this);
                     this.server.getLogger().notice("Client " + this.getIp() + ":" + this.getPort() + " has connected successfully");
-                    this.server.getLogger().notice("mainServer: " + (this.isMainServer ? "true" : "false"));
+                    this.server.getLogger().notice("mainServer: " + (this.mainServer ? "true" : "false"));
                     this.server.getLogger().notice("description: " + this.description);
                     this.server.getLogger().notice("maxPlayers: " + this.maxPlayers);
                     this.server.updateClientData();
@@ -154,34 +156,48 @@ public class Client {
                 break;
             case SynapseInfo.REDIRECT_PACKET:
                 UUID uuid = ((RedirectPacket) packet).uuid;
-                if (this.players.containsKey(uuid)) {
+
+                Player pl = players.get(uuid);
+                if (pl != null) {
                     byte[] buffer = ((RedirectPacket) packet).mcpeBuffer;
                     DataPacket send;
                     if (buffer.length > 0 && buffer[0] == (byte) 0xfe) {
                         send = new BatchPacket();
                         send.setBuffer(buffer, 1);
-                        send.decode();
                     } else {
-                        send = new GenericPacket();
-                        send.setBuffer(((RedirectPacket) packet).mcpeBuffer);
+                        send = server.getNetwork().getPacket(buffer[0]);
+                        if (send == null) {
+                            send = new GenericPacket();
+                        }
+
+                        send.setBuffer(buffer, 3);
                     }
 
-                    this.players.get(uuid).sendDataPacket(send, ((RedirectPacket) packet).direct);
-                    //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(send.getBuffer()) + "  len: " + send.getBuffer().length);
-                }/*else{
-					this.server.getLogger().error("Error RedirectPacket 0x" + bin2hex(packet.buffer));
-				}*/
+                    send.decode();
+
+                    pl.addIncomingPacket(send, ((RedirectPacket) packet).direct);
+                }
                 break;
             case SynapseInfo.TRANSFER_PACKET:
                 Map<String, Client> clients = this.server.getClients();
                 UUID uuid0 = ((TransferPacket) packet).uuid;
-                if (this.players.containsKey(uuid0) && clients.containsKey(((TransferPacket) packet).clientHash)) {
-                    this.players.get(uuid0).transfer(clients.get(((TransferPacket) packet).clientHash), true);
+                String hash = ((TransferPacket) packet).clientHash;
+                pl = players.get(uuid0);
+                if (pl == null)
+                    break;
+
+                if (hash.equals("lobby") && !server.getLobbyClients().isEmpty()) {
+                    List<String> clnts = new ArrayList<>(server.getLobbyClients().keySet());
+                    hash = clnts.get(new Random().nextInt(clnts.size()));
                 }
-                break;
-            case SynapseInfo.FAST_PLAYER_LIST_PACKET:
-                this.server.getScheduler().scheduleTask(new HandleFastPlayerListPacketRunnable((FastPlayerListPacket) packet), true);
-                break;
+
+            {
+                Client c = clients.get(hash);
+                if (c != null) {
+                    this.players.get(uuid0).transfer(c);
+                }
+            }
+            break;
             case SynapseInfo.PLUGIN_MESSAGE_PACKET:
                 PluginMessagePacket messagePacket = (PluginMessagePacket) packet;
                 DataInput input = new DataInputStream(new ByteArrayInputStream(messagePacket.data));
@@ -301,46 +317,12 @@ public class Client {
         }
     }
 
-    public void handleFastPlayerListPacket(FastPlayerListPacket fastPlayerListPacket) {
-        Player sendTo = this.getPlayers().get(fastPlayerListPacket.sendTo);
-        if (sendTo != null) {
-            PlayerListPacket playerListPacket = new PlayerListPacket();
-            playerListPacket.type = fastPlayerListPacket.type;
-            List<PlayerListPacket.Entry> entries = new ArrayList<>();
-            if (fastPlayerListPacket.type == FastPlayerListPacket.TYPE_ADD) {
-                for (FastPlayerListPacket.Entry entry : fastPlayerListPacket.entries) {
-                    Player player = this.getPlayers().get(entry.uuid);
-                    if (player != null && player.getSkin() != null && player.getSkin().isValid())
-                        entries.add(new PlayerListPacket.Entry(entry.uuid, entry.entityId, entry.name, player.getSkin()));
-                }
-            } else {
-                for (FastPlayerListPacket.Entry entry : fastPlayerListPacket.entries) {
-                    entries.add(new PlayerListPacket.Entry(entry.uuid));
-                }
-            }
-            playerListPacket.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
-            sendTo.sendDataPacket(playerListPacket);
-        }
-    }
-
     public void sendDataPacket(SynapseDataPacket pk) {
         this.interfaz.putPacket(this, pk);
 		/*this.server.getPluginManager().callEvent(ev = new ClientSendPacketEvent(this, pk));
 		if(!ev.isCancelled()){
 			this.interfaz.putPacket(this, pk);
 		}*/
-    }
-
-    public String getIp() {
-        return this.ip;
-    }
-
-    public int getPort() {
-        return this.port;
-    }
-
-    public boolean isVerified() {
-        return this.verified;
     }
 
     public void setVerified() {
@@ -352,20 +334,37 @@ public class Client {
     }
 
     public void addPlayer(Player player) {
-        this.players.put(player.getUUID(), player);
+        this.players.put(player.getUuid(), player);
     }
 
     public void removePlayer(Player player) {
-        this.players.remove(player.getUUID());
+        removePlayer(player, "Generic");
+    }
+
+    public void removePlayer(Player player, String reason) {
+        this.players.remove(player.getUuid());
+
+        PlayerLogoutPacket pk = new PlayerLogoutPacket();
+        pk.reason = reason;
+        pk.uuid = player.getUuid();
+
+        this.sendDataPacket(pk);
     }
 
     public void closeAllPlayers() {
-        this.closeAllPlayers("");
+        this.closeAllPlayers("", null);
     }
 
-    public void closeAllPlayers(String reason) {
+    public void closeAllPlayers(String reason, Client fallback) {
+        String msg = fallback == null ? "Server Closed" + (reason.equals("") ? "" : ": " + TextFormat.YELLOW + reason) : TextFormat.RED + "The server you were previously on went down due to '" + reason + "', you have been connected to a fallback server";
+
         for (Player player : new ArrayList<>(this.players.values())) {
-            player.close("Server Closed" + (reason.equals("") ? "" : ": " + TextFormat.YELLOW + reason));
+            if (fallback == null) {
+                player.close(msg);
+            } else {
+                player.sendMessage(msg);
+                player.transfer(fallback);
+            }
         }
     }
 
@@ -392,9 +391,14 @@ public class Client {
             pk.message = reason;
             this.sendDataPacket(pk);
         }
-        this.closeAllPlayers(reason);
+
+
         this.interfaz.removeClient(this);
         this.server.removeClient(this);
+
+        this.server.updateClientData();
+
+        this.closeAllPlayers(reason, transferOnShutdown ? this.server.getFallbackClient() : null);
     }
 
     public void sendPluginMesssage(String channel, byte[] data) {
@@ -402,18 +406,5 @@ public class Client {
         pk.channel = channel;
         pk.data = data;
         this.sendDataPacket(pk);
-    }
-
-    public class HandleFastPlayerListPacketRunnable implements Runnable {
-        private FastPlayerListPacket pk;
-
-        public HandleFastPlayerListPacketRunnable(FastPlayerListPacket pk) {
-            this.pk = pk;
-        }
-
-        @Override
-        public void run() {
-            handleFastPlayerListPacket(pk);
-        }
     }
 }

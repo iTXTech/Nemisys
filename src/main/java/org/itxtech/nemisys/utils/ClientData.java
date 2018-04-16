@@ -1,14 +1,14 @@
 package org.itxtech.nemisys.utils;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by boybook on 16/6/25.
  */
 public class ClientData {
 
-    public Map<String, Entry> clientList = new HashMap<>();
+    public Map<String, Entry> clientList = new ConcurrentHashMap<>();
 
     public String getHashByDescription(String description) {
         final String[] re = new String[1];
@@ -29,6 +29,7 @@ public class ClientData {
         private float tps;
         private float load;
         private long upTime;
+
         public Entry(String ip, int port, int playerCount, int maxPlayers, String description, float tps, float load, long upTime) {
             this.ip = ip;
             this.port = port;

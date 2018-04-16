@@ -19,7 +19,31 @@ public class PlayerListPacket extends DataPacket {
 
     @Override
     public void decode() {
+        type = (byte) getByte();
 
+        int len = (int) getUnsignedVarInt();
+        entries = new Entry[len];
+
+        while (len-- > 0) {
+            Entry entry = new Entry(getUUID());
+
+            if (type == TYPE_ADD) {
+                entry.entityId = getVarLong();
+                entry.name = getString();
+
+                getString(); //third party name
+                getVarInt(); //platform id
+
+                entry.skin = getSkin();
+                entry.geometryModel = getString();
+                entry.geometryData = getByteArray();
+                entry.xboxUserId = getString();
+
+                this.getString(); //platform chat id
+            }
+
+            entries[len] = entry;
+        }
     }
 
     @Override
@@ -28,17 +52,22 @@ public class PlayerListPacket extends DataPacket {
         this.putByte(this.type);
         this.putUnsignedVarInt(this.entries.length);
         for (Entry entry : this.entries) {
+            this.putUUID(entry.uuid);
+
             if (type == TYPE_ADD) {
-                this.putUUID(entry.uuid);
                 this.putVarLong(entry.entityId);
                 this.putString(entry.name);
+
+                this.putString(""); //third party name
+                this.putVarInt(0); //platform id
+
                 this.putSkin(entry.skin);
-                this.putByteArray(entry.capeData);
+
                 this.putString(entry.geometryModel);
                 this.putByteArray(entry.geometryData);
                 this.putString(entry.xboxUserId);
-            } else {
-                this.putUUID(entry.uuid);
+
+                this.putString(""); //platform chat id
             }
         }
 
@@ -65,10 +94,18 @@ public class PlayerListPacket extends DataPacket {
         }
 
         public Entry(UUID uuid, long entityId, String name, Skin skin) {
+            this(uuid, entityId, name, skin, "");
+        }
+
+        public Entry(UUID uuid, long entityId, String name, Skin skin, String xboxUserId) {
             this.uuid = uuid;
             this.entityId = entityId;
             this.name = name;
             this.skin = skin;
+            this.capeData = skin.getCape().getData();
+            this.geometryData = skin.geometry;
+            this.geometryModel = skin.geometryName;
+            this.xboxUserId = xboxUserId == null ? "" : xboxUserId;
         }
     }
 

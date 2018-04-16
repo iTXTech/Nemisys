@@ -1,10 +1,10 @@
 package org.itxtech.nemisys.utils;
 
-import java.math.BigInteger;
+import org.itxtech.nemisys.math.BlockVector3;
+import org.itxtech.nemisys.math.Vector3f;
+
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -207,12 +207,45 @@ public class BinaryStream {
     public void putSkin(Skin skin) {
         this.putString(skin.getModel());
         this.putByteArray(skin.getData());
+        this.putByteArray(skin.getCape().getData());
     }
 
     public Skin getSkin() {
         String modelId = this.getString();
         byte[] skinData = this.getByteArray();
-        return new Skin(skinData, modelId);
+        byte[] cape = getByteArray();
+        Skin skin = new Skin(skinData, modelId);
+        skin.setCape(skin.new Cape(cape));
+
+        return skin;
+    }
+
+    public BlockVector3 getBlockVector3() {
+        return new BlockVector3(this.getVarInt(), (int) this.getUnsignedVarInt(), this.getVarInt());
+    }
+
+    public void putBlockVector3(BlockVector3 v) {
+        this.putBlockVector3(v.x, v.y, v.z);
+    }
+
+    public void putBlockVector3(int x, int y, int z) {
+        this.putVarInt(x);
+        this.putUnsignedVarInt(y);
+        this.putVarInt(z);
+    }
+
+    public Vector3f getVector3f() {
+        return new Vector3f(this.getLFloat(4), this.getLFloat(4), this.getLFloat(4));
+    }
+
+    public void putVector3f(Vector3f v) {
+        this.putVector3f(v.x, v.y, v.z);
+    }
+
+    public void putVector3f(float x, float y, float z) {
+        this.putLFloat(x);
+        this.putLFloat(y);
+        this.putLFloat(z);
     }
 
     public byte[] getByteArray() {

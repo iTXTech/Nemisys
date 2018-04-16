@@ -8,6 +8,7 @@ public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     protected String kickMessage;
     private String clientHash;
+
     public PlayerLoginEvent(Player player, String kickMessage, String clientHash) {
         super(player);
         this.kickMessage = kickMessage;

@@ -3,9 +3,7 @@ package org.itxtech.nemisys.utils;
 import org.itxtech.nemisys.math.NemisysMath;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.UUID;
 
 /**

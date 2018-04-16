@@ -8,13 +8,16 @@ import org.itxtech.nemisys.event.server.QueryRegenerateEvent;
 import org.itxtech.nemisys.network.protocol.mcpe.BatchPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.ProtocolInfo;
+import org.itxtech.nemisys.raknet.RakNet;
 import org.itxtech.nemisys.raknet.protocol.EncapsulatedPacket;
 import org.itxtech.nemisys.raknet.protocol.packet.PING_DataPacket;
 import org.itxtech.nemisys.raknet.server.RakNetServer;
 import org.itxtech.nemisys.raknet.server.ServerHandler;
 import org.itxtech.nemisys.raknet.server.ServerInstance;
-import org.itxtech.nemisys.raknet.RakNet;
-import org.itxtech.nemisys.utils.*;
+import org.itxtech.nemisys.utils.Binary;
+import org.itxtech.nemisys.utils.MainLogger;
+import org.itxtech.nemisys.utils.Utils;
+import org.itxtech.nemisys.utils.Zlib;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -127,7 +130,8 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
 
     @Override
     public void handleEncapsulated(String identifier, EncapsulatedPacket packet, int flags) {
-        if (this.players.containsKey(identifier)) {
+        Player p = this.players.get(identifier);
+        if (p != null) {
             DataPacket pk = null;
             try {
                 if (packet.buffer.length > 0) {
@@ -143,7 +147,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     pk = this.getPacket(packet.buffer);
                     if (pk != null) {
                         pk.decode();
-                        this.players.get(identifier).handleDataPacket(pk);
+                        p.addOutgoingPacket(pk);
                     }
                 }
             } catch (Exception e) {
@@ -156,9 +160,7 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
 //                    }
                 }
 
-                if (this.players.containsKey(identifier)) {
-                    this.handler.blockAddress(this.players.get(identifier).getIp(), 5);
-                }
+                this.handler.blockAddress(p.getIp(), 5);
             }
         }
     }
