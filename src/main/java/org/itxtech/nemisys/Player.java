@@ -8,10 +8,7 @@ import org.itxtech.nemisys.command.CommandSender;
 import org.itxtech.nemisys.command.data.CommandDataVersions;
 import org.itxtech.nemisys.event.TextContainer;
 import org.itxtech.nemisys.event.TranslationContainer;
-import org.itxtech.nemisys.event.player.PlayerChatEvent;
-import org.itxtech.nemisys.event.player.PlayerLoginEvent;
-import org.itxtech.nemisys.event.player.PlayerLogoutEvent;
-import org.itxtech.nemisys.event.player.PlayerTransferEvent;
+import org.itxtech.nemisys.event.player.*;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
@@ -22,6 +19,7 @@ import org.itxtech.nemisys.permission.Permission;
 import org.itxtech.nemisys.permission.PermissionAttachment;
 import org.itxtech.nemisys.permission.PermissionAttachmentInfo;
 import org.itxtech.nemisys.plugin.Plugin;
+import org.itxtech.nemisys.scheduler.AsyncTask;
 import org.itxtech.nemisys.utils.*;
 
 import java.util.*;
@@ -78,6 +76,8 @@ public class Player implements CommandSender {
 
     private PermissibleBase perm;
 
+    private AsyncTask loginTask;
+
     public Player(SourceInterface interfaz, long clientId, String ip, int port) {
         this.interfaz = interfaz;
         this.clientId = clientId;
@@ -117,42 +117,28 @@ public class Player implements CommandSender {
                     this.protocol = loginPacket.protocol;
                     this.loginChainData = ClientChainData.read(loginPacket);
 
-                    this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logIn", new String[]{
-                            TextFormat.AQUA + this.name + TextFormat.WHITE,
-                            this.ip,
-                            String.valueOf(this.port),
-                            "" + TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
-                    }));
+                    this.loginTask = new AsyncTask() {
+                        PlayerAsyncPreLoginEvent e = new PlayerAsyncPreLoginEvent(getName(), getUuid(), getIp(), getPort());
 
-                    Map<String, Client> c = this.server.getMainClients();
+                        @Override
+                        public void onRun() {
+                            getServer().getPluginManager().callEvent(e);
+                        }
 
-                    String clientHash;
-                    if (c.size() > 0) {
-                        clientHash = new ArrayList<>(c.keySet()).get(new Random().nextInt(c.size()));
-                    } else {
-                        clientHash = "";
-                    }
+                        @Override
+                        public void onCompletion(Server server) {
+                            if (closed) {
+                                return;
+                            }
 
-                    PlayerLoginEvent ev;
-                    this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin Reason", clientHash));
-                    if (ev.isCancelled()) {
-                        this.close(ev.getKickMessage());
-                        break;
-                    }
-                    if (this.server.getMaxPlayers() <= this.server.getOnlinePlayers().size()) {
-                        this.close("Synapse Server: " + TextFormat.RED + "Synapse server is full!");
-                        break;
-                    }
-                    if (ev.getClientHash() == null || ev.getClientHash().equals("")) {
-                        this.close("Synapse Server: " + TextFormat.RED + "No target server!");
-                        break;
-                    }
-                    if (!this.server.getClients().containsKey(ev.getClientHash())) {
-                        this.close("Synapse Server: " + TextFormat.RED + "Target server is not online!");
-                        break;
-                    }
+                            if (e.getLoginResult() != PlayerAsyncPreLoginEvent.LoginResult.SUCCESS) {
+                                Player.this.close(e.getKickMessage());
+                            } else {
+                                Player.this.completeLogin();
+                            }
+                        }
+                    };
 
-                    this.transfer(this.server.getClients().get(ev.getClientHash()));
                     return;
                 case ProtocolInfo.COMMAND_REQUEST_PACKET:
                     CommandRequestPacket commandRequestPacket = (CommandRequestPacket) packet;
@@ -440,6 +426,44 @@ public class Player implements CommandSender {
         }
 
         this.sendMessage(message.getText());
+    }
+
+    protected void completeLogin() {
+        this.server.getLogger().info(this.getServer().getLanguage().translateString("nemisys.player.logIn", new String[]{
+                TextFormat.AQUA + this.name + TextFormat.WHITE,
+                this.ip,
+                String.valueOf(this.port),
+                "" + TextFormat.GREEN + this.getRandomClientId() + TextFormat.WHITE,
+        }));
+
+        Map<String, Client> c = this.server.getMainClients();
+
+        String clientHash;
+        if (c.size() > 0) {
+            clientHash = new ArrayList<>(c.keySet()).get(new Random().nextInt(c.size()));
+        } else {
+            clientHash = "";
+        }
+
+        PlayerLoginEvent ev;
+        getServer().getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin Reason", clientHash));
+        if (ev.isCancelled()) {
+            this.close(ev.getKickMessage());
+            return;
+        }
+        if (this.server.getMaxPlayers() <= this.server.getOnlinePlayers().size()) {
+            this.close("Synapse Server: " + TextFormat.RED + "Synapse server is full!");
+            return;
+        }
+
+        Client client = this.server.getClient(ev.getClientHash());
+
+        if (client == null) {
+            this.close("Synapse Server: " + TextFormat.RED + "Target server is not online!");
+            return;
+        }
+
+        transfer(client);
     }
 
     public void sendTranslation(String message, String[] parameters) {
