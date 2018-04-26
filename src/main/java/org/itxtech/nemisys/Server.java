@@ -433,9 +433,12 @@ public class Server {
 
     public void addPlayer(String identifier, Player player) {
         this.players.put(identifier, player);
-        this.playersUUIDs.put(player.getUuid(), player);
         this.identifier.put(player.rawHashCode(), identifier);
         adjustPoolSize();
+    }
+
+    public void addOnlinePlayer(UUID uuid, Player player) {
+        this.playersUUIDs.put(uuid, player);
     }
 
     private boolean tick() {
