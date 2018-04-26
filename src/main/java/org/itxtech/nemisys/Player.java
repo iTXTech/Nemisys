@@ -140,6 +140,8 @@ public class Player implements CommandSender {
                         }
                     };
 
+                    this.getServer().getScheduler().scheduleAsyncTask(this.loginTask);
+
                     return;
                 case ProtocolInfo.COMMAND_REQUEST_PACKET:
                     CommandRequestPacket commandRequestPacket = (CommandRequestPacket) packet;
