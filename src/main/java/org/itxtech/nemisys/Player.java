@@ -116,6 +116,7 @@ public class Player implements CommandSender {
                     this.randomClientId = loginPacket.clientId;
                     this.protocol = loginPacket.protocol;
                     this.loginChainData = ClientChainData.read(loginPacket);
+                    this.server.addOnlinePlayer(this.uuid, this);
 
                     this.loginTask = new AsyncTask() {
                         PlayerAsyncPreLoginEvent e = new PlayerAsyncPreLoginEvent(getName(), getUuid(), getIp(), getPort());
