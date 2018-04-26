@@ -1,7 +1,5 @@
 package org.itxtech.nemisys.network.protocol.mcpe;
 
-import org.itxtech.nemisys.math.BlockVector3;
-
 /**
  * @author Nukkit Project Team
  */
@@ -21,14 +19,14 @@ public class AddPaintingPacket extends DataPacket {
     public void decode() {
         entityUniqueId = getEntityUniqueId();
         entityRuntimeId = getEntityRuntimeId();
-        BlockVector3 pos = getBlockVector3();
+        /*BlockVector3 pos = getBlockVector3();
 
         x = pos.x;
         y = pos.y;
         z = pos.z;
 
         direction = getVarInt();
-        title = getString();
+        title = getString();*/
     }
 
     @Override
