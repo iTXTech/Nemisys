@@ -467,18 +467,19 @@ public class PluginManager {
                 continue;
             }
             if (data instanceof Map) {
+                Map<String, Object> dataMap = (Map) data;
                 PluginCommand newCmd = new PluginCommand<>(key, plugin);
 
-                if (((Map) data).containsKey("description")) {
+                if (dataMap.containsKey("description")) {
                     newCmd.setDescription((String) ((Map) data).get("description"));
                 }
 
-                if (((Map) data).containsKey("usage")) {
-                    newCmd.setUsage((String) ((Map) data).get("usage"));
+                if (dataMap.containsKey("usage")) {
+                    newCmd.setUsage((String) dataMap.get("usage"));
                 }
 
-                if (((Map) data).containsKey("aliases")) {
-                    Object aliases = ((Map) data).get("aliases");
+                if (dataMap.containsKey("aliases")) {
+                    Object aliases = dataMap.get("aliases");
                     if (aliases instanceof List) {
                         List<String> aliasList = new ArrayList<>();
                         for (String alias : (List<String>) aliases) {
@@ -491,6 +492,12 @@ public class PluginManager {
 
                         newCmd.setAliases(aliasList.stream().toArray(String[]::new));
                     }
+                }
+
+                if (dataMap.containsKey("global")) {
+                    boolean global = (boolean) dataMap.get("global");
+
+                    newCmd.setGlobal(global);
                 }
 
                 pluginCmds.add(newCmd);
