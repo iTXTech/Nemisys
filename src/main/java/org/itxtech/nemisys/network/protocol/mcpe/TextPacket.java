@@ -30,7 +30,7 @@ public class TextPacket extends DataPacket {
     @Override
     public void decode() {
         this.type = (byte) getByte();
-        this.isLocalized = this.getBoolean();
+        this.isLocalized = this.getBoolean() || this.type == TYPE_TRANSLATION;
         switch (type) {
             case TYPE_POPUP:
             case TYPE_CHAT:
@@ -62,7 +62,7 @@ public class TextPacket extends DataPacket {
     public void encode() {
         this.reset();
         this.putByte(this.type);
-        this.putBoolean(this.isLocalized);
+        this.putBoolean(this.isLocalized || this.type == TYPE_TRANSLATION);
         switch (this.type) {
             case TYPE_POPUP:
             case TYPE_CHAT:
