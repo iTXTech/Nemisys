@@ -105,6 +105,10 @@ public class Server {
         this.console = new CommandReader();
         this.console.start();
 
+        getLogger().info(NativeCodeFactory.zlib.load() ? "Loaded native compression library" : "Native compression is unavailable, default compression will be used");
+        getLogger().info(NativeCodeFactory.cipher.load() ? "Loaded native cipher library" : "Native cipher is unavailable, default cipher will be used");
+        getLogger().info(NativeCodeFactory.hash.load() ? "Loaded native hash library" : "Native hash is unavailable, default hash will be used");
+
         this.logger.info("Loading " + TextFormat.GREEN + "server properties" + TextFormat.WHITE + "...");
         this.properties = new Config(this.dataPath + "server.properties", Config.PROPERTIES, new ConfigSection() {
             {
