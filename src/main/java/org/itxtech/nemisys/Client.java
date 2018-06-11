@@ -174,6 +174,7 @@ public class Client {
                     }
 
                     send.decode();
+                    send.isEncoded = true;
 
                     pl.addIncomingPacket(send, ((RedirectPacket) packet).direct);
                 }
