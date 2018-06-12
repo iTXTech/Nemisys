@@ -724,22 +724,13 @@ public class Server {
     }
 
     public void removePlayer(Player player) {
-        this.playersUUIDs.remove(player.getUuid());
+        if (player.getUuid() != null)
+            this.playersUUIDs.remove(player.getUuid());
 
-        if (this.identifier.containsKey(player.rawHashCode())) {
-            String identifier = this.identifier.get(player.rawHashCode());
+        String identifier;
+        if ((identifier = this.identifier.get(player.rawHashCode())) != null) {
             this.players.remove(identifier);
             this.identifier.remove(player.rawHashCode());
-            return;
-        }
-
-        for (String identifier : new ArrayList<>(this.players.keySet())) {
-            Player p = this.players.get(identifier);
-            if (player == p) {
-                this.players.remove(identifier);
-                this.identifier.remove(player.rawHashCode());
-                break;
-            }
         }
 
         adjustPoolSize();
