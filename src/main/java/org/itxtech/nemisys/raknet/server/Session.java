@@ -1,5 +1,6 @@
 package org.itxtech.nemisys.raknet.server;
 
+import org.itxtech.nemisys.math.NemisysMath;
 import org.itxtech.nemisys.raknet.RakNet;
 import org.itxtech.nemisys.raknet.protocol.DataPacket;
 import org.itxtech.nemisys.raknet.protocol.EncapsulatedPacket;
@@ -28,6 +29,9 @@ public class Session {
 
     public static int WINDOW_SIZE = 2048;
 
+    private static final int MAX_MTU_SIZE = 1492;
+    private static final int MIN_MTU_SIZE = 400;
+
     private int messageIndex = 0;
     private Map<Integer, Integer> channelIndex = new ConcurrentHashMap<>();
 
@@ -36,7 +40,7 @@ public class Session {
     private int port;
     private int state = STATE_UNCONNECTED;
     //private List<EncapsulatedPacket> preJoinQueue = new ArrayList<>();
-    private int mtuSize = 548; //Min size
+    private int mtuSize = MIN_MTU_SIZE;
     private long id = 0;
     private int splitID = 0;
 
@@ -513,7 +517,7 @@ public class Session {
             } else if (this.state == STATE_CONNECTING_1 && packet instanceof OPEN_CONNECTION_REQUEST_2) {
                 this.id = ((OPEN_CONNECTION_REQUEST_2) packet).clientID;
                 if (((OPEN_CONNECTION_REQUEST_2) packet).serverPort == this.sessionManager.getPort() || !this.sessionManager.portChecking) {
-                    this.mtuSize = Math.min(Math.abs(((OPEN_CONNECTION_REQUEST_2) packet).mtuSize), 1464); //Max size, do not allow creating large buffers to fill server memory
+                    this.mtuSize = NemisysMath.clamp(Math.abs(((OPEN_CONNECTION_REQUEST_2) packet).mtuSize), MIN_MTU_SIZE, MAX_MTU_SIZE);
                     OPEN_CONNECTION_REPLY_2 pk = new OPEN_CONNECTION_REPLY_2();
                     pk.mtuSize = (short) this.mtuSize;
                     pk.serverID = this.sessionManager.getID();

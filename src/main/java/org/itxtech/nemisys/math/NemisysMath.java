@@ -34,4 +34,7 @@ public class NemisysMath {
         return ((double) Math.round(d * Math.pow(10, precision))) / Math.pow(10, precision);
     }
 
+    public static int clamp(int value, int min, int max) {
+        return value < min ? min : (value > max ? max : value);
+    }
 }
