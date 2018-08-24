@@ -15,11 +15,6 @@ pipeline {
             post {
                 success {
                     archiveArtifacts artifacts: 'target/nemisys-*-SNAPSHOT.jar', fingerprint: true
-                    step([
-                        $class: 'JavadocArchiver',
-                        javadocDir: 'target/site/apidocs',
-                        keepAll: true
-                    ])
                 }
             }
         }
