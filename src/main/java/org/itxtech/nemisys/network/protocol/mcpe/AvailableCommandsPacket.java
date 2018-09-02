@@ -13,24 +13,24 @@ public class AvailableCommandsPacket extends DataPacket {
 
     public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
     public Map<String, CommandDataVersions> commands;
-
-    public static final int ARG_TYPE_INT = 0x01;
-    public static final int ARG_TYPE_FLOAT = 0x02;
-    public static final int ARG_TYPE_VALUE = 0x03;
-    public static final int ARG_TYPE_TARGET = 0x04;
-
-    public static final int ARG_TYPE_STRING = 0x0d;
-    public static final int ARG_TYPE_POSITION = 0x0e;
-
-    public static final int ARG_TYPE_RAWTEXT = 0x11;
-    public static final int ARG_TYPE_TEXT = 0x13;
-
-    public static final int ARG_TYPE_JSON = 0x16;
-    public static final int ARG_TYPE_COMMAND = 0x1d;
+    public final Map<String, List<String>> softEnums = new HashMap<>();
 
     public static final int ARG_FLAG_VALID = 0x100000;
     public static final int ARG_FLAG_ENUM = 0x200000;
     public static final int ARG_FLAG_POSTFIX = 0x01000000;
+
+    public static final int ARG_TYPE_INT = 0x01;
+    public static final int ARG_TYPE_FLOAT = 0x02;
+    public static final int ARG_TYPE_VALUE = 0x03;
+    public static final int ARG_TYPE_WILDCARD_INT = 0x04;
+    public static final int ARG_TYPE_OPERATOR = 0x05;
+    public static final int ARG_TYPE_TARGET = 0x06;
+    public static final int ARG_TYPE_STRING = 0x14;
+    public static final int ARG_TYPE_POSITION = 0x1a;
+    public static final int ARG_TYPE_MESSAGE = 0x1c;
+    public static final int ARG_TYPE_TEXT = 0x1f;
+    public static final int ARG_TYPE_JSON = 0x20;
+    public static final int ARG_TYPE_COMMAND = 0x23;
 
     @Override
     public byte pid() {
@@ -122,7 +122,7 @@ public class AvailableCommandsPacket extends DataPacket {
                         int index = type & 0xffff;
                         parameter.enumData = enums.get(index);
                         //MainLogger.getLogger().info("paramEnum: "+parameter.enumData.getName());
-                    } else if ((type & ARG_FLAG_VALID) == 0) {
+                    } else if ((type & ARG_FLAG_POSTFIX) != 0) {
                         parameter.postFix = postFixes.get(type & 0xffff);
                     }
 
@@ -143,6 +143,20 @@ public class AvailableCommandsPacket extends DataPacket {
             versions.versions.add(data);
 
             this.commands.put(name, versions);
+        }
+
+        int softEnumLength = (int) this.getUnsignedVarInt();
+
+        for (int i = 0; i < softEnumLength; i++) {
+            String name = this.getString();
+
+            List<String> values = new ArrayList<>();
+            int valuesLength = (int) getUnsignedVarInt();
+
+            for (int i2 = 0; i2 < valuesLength; i2++) {
+                values.add(this.getString());
+            }
+            softEnums.put(name, values);
         }
     }
 
@@ -248,7 +262,7 @@ public class AvailableCommandsPacket extends DataPacket {
                         }
 
 
-                        type = (ARG_FLAG_VALID | parameter.type.getId()) << 24 | i;
+                        type = ARG_FLAG_VALID | ARG_FLAG_POSTFIX | i;
                     } else {
                         type = parameter.type.getId() | ARG_FLAG_VALID;
                     }
@@ -257,6 +271,14 @@ public class AvailableCommandsPacket extends DataPacket {
                     putBoolean(parameter.optional);
                 }
             }
+        });
+
+        this.putUnsignedVarInt(softEnums.size());
+
+        softEnums.forEach((name, values) -> {
+            this.putString(name);
+            this.putUnsignedVarInt(values.size());
+            values.forEach(this::putString);
         });
     }
 }
