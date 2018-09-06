@@ -394,7 +394,7 @@ public class Player implements CommandSender {
                 DataPacket pk = getServer().getNetwork().getPacket(data[0]);
 
                 if (pk != null) {
-                    pk.setBuffer(data, protocol > 120 ? 3 : 1);
+                    pk.setBuffer(data, 1);
                     pk.decode();
                     pk.isEncoded = true;
 
