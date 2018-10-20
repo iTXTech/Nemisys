@@ -37,9 +37,6 @@ public class TextPacket extends DataPacket {
             case TYPE_WHISPER:
             case TYPE_ANNOUNCEMENT:
                 this.source = this.getString();
-
-                getString();
-                getVarInt();
             case TYPE_RAW:
             case TYPE_TIP:
             case TYPE_SYSTEM:
@@ -69,9 +66,6 @@ public class TextPacket extends DataPacket {
             case TYPE_WHISPER:
             case TYPE_ANNOUNCEMENT:
                 this.putString(this.source);
-
-                putString(""); //third party name
-                putVarInt(0); //platform id
             case TYPE_RAW:
             case TYPE_TIP:
             case TYPE_SYSTEM:

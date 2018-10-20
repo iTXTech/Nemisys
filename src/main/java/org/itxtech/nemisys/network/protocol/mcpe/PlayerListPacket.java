@@ -31,9 +31,6 @@ public class PlayerListPacket extends DataPacket {
                 entry.entityId = getVarLong();
                 entry.name = getString();
 
-                getString(); //third party name
-                getVarInt(); //platform id
-
                 entry.skin = getSkin();
                 entry.geometryModel = getString();
                 entry.geometryData = getByteArray();
@@ -57,9 +54,6 @@ public class PlayerListPacket extends DataPacket {
             if (type == TYPE_ADD) {
                 this.putVarLong(entry.entityId);
                 this.putString(entry.name);
-
-                this.putString(""); //third party name
-                this.putVarInt(0); //platform id
 
                 this.putSkin(entry.skin);
 

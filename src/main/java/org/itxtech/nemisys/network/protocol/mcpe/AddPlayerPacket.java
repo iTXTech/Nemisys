@@ -32,9 +32,6 @@ public class AddPlayerPacket extends DataPacket {
         uuid = getUUID();
         username = getString();
 
-        getString(); //third party name
-        getVarInt(); //platform id
-
         entityUniqueId = getEntityUniqueId();
         entityRuntimeId = getEntityRuntimeId();
     }
@@ -44,9 +41,6 @@ public class AddPlayerPacket extends DataPacket {
         this.reset();
         this.putUUID(this.uuid);
         this.putString(this.username);
-
-        this.putString(""); //third party name
-        this.putVarInt(0); //platform id
 
         this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
