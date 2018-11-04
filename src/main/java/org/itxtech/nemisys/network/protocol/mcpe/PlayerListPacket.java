@@ -30,10 +30,7 @@ public class PlayerListPacket extends DataPacket {
             if (type == TYPE_ADD) {
                 entry.entityId = getVarLong();
                 entry.name = getString();
-
                 entry.skin = getSkin();
-                entry.geometryModel = getString();
-                entry.geometryData = getByteArray();
                 entry.xboxUserId = getString();
 
                 this.getString(); //platform chat id
@@ -54,13 +51,8 @@ public class PlayerListPacket extends DataPacket {
             if (type == TYPE_ADD) {
                 this.putVarLong(entry.entityId);
                 this.putString(entry.name);
-
                 this.putSkin(entry.skin);
-
-                this.putString(entry.geometryModel);
-                this.putByteArray(entry.geometryData);
                 this.putString(entry.xboxUserId);
-
                 this.putString(""); //platform chat id
             }
         }
@@ -78,9 +70,6 @@ public class PlayerListPacket extends DataPacket {
         public long entityId = 0;
         public String name = "";
         public Skin skin;
-        public byte[] capeData = new byte[0];
-        public String geometryModel = "";
-        public byte[] geometryData = new byte[0];
         public String xboxUserId = "";
 
         public Entry(UUID uuid) {
@@ -96,9 +85,6 @@ public class PlayerListPacket extends DataPacket {
             this.entityId = entityId;
             this.name = name;
             this.skin = skin;
-            this.capeData = skin.getCape().getData();
-            this.geometryData = skin.geometry;
-            this.geometryModel = skin.geometryName;
             this.xboxUserId = xboxUserId == null ? "" : xboxUserId;
         }
     }
