@@ -80,22 +80,27 @@ public class LoginPacket extends DataPacket {
     }
 
     private void decodeSkinData() {
-        String data = new String(this.get(this.getLInt()));
-
-        JsonObject skinToken = decodeToken(data);
-        String skinId = null;
+        JsonObject skinToken = decodeToken(new String(this.get(this.getLInt())));
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
-        if (skinToken.has("SkinId")) skinId = skinToken.get("SkinId").getAsString();
+        skin = new Skin();
+        if (skinToken.has("SkinId")) {
+            skin.setSkinId(skinToken.get("SkinId").getAsString());
+        }
         if (skinToken.has("SkinData")) {
-            this.skin = new Skin(skinToken.get("SkinData").getAsString(), skinId);
-
-            if (skinToken.has("CapeData"))
-                this.skin.setCape(this.skin.new Cape(Base64.getDecoder().decode(skinToken.get("CapeData").getAsString())));
+            skin.setEncodedSkinData(skinToken.get("SkinData").getAsString().getBytes(StandardCharsets.UTF_8));
         }
 
-        if (skinToken.has("SkinGeometryName")) this.skinGeometryName = skinToken.get("SkinGeometryName").getAsString();
-        if (skinToken.has("SkinGeometry"))
-            this.skinGeometry = Base64.getDecoder().decode(skinToken.get("SkinGeometry").getAsString());
+        if (skinToken.has("CapeData")) {
+            this.skin.setEncodedCapeData(skinToken.get("CapeData").getAsString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        if (skinToken.has("SkinGeometryName")) {
+            skin.setGeometryName(skinToken.get("SkinGeometryName").getAsString());
+        }
+
+        if (skinToken.has("SkinGeometry")) {
+            skin.setEncodedGeometryData(skinToken.get("SkinGeometry").getAsString().getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     private JsonObject decodeToken(String token) {

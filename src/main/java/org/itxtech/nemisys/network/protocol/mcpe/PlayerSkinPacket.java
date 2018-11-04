@@ -8,10 +8,9 @@ public class PlayerSkinPacket extends DataPacket {
 
     public UUID uuid;
     public Skin skin;
-    public String skinName;
-    public String serializeName;
-    public String geometryModel;
-    public String geometryData;
+    public String newSkinName;
+    public String oldSkinName;
+    public boolean premium;
 
     @Override
     public byte pid() {
@@ -20,30 +19,29 @@ public class PlayerSkinPacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.uuid = this.getUUID();
-        String skinId = this.getString();
-        this.skinName = this.getString();
-        this.serializeName = this.getString();
-        byte[] data = this.getByteArray();
-        byte[] cape = this.getByteArray();
-
-        this.skin = new Skin(data, skinId);
-        this.skin.setCape(this.skin.new Cape(cape));
-
-        this.geometryModel = this.getString();
-        this.geometryData = this.getString();
+        uuid = getUUID();
+        skin = new Skin();
+        skin.setSkinId(getString());
+        newSkinName = getString();
+        oldSkinName = getString();
+        skin.setEncodedSkinData(getByteArray());
+        skin.setEncodedCapeData(getByteArray());
+        skin.setGeometryName(getString());
+        skin.setEncodedGeometryData(getByteArray());
+        premium = getBoolean();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putUUID(this.uuid);
-        this.putString(this.skin.getModel());
-        this.putString(this.skinName);
-        this.putString(this.serializeName);
-        this.putByteArray(this.skin.getData());
-        this.putByteArray(this.skin.getCape().getData());
-        this.putString(this.geometryModel);
-        this.putString(this.geometryData);
+        reset();
+        putUUID(uuid);
+        putString(skin.getGeometryName());
+        putString(newSkinName);
+        putString(oldSkinName);
+        putByteArray(skin.getEncodedSkinData());
+        putByteArray(skin.getEncodedCapeData());
+        putString(skin.getGeometryName());
+        putByteArray(skin.getEncodedGeometryData());
+        putBoolean(premium);
     }
 }
