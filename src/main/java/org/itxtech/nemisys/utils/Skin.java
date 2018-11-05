@@ -5,9 +5,7 @@ import com.google.common.base.Preconditions;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 
 /**
  * author: MagicDroidX
@@ -28,17 +26,11 @@ public class Skin {
 
     private String skinId = "Steve";
     private byte[] skinData = new byte[SINGLE_SKIN_SIZE];
-    private byte[] encodedSkinData = null;
     private byte[] capeData = new byte[0];
-    private byte[] encodedCapeData = null;
     private String geometryName = GEOMETRY_CUSTOM;
-    private String geometryData = "";
-    private byte[] encodedGeometryData = null;
+    private String geometryData = null;
 
     public boolean isValid() {
-        if (encodedSkinData != null) {
-            return true;
-        }
         if (skinData != null) {
             return isValidSkin(skinData.length);
         }
@@ -47,22 +39,9 @@ public class Skin {
 
     public byte[] getSkinData() {
         if (skinData == null) {
-            if (encodedSkinData == null) {
-                return EMPTY;
-            }
-            skinData = Base64.getDecoder().decode(encodedSkinData);
+            return EMPTY;
         }
         return skinData;
-    }
-
-    public byte[] getEncodedSkinData() {
-        if (encodedSkinData == null) {
-            if (skinData == null) {
-                return EMPTY;
-            }
-            encodedSkinData = Base64.getEncoder().encode(skinData);
-        }
-        return encodedSkinData;
     }
 
     public String getGeometryName() {
@@ -90,14 +69,6 @@ public class Skin {
         }
         if (!Arrays.equals(skinData, this.skinData)) {
             this.skinData = data;
-            this.encodedSkinData = null;
-        }
-    }
-
-    public void setEncodedSkinData(byte[] encodedSkinData) {
-        if (encodedSkinData != null && !Arrays.equals(encodedSkinData, this.encodedSkinData)) {
-            skinData = null;
-            this.encodedSkinData = encodedSkinData;
         }
     }
 
@@ -111,22 +82,9 @@ public class Skin {
 
     public byte[] getCapeData() {
         if (capeData == null) {
-            if (encodedCapeData == null) {
-                return EMPTY;
-            }
-            capeData = Base64.getDecoder().decode(encodedCapeData);
+            return EMPTY;
         }
         return capeData;
-    }
-
-    public byte[] getEncodedCapeData() {
-        if (encodedCapeData == null) {
-            if (capeData == null) {
-                return EMPTY;
-            }
-            encodedCapeData = Base64.getEncoder().encode(capeData);
-        }
-        return encodedCapeData;
     }
 
     public void setCapeData(BufferedImage image) {
@@ -137,49 +95,20 @@ public class Skin {
         Preconditions.checkNotNull(capeData, "capeData");
         if (!Arrays.equals(capeData, this.capeData)) {
             this.capeData = capeData;
-            this.encodedCapeData = null;
-        }
-    }
-
-    public void setEncodedCapeData(byte[] encodedCapeData) {
-        if (encodedCapeData != null && !Arrays.equals(encodedCapeData, this.encodedCapeData)) {
-            capeData = null;
-            this.encodedCapeData = encodedCapeData;
         }
     }
 
     public String getGeometryData() {
         if (geometryData == null) {
-            if (encodedGeometryData == null) {
-                return "";
-            }
-            geometryData = new String(Base64.getDecoder().decode(encodedGeometryData), StandardCharsets.UTF_8);
+            return "";
         }
         return geometryData;
-    }
-
-    public byte[] getEncodedGeometryData() {
-        if (encodedGeometryData == null) {
-            if (geometryData == null) {
-                return EMPTY;
-            }
-            encodedGeometryData = Base64.getEncoder().encode(geometryData.getBytes(StandardCharsets.UTF_8));
-        }
-        return encodedGeometryData;
     }
 
     public void setGeometryData(String geometryData) {
         Preconditions.checkNotNull(geometryData, "geometryData");
         if (!geometryData.equals(this.geometryData)) {
             this.geometryData = geometryData;
-            this.encodedGeometryData = null;
-        }
-    }
-
-    public void setEncodedGeometryData(byte[] encodedGeometryData) {
-        if (encodedGeometryData != null && !Arrays.equals(encodedGeometryData, this.encodedGeometryData)) {
-            geometryData = null;
-            this.encodedGeometryData = encodedGeometryData;
         }
     }
 
