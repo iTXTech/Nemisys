@@ -64,9 +64,7 @@ public class Skin {
     }
 
     public void setSkinData(byte[] skinData) {
-        if (skinData == null || !isValidSkin(skinData.length)) {
-            throw new IllegalArgumentException("Invalid skin");
-        }
+        Preconditions.checkNotNull(skinData, "skinData");
         this.skinData = skinData;
     }
 
