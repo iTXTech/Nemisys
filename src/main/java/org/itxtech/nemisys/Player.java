@@ -11,6 +11,7 @@ import org.itxtech.nemisys.event.TranslationContainer;
 import org.itxtech.nemisys.event.player.*;
 import org.itxtech.nemisys.network.SourceInterface;
 import org.itxtech.nemisys.network.protocol.mcpe.*;
+import org.itxtech.nemisys.network.protocol.mcpe.types.ScoreInfo;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.nemisys.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.nemisys.network.protocol.spp.RedirectPacket;
@@ -77,6 +78,8 @@ public class Player implements CommandSender {
     private PermissibleBase perm;
 
     private AsyncTask loginTask;
+
+    protected final Map<String, Set<Long>> scoreboards = new HashMap<>();
 
     public Player(SourceInterface interfaz, long clientId, String ip, int port) {
         this.interfaz = interfaz;
@@ -216,6 +219,35 @@ public class Player implements CommandSender {
                     this.clientCommands = new HashMap<>(commandsPacket.commands);
                     sendCommandData();
                     return;
+                case ProtocolInfo.SET_DISPLAY_OBJECTIVE_PACKET:
+                    SetDisplayObjectivePacket sdop = (SetDisplayObjectivePacket) pk;
+
+                    scoreboards.putIfAbsent(sdop.objective, new HashSet<>());
+                    break;
+                case ProtocolInfo.REMOVE_OBJECTIVE_PACKET:
+                    RemoveObjectivePacket rop = (RemoveObjectivePacket) pk;
+
+                    break;
+                case ProtocolInfo.SET_SCORE_PACKET:
+                    SetScorePacket ssp = (SetScorePacket) pk;
+
+                    SetScorePacket.Action act = ssp.action;
+                    ssp.infos.forEach(info -> {
+                        scoreboards.compute(info.objective, (k, v) -> {
+                            if (v == null) {
+                                v = new HashSet<>();
+                            }
+
+                            if (act == SetScorePacket.Action.SET) {
+                                v.add(info.scoreId);
+                            } else {
+                                v.remove(info.scoreId);
+                            }
+                            return v;
+                        });
+                    });
+
+                    break;
             }
 
             if (entityId != null) {
@@ -290,6 +322,36 @@ public class Player implements CommandSender {
         getServer().batchPackets(new Player[]{this}, packets);
     }
 
+    public void removeScoreboards() {
+        if (scoreboards.isEmpty()) {
+            return;
+        }
+
+        Set<String> objectives = this.scoreboards.keySet();
+        List<ScoreInfo> infos = new ArrayList<>();
+
+        scoreboards.forEach((obj, inf) -> {
+            for (Long scoreId : inf) {
+                infos.add(new ScoreInfo(scoreId, obj, 1, "a"));
+            }
+        });
+
+        SetScorePacket ssp = new SetScorePacket();
+        ssp.action = SetScorePacket.Action.REMOVE;
+        ssp.infos = infos;
+
+        this.sendDataPacket(ssp);
+
+        objectives.forEach(obj -> {
+            RemoveObjectivePacket rop = new RemoveObjectivePacket();
+            rop.objective = obj;
+
+            this.sendDataPacket(rop);
+        });
+
+        scoreboards.clear();
+    }
+
     public void transfer(Client client) {
         PlayerTransferEvent ev;
         this.server.getPluginManager().callEvent(ev = new PlayerTransferEvent(this, client));
@@ -298,6 +360,7 @@ public class Player implements CommandSender {
                 this.client.removePlayer(this, "Player has been transferred");
                 this.removeAllPlayers();
                 this.despawnEntities();
+                this.removeScoreboards();
             }
             this.client = ev.getTargetClient();
             this.client.addPlayer(this);
