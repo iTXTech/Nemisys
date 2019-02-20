@@ -131,6 +131,7 @@ public class Server {
                 put("rcon.password", Base64.getEncoder().encodeToString(UUID.randomUUID().toString().replace("-", "").getBytes()).substring(3, 13));
                 put("debug", 1);
                 put("enable-synapse-client", false);
+                put("display-stats-in-title", true);
             }
         });
 
@@ -525,7 +526,9 @@ public class Server {
     }
 
     public void titleTick() {
-        if (!Nemisys.ANSI) {
+        this.network.resetStatistics();
+
+        if (!Nemisys.ANSI || !this.getPropertyBoolean("display-stats-in-title")) {
             return;
         }
 
@@ -552,8 +555,6 @@ public class Server {
                 " | Load " + this.getTickUsage() + "%" + (char) 0x07;
 
         System.out.print(title);
-
-        this.network.resetStatistics();
     }
 
     public QueryRegenerateEvent getQueryInformation() {
