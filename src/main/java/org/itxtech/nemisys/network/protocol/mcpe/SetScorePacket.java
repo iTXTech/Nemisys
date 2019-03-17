@@ -40,10 +40,15 @@ public class SetScorePacket extends DataPacket {
             long id = getVarLong();
             String obj = getString();
             int score = getLInt();
+            String name = null;
 
-            getByte(); //TODO: check type
+            int type = getByte();
 
-            String name = getString();
+            if (type == 1 || type == 2) {
+                getUnsignedVarLong(); //entity id
+            } else {
+                name = getString();
+            }
 
             ScoreInfo info = new ScoreInfo(id, obj, score, name);
             infos.add(info);
