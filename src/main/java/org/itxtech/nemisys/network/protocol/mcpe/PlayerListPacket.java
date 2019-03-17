@@ -28,8 +28,9 @@ public class PlayerListPacket extends DataPacket {
             Entry entry = new Entry(getUUID());
 
             if (type == TYPE_ADD) {
-                entry.entityId = getVarLong();
+                entry.entityId = getEntityUniqueId();
                 entry.name = getString();
+
                 entry.skin = getSkin();
                 entry.xboxUserId = getString();
 
