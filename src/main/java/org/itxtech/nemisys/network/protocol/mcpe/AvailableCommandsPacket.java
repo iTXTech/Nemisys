@@ -113,6 +113,7 @@ public class AvailableCommandsPacket extends DataPacket {
                     String paramName = getString();
                     int type = getLInt();
                     boolean optional = getBoolean();
+                    getByte(); //TODO: bit flags
 
                     CommandParameter parameter = new CommandParameter(paramName, optional);
 
@@ -269,7 +270,7 @@ public class AvailableCommandsPacket extends DataPacket {
 
                     putLInt(type);
                     putBoolean(parameter.optional);
-                    putByte((byte) 0);
+                    putByte((byte) 0); //TODO: bit flags
                 }
             }
         });
