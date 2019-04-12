@@ -65,10 +65,10 @@ public class AvailableCommandsPacket extends DataPacket {
             while (enumLength-- > 0) {
                 int index;
 
-                if (enums.size() < 256) {
+                if (enumValues.size() < 256) {
                     index = getByte();
-                } else if (enums.size() < 65536) {
-                    index = getShort();
+                } else if (enumValues.size() < 65536) {
+                    index = getLShort();
                 } else {
                     index = getLInt();
                 }

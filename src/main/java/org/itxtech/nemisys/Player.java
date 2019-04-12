@@ -332,7 +332,7 @@ public class Player implements CommandSender {
 
         scoreboards.forEach((obj, inf) -> {
             for (Long scoreId : inf) {
-                infos.add(new ScoreInfo(scoreId, obj, 1, "a"));
+                infos.add(new ScoreInfo(scoreId, obj, 1));
             }
         });
 

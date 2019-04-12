@@ -14,6 +14,7 @@ import org.itxtech.nemisys.network.protocol.mcpe.DataPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.GenericPacket;
 import org.itxtech.nemisys.network.protocol.mcpe.TextPacket;
 import org.itxtech.nemisys.network.protocol.spp.*;
+import org.itxtech.nemisys.utils.BinaryStream;
 import org.itxtech.nemisys.utils.MainLogger;
 import org.itxtech.nemisys.utils.TextFormat;
 
@@ -201,7 +202,7 @@ public class Client {
             break;
             case SynapseInfo.PLUGIN_MESSAGE_PACKET:
                 PluginMessagePacket messagePacket = (PluginMessagePacket) packet;
-                DataInput input = new DataInputStream(new ByteArrayInputStream(messagePacket.data));
+                BinaryStream inputStream = new BinaryStream(messagePacket.data);
                 String channel = messagePacket.channel;
 
                 PluginMsgRecvEvent ev = new PluginMsgRecvEvent(this, channel, messagePacket.data.clone());
@@ -213,13 +214,13 @@ public class Client {
 
                 if (channel.equals("Nemisys")) {
                     try {
-                        String subChannel = input.readUTF();
-                        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                        String subChannel = inputStream.getString();
+                        BinaryStream outputStream = new BinaryStream();
 
                         switch (subChannel) {
                             case "TransferToPlayer":
-                                String player = input.readUTF();
-                                String target = input.readUTF();
+                                String player = inputStream.getString();
+                                String target = inputStream.getString();
 
                                 Player p = this.server.getPlayerExact(player);
                                 Player p2 = this.server.getPlayerExact(target);
@@ -231,7 +232,7 @@ public class Client {
                                 p.transfer(p2.getClient());
                                 break;
                             case "IP":
-                                player = input.readUTF();
+                                player = inputStream.getString();
 
                                 p = this.server.getPlayerExact(player);
 
@@ -239,12 +240,12 @@ public class Client {
                                     break;
                                 }
 
-                                out.writeUTF("IP");
-                                out.writeUTF(this.server.getIp());
-                                out.writeInt(this.server.getPort());
+                                outputStream.putString("IP");
+                                outputStream.putString(this.server.getIp());
+                                outputStream.putInt(this.server.getPort());
                                 break;
                             case "PlayerCount":
-                                String server = input.readUTF();
+                                String server = inputStream.getString();
 
                                 Client client = this.server.getClient(this.server.getClientData().getHashByDescription(server));
 
@@ -252,21 +253,21 @@ public class Client {
                                     break;
                                 }
 
-                                out.writeUTF("PlayerCount");
-                                out.writeUTF(server);
-                                out.writeInt(client.getPlayers().size());
+                                outputStream.putString("PlayerCount");
+                                outputStream.putString(server);
+                                outputStream.putInt(client.getPlayers().size());
                                 break;
                             case "GetServers":
-                                out.writeUTF("GetServers");
+                                outputStream.putString("GetServers");
 
                                 List<String> names = new ArrayList<>();
                                 this.server.getClients().values().forEach(c -> names.add(c.getDescription()));
 
-                                out.writeUTF(String.join(", ", names));
+                                outputStream.putString(String.join(", ", names));
                                 break;
                             case "Message":
-                                player = input.readUTF();
-                                String message = input.readUTF();
+                                player = inputStream.getString();
+                                String message = inputStream.getString();
 
                                 p = this.server.getPlayerExact(player);
 
@@ -277,7 +278,7 @@ public class Client {
                                 p.sendMessage(message);
                                 break;
                             case "MessageAll":
-                                message = input.readUTF();
+                                message = inputStream.getString();
 
                                 TextPacket textPacket = new TextPacket();
                                 textPacket.type = TextPacket.TYPE_RAW;
@@ -288,8 +289,8 @@ public class Client {
                             case "UUID":
                                 break;
                             case "KickPlayer":
-                                player = input.readUTF();
-                                String reason = input.readUTF();
+                                player = inputStream.getString();
+                                String reason = inputStream.getString();
 
                                 p = this.server.getPlayerExact(player);
 
@@ -301,12 +302,10 @@ public class Client {
                                 break;
                         }
 
-                        if (out != null) {
-                            byte[] data = out.toByteArray();
+                        byte[] data = outputStream.getBuffer();
 
-                            if (data.length > 0) {
-                                this.sendPluginMesssage(channel, data);
-                            }
+                        if (data.length > 0) {
+                            this.sendPluginMesssage(channel, data);
                         }
                     } catch (Exception e) {
                         MainLogger.getLogger().logException(e);
