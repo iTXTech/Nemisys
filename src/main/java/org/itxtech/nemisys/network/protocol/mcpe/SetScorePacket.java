@@ -24,8 +24,20 @@ public class SetScorePacket extends DataPacket {
             putVarLong(it.scoreId);
             putString(it.objective);
             putLInt(it.score);
-            putByte((byte) Type.FAKE.ordinal()); //always fake for now
-            putString(it.name);
+            if(action == Action.SET) {
+                putByte((byte) it.type.ordinal());
+                switch(it.type) {
+                    case PLAYER:
+                    case ENTITY:
+                        putEntityUniqueId(it.entityId);
+                        break;
+                    case FAKE:
+                    case INVALID:
+                    default:
+                        putString(it.name);
+                        break;
+                }
+            }
         });
     }
 
@@ -40,17 +52,21 @@ public class SetScorePacket extends DataPacket {
             long id = getVarLong();
             String obj = getString();
             int score = getLInt();
-            String name = null;
 
-            int type = getByte();
+            ScoreInfo info = new ScoreInfo(id, obj, score);
 
-            if (type == 1 || type == 2) {
-                getUnsignedVarLong(); //entity id
-            } else {
-                name = getString();
+            if(action == Action.SET) {
+                Type type = Type.values()[getByte()];
+
+                info.type(type);
+
+                if(type == Type.ENTITY || type == Type.PLAYER) {
+                    info.entityId = getEntityUniqueId();
+                } else if(type == Type.FAKE) {
+                    info.name = getString();
+                }
             }
 
-            ScoreInfo info = new ScoreInfo(id, obj, score, name);
             infos.add(info);
         }
 
