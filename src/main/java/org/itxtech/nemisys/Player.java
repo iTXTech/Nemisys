@@ -303,7 +303,7 @@ public class Player implements CommandSender {
         }
         playerList.clear();
 
-        pk.entries = entries.stream().toArray(PlayerListPacket.Entry[]::new);
+        pk.entries = entries.toArray(new PlayerListPacket.Entry[0]);
         this.sendDataPacket(pk);
     }
 
