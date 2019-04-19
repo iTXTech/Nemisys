@@ -1,16 +1,18 @@
 package org.itxtech.nemisys.utils;
 
 import com.google.common.base.Preconditions;
+import lombok.ToString;
+import org.itxtech.nemisys.nbt.stream.FastByteArrayOutputStream;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString(exclude = {"skinData", "capeData", "geometryData"})
 public class Skin {
     private static final int PIXEL_SIZE = 4;
 
@@ -22,7 +24,7 @@ public class Skin {
     public static final String GEOMETRY_CUSTOM = "geometry.humanoid.custom";
     public static final String GEOMETRY_CUSTOM_SLIM = "geometry.humanoid.customSlim";
 
-    private static final byte[] EMPTY = new byte[0];
+    private static final byte[] EMPTY = new byte[SINGLE_SKIN_SIZE];
 
     private String skinId = "Steve";
     private byte[] skinData = null;
@@ -64,7 +66,9 @@ public class Skin {
     }
 
     public void setSkinData(byte[] skinData) {
-        Preconditions.checkNotNull(skinData, "skinData");
+        if (skinData == null || !isValidSkin(skinData.length)) {
+            throw new IllegalArgumentException("Invalid skin");
+        }
         this.skinData = skinData;
     }
 
@@ -117,7 +121,7 @@ public class Skin {
     }
 
     private static byte[] parseBufferedImage(BufferedImage image) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream();
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 Color color = new Color(image.getRGB(x, y), true);
@@ -136,5 +140,9 @@ public class Skin {
                 length == DOUBLE_SKIN_SIZE ||
                 length == SKIN_128_64_SIZE ||
                 length == SKIN_128_128_SIZE;
+    }
+
+    public boolean isPremiumGeometry() {
+        return !geometryName.equalsIgnoreCase(GEOMETRY_CUSTOM) && !geometryName.equalsIgnoreCase(GEOMETRY_CUSTOM_SLIM);
     }
 }

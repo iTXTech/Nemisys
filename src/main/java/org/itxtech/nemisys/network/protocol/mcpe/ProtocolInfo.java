@@ -31,7 +31,7 @@ public interface ProtocolInfo {
     byte ADD_ITEM_ENTITY_PACKET = 0x0f;
     byte ADD_HANGING_ENTITY_PACKET = 0x10;
     byte TAKE_ITEM_ENTITY_PACKET = 0x11;
-    byte MOVE_ENTITY_PACKET = 0x12;
+    byte MOVE_ENTITY_ABSOLUTE_PACKET = 0x12;
     byte MOVE_PLAYER_PACKET = 0x13;
     byte RIDER_JUMP_PACKET = 0x14;
     byte UPDATE_BLOCK_PACKET = 0x15;

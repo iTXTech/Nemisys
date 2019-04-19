@@ -1,10 +1,20 @@
 package org.itxtech.nemisys.utils;
 
+import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
 import org.itxtech.nemisys.math.BlockVector3;
 import org.itxtech.nemisys.math.Vector3f;
+import org.itxtech.nemisys.nbt.NBTIO;
+import org.itxtech.nemisys.nbt.tag.CompoundTag;
+import org.itxtech.nemisys.network.protocol.mcpe.types.entity.Attribute;
+import org.itxtech.nemisys.network.protocol.mcpe.types.entity.EntityLink;
+import org.itxtech.nemisys.network.protocol.mcpe.types.item.Item;
 
+import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -328,6 +338,140 @@ public class BinaryStream {
      */
     public void putEntityRuntimeId(long eid) {
         this.putUnsignedVarLong(eid);
+    }
+
+    public void putEntityLink(EntityLink link) {
+        putEntityUniqueId(link.fromEntityUniquieId);
+        putEntityUniqueId(link.toEntityUniquieId);
+        putByte(link.type);
+        putBoolean(link.immediate);
+    }
+
+    /**
+     * Reads a list of Attributes from the stream.
+     *
+     * @return Attribute[]
+     */
+    public Attribute[] getAttributeList() {
+        List<Attribute> list = new ArrayList<>();
+        long count = this.getUnsignedVarInt();
+
+        for (int i = 0; i < count; ++i) {
+            String name = this.getString();
+            Attribute attr = Attribute.getAttributeByName(name);
+            if (attr != null) {
+                attr.setMinValue(this.getLFloat());
+                attr.setValue(this.getLFloat());
+                attr.setMaxValue(this.getLFloat());
+                list.add(attr);
+            } else {
+                MainLogger.getLogger().warning("Unknown attribute type \"" + name + "\"");
+            }
+        }
+
+        return list.toArray(new Attribute[0]);
+    }
+
+    /**
+     * Writes a list of Attributes to the packet buffer using the standard format.
+     */
+    public void putAttributeList(Attribute[] attributes) {
+        this.putUnsignedVarInt(attributes.length);
+        for (Attribute attribute : attributes) {
+            this.putString(attribute.getName());
+            this.putLFloat(attribute.getMinValue());
+            this.putLFloat(attribute.getValue());
+            this.putLFloat(attribute.getMaxValue());
+        }
+    }
+
+    public EntityLink getEntityLink() {
+        return new EntityLink(
+                getEntityUniqueId(),
+                getEntityUniqueId(),
+                (byte) getByte(),
+                getBoolean()
+        );
+    }
+
+    public Item getSlot() {
+        int id = this.getVarInt();
+
+        if (id <= 0) {
+            return new Item(0, 0, 0);
+        }
+        int auxValue = this.getVarInt();
+        int data = auxValue >> 8;
+        if (data == Short.MAX_VALUE) {
+            data = -1;
+        }
+        int cnt = auxValue & 0xff;
+
+        int nbtLen = this.getLShort();
+        byte[] nbt = new byte[0];
+        if (nbtLen < Short.MAX_VALUE) {
+            nbt = this.get(nbtLen);
+        } else if (nbtLen == 65535) {
+            int nbtTagCount = (int) getUnsignedVarInt();
+            int offset = getOffset();
+            FastByteArrayInputStream stream = new FastByteArrayInputStream(get());
+            for (int i = 0; i < nbtTagCount; i++) {
+                try {
+                    // TODO: 05/02/2019 This hack is necessary because we keep the raw NBT tag. Try to remove it.
+                    CompoundTag tag = NBTIO.read(stream, ByteOrder.LITTLE_ENDIAN, true);
+                    nbt = NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, false);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            setOffset(offset + (int) stream.position());
+        }
+
+        //TODO
+        int canPlaceOn = this.getVarInt();
+        if (canPlaceOn > 0) {
+            for (int i = 0; i < canPlaceOn; ++i) {
+                this.getString();
+            }
+        }
+
+        //TODO
+        int canDestroy = this.getVarInt();
+        if (canDestroy > 0) {
+            for (int i = 0; i < canDestroy; ++i) {
+                this.getString();
+            }
+        }
+
+        return new Item(
+                id, data, cnt, nbt
+        );
+    }
+
+    public void putSlot(Item item) {
+        if (item == null || item.getId() == 0) {
+            this.putVarInt(0);
+            return;
+        }
+
+        this.putVarInt(item.getId());
+        int auxValue = (((item.hasMeta() ? item.getDamage() : -1) & 0x7fff) << 8) | item.getCount();
+        this.putVarInt(auxValue);
+        byte[] nbt = item.getCompoundTag();
+        this.putLShort(nbt.length);
+        this.put(nbt);
+        this.putVarInt(0); //TODO CanPlaceOn entry count
+        this.putVarInt(0); //TODO CanDestroy entry count
+    }
+
+    public BlockVector3 getSignedBlockPosition() {
+        return new BlockVector3(getVarInt(), getVarInt(), getVarInt());
+    }
+
+    public void putSignedBlockPosition(BlockVector3 v) {
+        putVarInt(v.x);
+        putVarInt(v.y);
+        putVarInt(v.z);
     }
 
     public boolean feof() {
