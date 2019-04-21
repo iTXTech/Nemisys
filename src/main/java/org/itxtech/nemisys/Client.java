@@ -135,6 +135,7 @@ public class Client {
                     this.setVerified();
                     pk.message = InformationPacket.INFO_LOGIN_SUCCESS;
                     this.mainServer = connectPacket.isMainServer;
+		    this.lobbyServer = connectPacket.isLobbyServer;
                     this.description = connectPacket.description;
                     this.maxPlayers = connectPacket.maxPlayers;
                     this.server.addClient(this);
@@ -398,7 +399,7 @@ public class Client {
 
         this.server.updateClientData();
 
-        this.closeAllPlayers(reason, transferOnShutdown ? this.server.getFallbackClient() : null);
+        this.closeAllPlayers(reason, this.transferOnShutdown ? this.server.getFallbackClient() : null);
     }
 
     public void sendPluginMesssage(String channel, byte[] data) {
