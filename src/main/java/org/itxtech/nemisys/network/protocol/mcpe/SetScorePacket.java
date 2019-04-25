@@ -2,8 +2,11 @@ package org.itxtech.nemisys.network.protocol.mcpe;
 
 import org.itxtech.nemisys.network.protocol.mcpe.types.ScoreInfo;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author CreeperFace
@@ -20,7 +23,7 @@ public class SetScorePacket extends DataPacket {
         putByte((byte) action.ordinal());
 
         putUnsignedVarInt(infos.size());
-        infos.forEach(it -> {
+        for (ScoreInfo it : infos) {
             putVarLong(it.scoreId);
             putString(it.objective);
             putLInt(it.score);
@@ -32,13 +35,11 @@ public class SetScorePacket extends DataPacket {
                         putEntityUniqueId(it.entityId);
                         break;
                     case FAKE:
-                    case INVALID:
-                    default:
                         putString(it.name);
                         break;
                 }
             }
-        });
+        }
     }
 
     @Override
@@ -60,10 +61,12 @@ public class SetScorePacket extends DataPacket {
 
                 info.type(type);
 
-                if(type == Type.ENTITY || type == Type.PLAYER) {
-                    info.entityId = getEntityUniqueId();
-                } else if(type == Type.FAKE) {
-                    info.name = getString();
+                switch (type) {
+                    case ENTITY:
+                    case PLAYER:
+                        info.entityId = getEntityUniqueId();
+                    case FAKE:
+                        info.name = getString();
                 }
             }
 
