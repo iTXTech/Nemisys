@@ -139,16 +139,16 @@ public class AvailableCommandsPacket extends DataPacket {
                     if ((type & ARG_FLAG_POSTFIX) != 0) {
                         parameter.postFix = postFixes.get(type & 0xffff);
                     } else if ((type & ARG_FLAG_VALID) == 0) {
-                        throw new IllegalStateException("Invalid parameter type received");
-                    } else {
                         int index = type & 0xffff;
                         if ((type & ARG_FLAG_ENUM) != 0) {
                             parameter.enumData = enums.get(index);
                         } else if ((type & ARG_FLAG_SOFT_ENUM) != 0) {
                             // TODO: 22/01/2019 soft enums
                         } else {
-                            throw new IllegalStateException("Unknown parameter type!");
+                            parameter.type = CommandParamType.fromId(index);
                         }
+                    } else {
+                        throw new IllegalStateException("Unknown parameter type!");
                     }
 
                     overload.input.parameters[i] = parameter;
