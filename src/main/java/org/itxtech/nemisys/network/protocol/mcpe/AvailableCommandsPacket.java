@@ -138,7 +138,7 @@ public class AvailableCommandsPacket extends DataPacket {
 
                     if ((type & ARG_FLAG_POSTFIX) != 0) {
                         parameter.postFix = postFixes.get(type & 0xffff);
-                    } else if ((type & ARG_FLAG_VALID) == 0) {
+                    } else if ((type & ARG_FLAG_VALID) != 0) {
                         int index = type & 0xffff;
                         if ((type & ARG_FLAG_ENUM) != 0) {
                             parameter.enumData = enums.get(index);
