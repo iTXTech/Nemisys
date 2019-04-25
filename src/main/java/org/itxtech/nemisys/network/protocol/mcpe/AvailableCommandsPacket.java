@@ -134,6 +134,7 @@ public class AvailableCommandsPacket extends DataPacket {
                     boolean optional = getBoolean();
 
                     CommandParameter parameter = new CommandParameter(paramName, optional);
+                    parameter.options = (byte) getByte();
 
 
                     if ((type & ARG_FLAG_POSTFIX) != 0) {
