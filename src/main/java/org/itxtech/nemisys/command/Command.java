@@ -143,6 +143,22 @@ public abstract class Command {
         return false;
     }
 
+    public CommandParameter[] getCommandParameters(String key) {
+        return commandParameters.get(key);
+    }
+
+    public Map<String, CommandParameter[]> getCommandParameters() {
+        return commandParameters;
+    }
+
+    public void setCommandParameters(Map<String, CommandParameter[]> commandParameters) {
+        this.commandParameters = commandParameters;
+    }
+
+    public void addCommandParameters(String key, CommandParameter[] parameters) {
+        this.commandParameters.put(key, parameters);
+    }
+
     /**
      * Returns an CommandData containing command data
      *
