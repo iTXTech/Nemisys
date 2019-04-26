@@ -149,7 +149,7 @@ public class AvailableCommandsPacket extends DataPacket {
                             parameter.type = CommandParamType.fromId(index);
                         }
                     } else {
-                        throw new IllegalStateException("Unknown parameter type!");
+                        //throw new IllegalStateException("Unknown parameter type!");
                     }
 
                     overload.input.parameters[i] = parameter;
