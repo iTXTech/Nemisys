@@ -401,11 +401,16 @@ public class Client {
 
         this.closeAllPlayers(reason, this.transferOnShutdown ? this.server.getFallbackClient() : null);
     }
-
-    public void sendPluginMesssage(String channel, byte[] data) {
+	
+   public void sendPluginMessage(String channel, byte[] data) {
         PluginMessagePacket pk = new PluginMessagePacket();
         pk.channel = channel;
         pk.data = data;
         this.sendDataPacket(pk);
+    }
+	
+    @Deprecated
+    public void sendPluginMesssage(String channel, byte[] data) {
+        sendPluginMessage(channel, data);
     }
 }
